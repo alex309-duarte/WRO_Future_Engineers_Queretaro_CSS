@@ -2,7 +2,7 @@
 CXX = g++
 
 # SDK Directory
-SDK_DIR = /home/maker/WRO_Future_Engineers_Queretaro_CSS/rplidar_sdk
+SDK_DIR = ./rplidar_sdk
 SDK_LIB = $(SDK_DIR)/output/Linux/Release/libsl_lidar_sdk.a
 
 # Includes and Flags
