@@ -1,0 +1,333 @@
+(kicad_sch
+	(version 20250114)
+	(generator "eeschema")
+	(generator_version "9.0")
+	(uuid "20d6dcb7-8af9-4676-bef3-6d0ae0d6a00c")
+	(paper "A4")
+	(title_block
+		(title "connectors")
+	)
+	(lib_symbols
+		(symbol "local:BLOCK"
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "X"
+				(at 0 14.224 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" "BLOCK"
+				(at 0 -14.224 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" ""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" "~"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description" "Generic visible functional block"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "BLOCK_0_1"
+				(rectangle
+					(start -17.78 12.70)
+					(end 17.78 -12.70)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type background)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
+	)
+	(hierarchical_label "IN12V" (shape output) (at 121.92 20.32 180) (effects (font (size 1.27 1.27))) (uuid "28000000-0000-0000-0000-000000000001"))
+	(hierarchical_label "GND" (shape bidirectional) (at 20.32 30.48 0) (effects (font (size 1.27 1.27))) (uuid "28000000-0000-0000-0000-000000000002"))
+	(hierarchical_label "VGND" (shape bidirectional) (at 20.32 40.64 0) (effects (font (size 1.27 1.27))) (uuid "28000000-0000-0000-0000-000000000003"))
+	(hierarchical_label "UART_TX" (shape input) (at 20.32 50.80 0) (effects (font (size 1.27 1.27))) (uuid "28000000-0000-0000-0000-000000000004"))
+	(hierarchical_label "UART_RX" (shape output) (at 121.92 50.80 180) (effects (font (size 1.27 1.27))) (uuid "28000000-0000-0000-0000-000000000005"))
+	(hierarchical_label "M1+" (shape input) (at 20.32 60.96 0) (effects (font (size 1.27 1.27))) (uuid "28000000-0000-0000-0000-000000000006"))
+	(hierarchical_label "M1-" (shape input) (at 20.32 71.12 0) (effects (font (size 1.27 1.27))) (uuid "28000000-0000-0000-0000-000000000007"))
+	(hierarchical_label "H1A" (shape output) (at 121.92 60.96 180) (effects (font (size 1.27 1.27))) (uuid "28000000-0000-0000-0000-000000000008"))
+	(hierarchical_label "H1B" (shape output) (at 121.92 71.12 180) (effects (font (size 1.27 1.27))) (uuid "28000000-0000-0000-0000-000000000009"))
+	(symbol
+		(lib_id "local:BLOCK")
+		(at 45.72 20.32 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "28aaaaaa-0000-0000-0000-000000000001")
+		(property "Reference" "J3"
+			(at 45.72 5.08 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "BATTERY_CONNECTOR"
+			(at 45.72 35.56 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 45.72 20.32 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 45.72 20.32 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Battery connector family placeholder"
+			(at 45.72 20.32 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(instances
+			(project "future_engineers_robotics_expansion"
+				(path "/"
+					(reference "J3")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "local:BLOCK")
+		(at 86.36 45.72 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "28aaaaaa-0000-0000-0000-000000000002")
+		(property "Reference" "J4"
+			(at 86.36 30.48 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "UART_HEADER"
+			(at 86.36 60.96 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 86.36 45.72 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 86.36 45.72 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "UART external connector"
+			(at 86.36 45.72 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(instances
+			(project "future_engineers_robotics_expansion"
+				(path "/"
+					(reference "J4")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "local:BLOCK")
+		(at 45.72 76.20 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "28aaaaaa-0000-0000-0000-000000000003")
+		(property "Reference" "J5"
+			(at 45.72 60.96 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "MOTOR1_CONNECTOR"
+			(at 45.72 91.44 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 45.72 76.20 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 45.72 76.20 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Motor output connector"
+			(at 45.72 76.20 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(instances
+			(project "future_engineers_robotics_expansion"
+				(path "/"
+					(reference "J5")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "local:BLOCK")
+		(at 86.36 76.20 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "28aaaaaa-0000-0000-0000-000000000004")
+		(property "Reference" "J6"
+			(at 86.36 60.96 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "HALL_ENCODER_CONNECTOR"
+			(at 86.36 91.44 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 86.36 76.20 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 86.36 76.20 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Hall sensor connector"
+			(at 86.36 76.20 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(instances
+			(project "future_engineers_robotics_expansion"
+				(path "/"
+					(reference "J6")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(sheet_instances
+		(path "/"
+			(page "1")
+		)
+	)
+	(embedded_fonts no)
+)

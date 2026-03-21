@@ -1,0 +1,418 @@
+(kicad_sch
+	(version 20250114)
+	(generator "eeschema")
+	(generator_version "9.0")
+	(uuid "10d6dcb7-8af9-4676-bef3-6d0ae0d6a001")
+	(paper "A3")
+	(title_block
+		(title "Future Engineers Robotics Expansion")
+	)
+	(sheet
+		(at 20.00 20.00)
+		(size 55.88 43.18)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(stroke
+			(width 0)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0000)
+		)
+		(uuid "10d6dcb7-8af9-4676-bef3-6d0ae0d6a002")
+		(property "Sheetname" "power"
+			(at 20.00 19.2375 0)
+			(effects
+				(font
+					(size 1.524 1.524)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "power.kicad_sch"
+			(at 20.00 64.00 0)
+			(effects
+				(font
+					(size 1.524 1.524)
+				)
+				(justify left top)
+			)
+		)
+		(pin "IN12V" input (at 20.00 26.00 180) (effects (font (size 1.27 1.27))) (uuid "11000000-0000-0000-0000-000000000001"))
+		(pin "VM" output (at 75.88 26.00 0) (effects (font (size 1.27 1.27))) (uuid "11000000-0000-0000-0000-000000000002"))
+		(pin "+5V" output (at 75.88 32.00 0) (effects (font (size 1.27 1.27))) (uuid "11000000-0000-0000-0000-000000000003"))
+		(pin "+3V3" output (at 75.88 38.00 0) (effects (font (size 1.27 1.27))) (uuid "11000000-0000-0000-0000-000000000004"))
+		(pin "GND" passive (at 20.00 44.00 180) (effects (font (size 1.27 1.27))) (uuid "11000000-0000-0000-0000-000000000005"))
+		(pin "DGND" passive (at 20.00 50.00 180) (effects (font (size 1.27 1.27))) (uuid "11000000-0000-0000-0000-000000000006"))
+		(pin "AGND" passive (at 20.00 56.00 180) (effects (font (size 1.27 1.27))) (uuid "11000000-0000-0000-0000-000000000007"))
+		(pin "VGND" passive (at 75.88 56.00 0) (effects (font (size 1.27 1.27))) (uuid "11000000-0000-0000-0000-000000000008"))
+		(instances
+			(project "future_engineers_robotics_expansion"
+				(path "/10d6dcb7-8af9-4676-bef3-6d0ae0d6a001"
+					(page "2")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 90.00 20.00)
+		(size 70.00 55.00)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(stroke
+			(width 0)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0000)
+		)
+		(uuid "10d6dcb7-8af9-4676-bef3-6d0ae0d6a003")
+		(property "Sheetname" "mcu"
+			(at 90.00 19.2375 0)
+			(effects
+				(font
+					(size 1.524 1.524)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "mcu.kicad_sch"
+			(at 90.00 76.00 0)
+			(effects
+				(font
+					(size 1.524 1.524)
+				)
+				(justify left top)
+			)
+		)
+		(pin "+3V3" input (at 90.00 28.00 180) (effects (font (size 1.27 1.27))) (uuid "11000000-0000-0000-0000-000000000009"))
+		(pin "+5V" input (at 90.00 34.00 180) (effects (font (size 1.27 1.27))) (uuid "11000000-0000-0000-0000-00000000000a"))
+		(pin "GND" passive (at 90.00 40.00 180) (effects (font (size 1.27 1.27))) (uuid "11000000-0000-0000-0000-00000000000b"))
+		(pin "DGND" passive (at 90.00 46.00 180) (effects (font (size 1.27 1.27))) (uuid "11000000-0000-0000-0000-00000000000c"))
+		(pin "AGND" passive (at 90.00 52.00 180) (effects (font (size 1.27 1.27))) (uuid "11000000-0000-0000-0000-00000000000d"))
+		(pin "NRST" bidirectional (at 160.00 24.00 0) (effects (font (size 1.27 1.27))) (uuid "11000000-0000-0000-0000-00000000000e"))
+		(pin "BOOT0" input (at 160.00 30.00 0) (effects (font (size 1.27 1.27))) (uuid "11000000-0000-0000-0000-00000000000f"))
+		(pin "BOOT1" input (at 160.00 36.00 0) (effects (font (size 1.27 1.27))) (uuid "11000000-0000-0000-0000-000000000010"))
+		(pin "SWDIO" bidirectional (at 160.00 42.00 0) (effects (font (size 1.27 1.27))) (uuid "11000000-0000-0000-0000-000000000011"))
+		(pin "SWCLK" input (at 160.00 48.00 0) (effects (font (size 1.27 1.27))) (uuid "11000000-0000-0000-0000-000000000012"))
+		(pin "UART_TX" output (at 160.00 54.00 0) (effects (font (size 1.27 1.27))) (uuid "11000000-0000-0000-0000-000000000013"))
+		(pin "UART_RX" input (at 160.00 60.00 0) (effects (font (size 1.27 1.27))) (uuid "11000000-0000-0000-0000-000000000014"))
+		(pin "IMU_INT" input (at 160.00 66.00 0) (effects (font (size 1.27 1.27))) (uuid "11000000-0000-0000-0000-000000000015"))
+		(pin "IMU_SDA_SDI" bidirectional (at 160.00 72.00 0) (effects (font (size 1.27 1.27))) (uuid "11000000-0000-0000-0000-000000000016"))
+		(pin "IMU_SCL_SCLK" output (at 160.00 78.00 0) (effects (font (size 1.27 1.27))) (uuid "11000000-0000-0000-0000-000000000017"))
+		(pin "IMU_nCS" output (at 160.00 84.00 0) (effects (font (size 1.27 1.27))) (uuid "11000000-0000-0000-0000-000000000018"))
+		(pin "IMU_AD0_SDO" bidirectional (at 160.00 90.00 0) (effects (font (size 1.27 1.27))) (uuid "11000000-0000-0000-0000-000000000019"))
+		(pin "M1" output (at 160.00 96.00 0) (effects (font (size 1.27 1.27))) (uuid "11000000-0000-0000-0000-00000000001a"))
+		(pin "M1A" output (at 160.00 102.00 0) (effects (font (size 1.27 1.27))) (uuid "11000000-0000-0000-0000-00000000001b"))
+		(pin "M1B" output (at 160.00 108.00 0) (effects (font (size 1.27 1.27))) (uuid "11000000-0000-0000-0000-00000000001c"))
+		(pin "H1A" input (at 160.00 114.00 0) (effects (font (size 1.27 1.27))) (uuid "11000000-0000-0000-0000-00000000001d"))
+		(pin "H1B" input (at 160.00 120.00 0) (effects (font (size 1.27 1.27))) (uuid "11000000-0000-0000-0000-00000000001e"))
+		(instances
+			(project "future_engineers_robotics_expansion"
+				(path "/10d6dcb7-8af9-4676-bef3-6d0ae0d6a001"
+					(page "3")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 175.00 20.00)
+		(size 45.00 40.00)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(stroke
+			(width 0)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0000)
+		)
+		(uuid "10d6dcb7-8af9-4676-bef3-6d0ae0d6a004")
+		(property "Sheetname" "debug"
+			(at 175.00 19.2375 0)
+			(effects
+				(font
+					(size 1.524 1.524)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "debug.kicad_sch"
+			(at 175.00 61.00 0)
+			(effects
+				(font
+					(size 1.524 1.524)
+				)
+				(justify left top)
+			)
+		)
+		(pin "+3V3" input (at 175.00 26.00 180) (effects (font (size 1.27 1.27))) (uuid "11000000-0000-0000-0000-00000000001f"))
+		(pin "GND" passive (at 175.00 32.00 180) (effects (font (size 1.27 1.27))) (uuid "11000000-0000-0000-0000-000000000020"))
+		(pin "SWDIO" bidirectional (at 220.00 26.00 0) (effects (font (size 1.27 1.27))) (uuid "11000000-0000-0000-0000-000000000021"))
+		(pin "SWCLK" input (at 220.00 32.00 0) (effects (font (size 1.27 1.27))) (uuid "11000000-0000-0000-0000-000000000022"))
+		(pin "NRST" bidirectional (at 220.00 38.00 0) (effects (font (size 1.27 1.27))) (uuid "11000000-0000-0000-0000-000000000023"))
+		(pin "BOOT0" input (at 220.00 44.00 0) (effects (font (size 1.27 1.27))) (uuid "11000000-0000-0000-0000-000000000024"))
+		(pin "BOOT1" input (at 220.00 50.00 0) (effects (font (size 1.27 1.27))) (uuid "11000000-0000-0000-0000-000000000025"))
+		(instances
+			(project "future_engineers_robotics_expansion"
+				(path "/10d6dcb7-8af9-4676-bef3-6d0ae0d6a001"
+					(page "4")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 230.00 20.00)
+		(size 45.00 34.00)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(stroke
+			(width 0)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0000)
+		)
+		(uuid "10d6dcb7-8af9-4676-bef3-6d0ae0d6a005")
+		(property "Sheetname" "usb_uart"
+			(at 230.00 19.2375 0)
+			(effects
+				(font
+					(size 1.524 1.524)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "usb_uart.kicad_sch"
+			(at 230.00 55.00 0)
+			(effects
+				(font
+					(size 1.524 1.524)
+				)
+				(justify left top)
+			)
+		)
+		(pin "+5V" input (at 230.00 26.00 180) (effects (font (size 1.27 1.27))) (uuid "11000000-0000-0000-0000-000000000026"))
+		(pin "+3V3" input (at 230.00 32.00 180) (effects (font (size 1.27 1.27))) (uuid "11000000-0000-0000-0000-000000000027"))
+		(pin "GND" passive (at 230.00 38.00 180) (effects (font (size 1.27 1.27))) (uuid "11000000-0000-0000-0000-000000000028"))
+		(pin "UART_TX" output (at 275.00 26.00 0) (effects (font (size 1.27 1.27))) (uuid "11000000-0000-0000-0000-000000000029"))
+		(pin "UART_RX" input (at 275.00 32.00 0) (effects (font (size 1.27 1.27))) (uuid "11000000-0000-0000-0000-00000000002a"))
+		(instances
+			(project "future_engineers_robotics_expansion"
+				(path "/10d6dcb7-8af9-4676-bef3-6d0ae0d6a001"
+					(page "5")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 20.00 80.00)
+		(size 55.00 40.00)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(stroke
+			(width 0)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0000)
+		)
+		(uuid "10d6dcb7-8af9-4676-bef3-6d0ae0d6a007")
+		(property "Sheetname" "imu"
+			(at 20.00 79.2375 0)
+			(effects
+				(font
+					(size 1.524 1.524)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "imu.kicad_sch"
+			(at 20.00 121.00 0)
+			(effects
+				(font
+					(size 1.524 1.524)
+				)
+				(justify left top)
+			)
+		)
+		(pin "+3V3" input (at 20.00 88.00 180) (effects (font (size 1.27 1.27))) (uuid "11000000-0000-0000-0000-00000000002b"))
+		(pin "GND" passive (at 20.00 94.00 180) (effects (font (size 1.27 1.27))) (uuid "11000000-0000-0000-0000-00000000002c"))
+		(pin "AGND" passive (at 20.00 100.00 180) (effects (font (size 1.27 1.27))) (uuid "11000000-0000-0000-0000-00000000002d"))
+		(pin "IMU_INT" output (at 75.00 88.00 0) (effects (font (size 1.27 1.27))) (uuid "11000000-0000-0000-0000-00000000002e"))
+		(pin "IMU_SDA_SDI" bidirectional (at 75.00 94.00 0) (effects (font (size 1.27 1.27))) (uuid "11000000-0000-0000-0000-00000000002f"))
+		(pin "IMU_SCL_SCLK" input (at 75.00 100.00 0) (effects (font (size 1.27 1.27))) (uuid "11000000-0000-0000-0000-000000000030"))
+		(pin "IMU_nCS" input (at 75.00 106.00 0) (effects (font (size 1.27 1.27))) (uuid "11000000-0000-0000-0000-000000000031"))
+		(pin "IMU_AD0_SDO" bidirectional (at 75.00 112.00 0) (effects (font (size 1.27 1.27))) (uuid "11000000-0000-0000-0000-000000000032"))
+		(instances
+			(project "future_engineers_robotics_expansion"
+				(path "/10d6dcb7-8af9-4676-bef3-6d0ae0d6a001"
+					(page "6")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 90.00 80.00)
+		(size 65.00 46.00)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(stroke
+			(width 0)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0000)
+		)
+		(uuid "10d6dcb7-8af9-4676-bef3-6d0ae0d6a009")
+		(property "Sheetname" "motors_4x"
+			(at 90.00 79.2375 0)
+			(effects
+				(font
+					(size 1.524 1.524)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "motors_4x.kicad_sch"
+			(at 90.00 127.00 0)
+			(effects
+				(font
+					(size 1.524 1.524)
+				)
+				(justify left top)
+			)
+		)
+		(pin "VM" input (at 90.00 88.00 180) (effects (font (size 1.27 1.27))) (uuid "11000000-0000-0000-0000-000000000033"))
+		(pin "GND" passive (at 90.00 94.00 180) (effects (font (size 1.27 1.27))) (uuid "11000000-0000-0000-0000-000000000034"))
+		(pin "VGND" passive (at 90.00 100.00 180) (effects (font (size 1.27 1.27))) (uuid "11000000-0000-0000-0000-000000000035"))
+		(pin "M1" input (at 90.00 106.00 180) (effects (font (size 1.27 1.27))) (uuid "11000000-0000-0000-0000-000000000036"))
+		(pin "M1A" input (at 90.00 112.00 180) (effects (font (size 1.27 1.27))) (uuid "11000000-0000-0000-0000-000000000037"))
+		(pin "M1B" input (at 90.00 118.00 180) (effects (font (size 1.27 1.27))) (uuid "11000000-0000-0000-0000-000000000038"))
+		(pin "M1+" output (at 155.00 94.00 0) (effects (font (size 1.27 1.27))) (uuid "11000000-0000-0000-0000-000000000039"))
+		(pin "M1-" output (at 155.00 100.00 0) (effects (font (size 1.27 1.27))) (uuid "11000000-0000-0000-0000-00000000003a"))
+		(pin "H1A" output (at 155.00 106.00 0) (effects (font (size 1.27 1.27))) (uuid "11000000-0000-0000-0000-00000000003b"))
+		(pin "H1B" output (at 155.00 112.00 0) (effects (font (size 1.27 1.27))) (uuid "11000000-0000-0000-0000-00000000003c"))
+		(instances
+			(project "future_engineers_robotics_expansion"
+				(path "/10d6dcb7-8af9-4676-bef3-6d0ae0d6a001"
+					(page "7")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 170.00 80.00)
+		(size 45.00 34.00)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(stroke
+			(width 0)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0000)
+		)
+		(uuid "10d6dcb7-8af9-4676-bef3-6d0ae0d6a00b")
+		(property "Sheetname" "user_io"
+			(at 170.00 79.2375 0)
+			(effects
+				(font
+					(size 1.524 1.524)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "user_io.kicad_sch"
+			(at 170.00 115.00 0)
+			(effects
+				(font
+					(size 1.524 1.524)
+				)
+				(justify left top)
+			)
+		)
+		(pin "+3V3" input (at 170.00 88.00 180) (effects (font (size 1.27 1.27))) (uuid "11000000-0000-0000-0000-00000000003d"))
+		(pin "GND" passive (at 170.00 94.00 180) (effects (font (size 1.27 1.27))) (uuid "11000000-0000-0000-0000-00000000003e"))
+		(pin "NRST" bidirectional (at 215.00 88.00 0) (effects (font (size 1.27 1.27))) (uuid "11000000-0000-0000-0000-00000000003f"))
+		(pin "BOOT0" input (at 215.00 94.00 0) (effects (font (size 1.27 1.27))) (uuid "11000000-0000-0000-0000-000000000040"))
+		(pin "BOOT1" input (at 215.00 100.00 0) (effects (font (size 1.27 1.27))) (uuid "11000000-0000-0000-0000-000000000041"))
+		(instances
+			(project "future_engineers_robotics_expansion"
+				(path "/10d6dcb7-8af9-4676-bef3-6d0ae0d6a001"
+					(page "8")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 230.00 80.00)
+		(size 50.00 46.00)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(stroke
+			(width 0)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0000)
+		)
+		(uuid "10d6dcb7-8af9-4676-bef3-6d0ae0d6a00c")
+		(property "Sheetname" "connectors"
+			(at 230.00 79.2375 0)
+			(effects
+				(font
+					(size 1.524 1.524)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "connectors.kicad_sch"
+			(at 230.00 127.00 0)
+			(effects
+				(font
+					(size 1.524 1.524)
+				)
+				(justify left top)
+			)
+		)
+		(pin "IN12V" output (at 280.00 88.00 0) (effects (font (size 1.27 1.27))) (uuid "11000000-0000-0000-0000-000000000042"))
+		(pin "GND" passive (at 230.00 94.00 180) (effects (font (size 1.27 1.27))) (uuid "11000000-0000-0000-0000-000000000043"))
+		(pin "VGND" passive (at 230.00 100.00 180) (effects (font (size 1.27 1.27))) (uuid "11000000-0000-0000-0000-000000000044"))
+		(pin "UART_TX" input (at 230.00 106.00 180) (effects (font (size 1.27 1.27))) (uuid "11000000-0000-0000-0000-000000000045"))
+		(pin "UART_RX" output (at 280.00 106.00 0) (effects (font (size 1.27 1.27))) (uuid "11000000-0000-0000-0000-000000000046"))
+		(pin "M1+" input (at 230.00 112.00 180) (effects (font (size 1.27 1.27))) (uuid "11000000-0000-0000-0000-000000000047"))
+		(pin "M1-" input (at 230.00 118.00 180) (effects (font (size 1.27 1.27))) (uuid "11000000-0000-0000-0000-000000000048"))
+		(pin "H1A" output (at 280.00 112.00 0) (effects (font (size 1.27 1.27))) (uuid "11000000-0000-0000-0000-000000000049"))
+		(pin "H1B" output (at 280.00 118.00 0) (effects (font (size 1.27 1.27))) (uuid "11000000-0000-0000-0000-00000000004a"))
+		(instances
+			(project "future_engineers_robotics_expansion"
+				(path "/10d6dcb7-8af9-4676-bef3-6d0ae0d6a001"
+					(page "9")
+				)
+			)
+		)
+	)
+	(sheet_instances
+		(path "/"
+			(page "1")
+		)
+	)
+	(embedded_fonts no)
+)

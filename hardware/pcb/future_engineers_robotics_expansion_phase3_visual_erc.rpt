@@ -1,0 +1,330 @@
+Informe de ERC (2026-03-14T21:26:02-0600, codificación UTF8)
+
+***** Hoja /
+[pin_not_connected]: Pin no conectado
+    ; error
+    @(20.00 mm, 26.00 mm): Pin de hoja jerárquica IN12V
+[pin_not_connected]: Pin no conectado
+    ; error
+    @(20.00 mm, 44.00 mm): Pin de hoja jerárquica GND
+[pin_not_connected]: Pin no conectado
+    ; error
+    @(20.00 mm, 50.00 mm): Pin de hoja jerárquica DGND
+[pin_not_connected]: Pin no conectado
+    ; error
+    @(20.00 mm, 56.00 mm): Pin de hoja jerárquica AGND
+[pin_not_connected]: Pin no conectado
+    ; error
+    @(75.88 mm, 26.00 mm): Pin de hoja jerárquica VM
+[pin_not_connected]: Pin no conectado
+    ; error
+    @(75.88 mm, 32.00 mm): Pin de hoja jerárquica +5V
+[pin_not_connected]: Pin no conectado
+    ; error
+    @(75.88 mm, 38.00 mm): Pin de hoja jerárquica +3V3
+[pin_not_connected]: Pin no conectado
+    ; error
+    @(20.00 mm, 88.00 mm): Pin de hoja jerárquica +3V3
+[pin_not_connected]: Pin no conectado
+    ; error
+    @(75.88 mm, 56.00 mm): Pin de hoja jerárquica VGND
+[pin_not_connected]: Pin no conectado
+    ; error
+    @(20.00 mm, 94.00 mm): Pin de hoja jerárquica GND
+[pin_not_connected]: Pin no conectado
+    ; error
+    @(20.00 mm, 100.00 mm): Pin de hoja jerárquica AGND
+[pin_not_connected]: Pin no conectado
+    ; error
+    @(75.00 mm, 88.00 mm): Pin de hoja jerárquica IMU_INT
+[pin_not_connected]: Pin no conectado
+    ; error
+    @(75.00 mm, 94.00 mm): Pin de hoja jerárquica IMU_SDA_SDI
+[pin_not_connected]: Pin no conectado
+    ; error
+    @(75.00 mm, 100.00 mm): Pin de hoja jerárquica IMU_SCL_SCLK
+[pin_not_connected]: Pin no conectado
+    ; error
+    @(75.00 mm, 106.00 mm): Pin de hoja jerárquica IMU_nCS
+[pin_not_connected]: Pin no conectado
+    ; error
+    @(75.00 mm, 112.00 mm): Pin de hoja jerárquica IMU_AD0_SDO
+[label_dangling]: Etiqueta no conectada a nada
+    ; error
+    @(20.32 mm, 30.48 mm): Etiqueta jerárquica 'IN12V'
+[label_dangling]: Etiqueta no conectada a nada
+    ; error
+    @(20.32 mm, 71.12 mm): Etiqueta jerárquica 'GND'
+[label_dangling]: Etiqueta no conectada a nada
+    ; error
+    @(20.32 mm, 81.28 mm): Etiqueta jerárquica 'DGND'
+[label_dangling]: Etiqueta no conectada a nada
+    ; error
+    @(20.32 mm, 91.44 mm): Etiqueta jerárquica 'AGND'
+[label_dangling]: Etiqueta no conectada a nada
+    ; error
+    @(121.92 mm, 30.48 mm): Etiqueta jerárquica 'VM'
+[label_dangling]: Etiqueta no conectada a nada
+    ; error
+    @(121.92 mm, 40.64 mm): Etiqueta jerárquica '+5V'
+[label_dangling]: Etiqueta no conectada a nada
+    ; error
+    @(121.92 mm, 50.80 mm): Etiqueta jerárquica '+3V3'
+[label_dangling]: Etiqueta no conectada a nada
+    ; error
+    @(121.92 mm, 91.44 mm): Etiqueta jerárquica 'VGND'
+[label_dangling]: Etiqueta no conectada a nada
+    ; error
+    @(20.32 mm, 20.32 mm): Etiqueta jerárquica '+3V3'
+[label_dangling]: Etiqueta no conectada a nada
+    ; error
+    @(20.32 mm, 30.48 mm): Etiqueta jerárquica 'GND'
+[label_dangling]: Etiqueta no conectada a nada
+    ; error
+    @(20.32 mm, 40.64 mm): Etiqueta jerárquica 'AGND'
+[label_dangling]: Etiqueta no conectada a nada
+    ; error
+    @(121.92 mm, 20.32 mm): Etiqueta jerárquica 'IMU_INT'
+[label_dangling]: Etiqueta no conectada a nada
+    ; error
+    @(121.92 mm, 30.48 mm): Etiqueta jerárquica 'IMU_SDA_SDI'
+[label_dangling]: Etiqueta no conectada a nada
+    ; error
+    @(121.92 mm, 40.64 mm): Etiqueta jerárquica 'IMU_SCL_SCLK'
+[label_dangling]: Etiqueta no conectada a nada
+    ; error
+    @(121.92 mm, 50.80 mm): Etiqueta jerárquica 'IMU_nCS'
+[label_dangling]: Etiqueta no conectada a nada
+    ; error
+    @(121.92 mm, 60.96 mm): Etiqueta jerárquica 'IMU_AD0_SDO'
+[label_dangling]: Etiqueta no conectada a nada
+    ; error
+    @(20.32 mm, 20.32 mm): Etiqueta jerárquica '+3V3'
+[label_dangling]: Etiqueta no conectada a nada
+    ; error
+    @(20.32 mm, 30.48 mm): Etiqueta jerárquica '+5V'
+[label_dangling]: Etiqueta no conectada a nada
+    ; error
+    @(20.32 mm, 40.64 mm): Etiqueta jerárquica 'GND'
+[label_dangling]: Etiqueta no conectada a nada
+    ; error
+    @(20.32 mm, 50.80 mm): Etiqueta jerárquica 'DGND'
+[label_dangling]: Etiqueta no conectada a nada
+    ; error
+    @(20.32 mm, 60.96 mm): Etiqueta jerárquica 'AGND'
+[label_dangling]: Etiqueta no conectada a nada
+    ; error
+    @(121.92 mm, 20.32 mm): Etiqueta jerárquica 'NRST'
+[label_dangling]: Etiqueta no conectada a nada
+    ; error
+    @(121.92 mm, 30.48 mm): Etiqueta jerárquica 'BOOT0'
+[label_dangling]: Etiqueta no conectada a nada
+    ; error
+    @(121.92 mm, 40.64 mm): Etiqueta jerárquica 'BOOT1'
+[label_dangling]: Etiqueta no conectada a nada
+    ; error
+    @(121.92 mm, 50.80 mm): Etiqueta jerárquica 'SWDIO'
+[label_dangling]: Etiqueta no conectada a nada
+    ; error
+    @(121.92 mm, 60.96 mm): Etiqueta jerárquica 'SWCLK'
+[label_dangling]: Etiqueta no conectada a nada
+    ; error
+    @(121.92 mm, 71.12 mm): Etiqueta jerárquica 'UART_TX'
+[label_dangling]: Etiqueta no conectada a nada
+    ; error
+    @(121.92 mm, 81.28 mm): Etiqueta jerárquica 'UART_RX'
+[label_dangling]: Etiqueta no conectada a nada
+    ; error
+    @(121.92 mm, 91.44 mm): Etiqueta jerárquica 'IMU_INT'
+[label_dangling]: Etiqueta no conectada a nada
+    ; error
+    @(121.92 mm, 101.60 mm): Etiqueta jerárquica 'IMU_SDA_SDI'
+[label_dangling]: Etiqueta no conectada a nada
+    ; error
+    @(121.92 mm, 111.76 mm): Etiqueta jerárquica 'IMU_SCL_SCLK'
+[label_dangling]: Etiqueta no conectada a nada
+    ; error
+    @(121.92 mm, 121.92 mm): Etiqueta jerárquica 'IMU_nCS'
+[label_dangling]: Etiqueta no conectada a nada
+    ; error
+    @(121.92 mm, 132.08 mm): Etiqueta jerárquica 'IMU_AD0_SDO'
+[label_dangling]: Etiqueta no conectada a nada
+    ; error
+    @(121.92 mm, 142.24 mm): Etiqueta jerárquica 'M1'
+[label_dangling]: Etiqueta no conectada a nada
+    ; error
+    @(121.92 mm, 152.40 mm): Etiqueta jerárquica 'M1A'
+[label_dangling]: Etiqueta no conectada a nada
+    ; error
+    @(121.92 mm, 162.56 mm): Etiqueta jerárquica 'M1B'
+[label_dangling]: Etiqueta no conectada a nada
+    ; error
+    @(121.92 mm, 172.72 mm): Etiqueta jerárquica 'H1A'
+[label_dangling]: Etiqueta no conectada a nada
+    ; error
+    @(121.92 mm, 182.88 mm): Etiqueta jerárquica 'H1B'
+[label_dangling]: Etiqueta no conectada a nada
+    ; error
+    @(20.32 mm, 20.32 mm): Etiqueta jerárquica 'VM'
+[label_dangling]: Etiqueta no conectada a nada
+    ; error
+    @(20.32 mm, 30.48 mm): Etiqueta jerárquica 'GND'
+[label_dangling]: Etiqueta no conectada a nada
+    ; error
+    @(20.32 mm, 40.64 mm): Etiqueta jerárquica 'VGND'
+[label_dangling]: Etiqueta no conectada a nada
+    ; error
+    @(20.32 mm, 50.80 mm): Etiqueta jerárquica 'M1'
+[label_dangling]: Etiqueta no conectada a nada
+    ; error
+    @(20.32 mm, 60.96 mm): Etiqueta jerárquica 'M1A'
+[label_dangling]: Etiqueta no conectada a nada
+    ; error
+    @(20.32 mm, 71.12 mm): Etiqueta jerárquica 'M1B'
+[label_dangling]: Etiqueta no conectada a nada
+    ; error
+    @(121.92 mm, 20.32 mm): Etiqueta jerárquica 'M1+'
+[label_dangling]: Etiqueta no conectada a nada
+    ; error
+    @(121.92 mm, 30.48 mm): Etiqueta jerárquica 'M1-'
+[label_dangling]: Etiqueta no conectada a nada
+    ; error
+    @(121.92 mm, 40.64 mm): Etiqueta jerárquica 'H1A'
+[label_dangling]: Etiqueta no conectada a nada
+    ; error
+    @(121.92 mm, 50.80 mm): Etiqueta jerárquica 'H1B'
+[label_dangling]: Etiqueta no conectada a nada
+    ; error
+    @(20.32 mm, 20.32 mm): Etiqueta jerárquica '+3V3'
+[label_dangling]: Etiqueta no conectada a nada
+    ; error
+    @(20.32 mm, 30.48 mm): Etiqueta jerárquica 'GND'
+[label_dangling]: Etiqueta no conectada a nada
+    ; error
+    @(121.92 mm, 20.32 mm): Etiqueta jerárquica 'NRST'
+[label_dangling]: Etiqueta no conectada a nada
+    ; error
+    @(121.92 mm, 30.48 mm): Etiqueta jerárquica 'BOOT0'
+[label_dangling]: Etiqueta no conectada a nada
+    ; error
+    @(121.92 mm, 40.64 mm): Etiqueta jerárquica 'BOOT1'
+[label_dangling]: Etiqueta no conectada a nada
+    ; error
+    @(20.32 mm, 20.32 mm): Etiqueta jerárquica '+3V3'
+[label_dangling]: Etiqueta no conectada a nada
+    ; error
+    @(20.32 mm, 30.48 mm): Etiqueta jerárquica 'GND'
+[label_dangling]: Etiqueta no conectada a nada
+    ; error
+    @(121.92 mm, 20.32 mm): Etiqueta jerárquica 'SWDIO'
+[label_dangling]: Etiqueta no conectada a nada
+    ; error
+    @(121.92 mm, 30.48 mm): Etiqueta jerárquica 'SWCLK'
+[label_dangling]: Etiqueta no conectada a nada
+    ; error
+    @(121.92 mm, 40.64 mm): Etiqueta jerárquica 'NRST'
+[label_dangling]: Etiqueta no conectada a nada
+    ; error
+    @(121.92 mm, 50.80 mm): Etiqueta jerárquica 'BOOT0'
+[label_dangling]: Etiqueta no conectada a nada
+    ; error
+    @(121.92 mm, 60.96 mm): Etiqueta jerárquica 'BOOT1'
+[label_dangling]: Etiqueta no conectada a nada
+    ; error
+    @(20.32 mm, 20.32 mm): Etiqueta jerárquica '+5V'
+[label_dangling]: Etiqueta no conectada a nada
+    ; error
+    @(20.32 mm, 30.48 mm): Etiqueta jerárquica '+3V3'
+[label_dangling]: Etiqueta no conectada a nada
+    ; error
+    @(20.32 mm, 40.64 mm): Etiqueta jerárquica 'GND'
+[label_dangling]: Etiqueta no conectada a nada
+    ; error
+    @(121.92 mm, 20.32 mm): Etiqueta jerárquica 'UART_TX'
+[label_dangling]: Etiqueta no conectada a nada
+    ; error
+    @(121.92 mm, 30.48 mm): Etiqueta jerárquica 'UART_RX'
+[label_dangling]: Etiqueta no conectada a nada
+    ; error
+    @(20.32 mm, 30.48 mm): Etiqueta jerárquica 'GND'
+[label_dangling]: Etiqueta no conectada a nada
+    ; error
+    @(20.32 mm, 40.64 mm): Etiqueta jerárquica 'VGND'
+[label_dangling]: Etiqueta no conectada a nada
+    ; error
+    @(20.32 mm, 50.80 mm): Etiqueta jerárquica 'UART_TX'
+[label_dangling]: Etiqueta no conectada a nada
+    ; error
+    @(20.32 mm, 60.96 mm): Etiqueta jerárquica 'M1+'
+[label_dangling]: Etiqueta no conectada a nada
+    ; error
+    @(20.32 mm, 71.12 mm): Etiqueta jerárquica 'M1-'
+[label_dangling]: Etiqueta no conectada a nada
+    ; error
+    @(121.92 mm, 20.32 mm): Etiqueta jerárquica 'IN12V'
+[label_dangling]: Etiqueta no conectada a nada
+    ; error
+    @(121.92 mm, 50.80 mm): Etiqueta jerárquica 'UART_RX'
+[label_dangling]: Etiqueta no conectada a nada
+    ; error
+    @(121.92 mm, 60.96 mm): Etiqueta jerárquica 'H1A'
+[label_dangling]: Etiqueta no conectada a nada
+    ; error
+    @(121.92 mm, 71.12 mm): Etiqueta jerárquica 'H1B'
+[lib_symbol_issues]: The current configuration does not include the symbol library 'local'
+    ; warning
+    @(43.18 mm, 35.56 mm): Símbolo J1 [BLOCK]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'local'
+    ; warning
+    @(81.28 mm, 40.64 mm): Símbolo U2 [BLOCK]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'local'
+    ; warning
+    @(81.28 mm, 76.20 mm): Símbolo U3 [BLOCK]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'local'
+    ; warning
+    @(71.12 mm, 40.64 mm): Símbolo U5 [BLOCK]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'local'
+    ; warning
+    @(71.12 mm, 101.60 mm): Símbolo U1 [BLOCK]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'local'
+    ; warning
+    @(71.12 mm, 45.72 mm): Símbolo U6 [BLOCK]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'local'
+    ; warning
+    @(71.12 mm, 30.48 mm): Símbolo SW1 [BLOCK]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'local'
+    ; warning
+    @(71.12 mm, 40.64 mm): Símbolo J2 [BLOCK]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'local'
+    ; warning
+    @(71.12 mm, 30.48 mm): Símbolo U4 [BLOCK]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'local'
+    ; warning
+    @(45.72 mm, 20.32 mm): Símbolo J3 [BLOCK]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'local'
+    ; warning
+    @(45.72 mm, 76.20 mm): Símbolo J5 [BLOCK]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'local'
+    ; warning
+    @(86.36 mm, 45.72 mm): Símbolo J4 [BLOCK]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'local'
+    ; warning
+    @(86.36 mm, 76.20 mm): Símbolo J6 [BLOCK]
+
+***** Hoja /power/
+
+***** Hoja /mcu/
+
+***** Hoja /debug/
+
+***** Hoja /usb_uart/
+
+***** Hoja /imu/
+
+***** Hoja /motors_4x/
+
+***** Hoja /user_io/
+
+***** Hoja /connectors/
+
+**Mensajes ERC: 103. Errores90, Avisos 13

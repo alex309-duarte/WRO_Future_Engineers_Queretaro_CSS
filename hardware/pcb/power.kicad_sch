@@ -1,0 +1,271 @@
+(kicad_sch
+	(version 20250114)
+	(generator "eeschema")
+	(generator_version "9.0")
+	(uuid "20d6dcb7-8af9-4676-bef3-6d0ae0d6a002")
+	(paper "A4")
+	(title_block
+		(title "power")
+	)
+	(lib_symbols
+		(symbol "local:BLOCK"
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "X"
+				(at 0 14.224 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" "BLOCK"
+				(at 0 -14.224 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" ""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" "~"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description" "Generic visible functional block"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "BLOCK_0_1"
+				(rectangle
+					(start -17.78 12.70)
+					(end 17.78 -12.70)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type background)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
+	)
+	(hierarchical_label "IN12V" (shape input) (at 20.32 30.48 0) (effects (font (size 1.27 1.27))) (uuid "21000000-0000-0000-0000-000000000001"))
+	(hierarchical_label "VM" (shape output) (at 121.92 30.48 180) (effects (font (size 1.27 1.27))) (uuid "21000000-0000-0000-0000-000000000002"))
+	(hierarchical_label "+5V" (shape output) (at 121.92 40.64 180) (effects (font (size 1.27 1.27))) (uuid "21000000-0000-0000-0000-000000000003"))
+	(hierarchical_label "+3V3" (shape output) (at 121.92 50.80 180) (effects (font (size 1.27 1.27))) (uuid "21000000-0000-0000-0000-000000000004"))
+	(hierarchical_label "GND" (shape bidirectional) (at 20.32 71.12 0) (effects (font (size 1.27 1.27))) (uuid "21000000-0000-0000-0000-000000000005"))
+	(hierarchical_label "DGND" (shape bidirectional) (at 20.32 81.28 0) (effects (font (size 1.27 1.27))) (uuid "21000000-0000-0000-0000-000000000006"))
+	(hierarchical_label "AGND" (shape bidirectional) (at 20.32 91.44 0) (effects (font (size 1.27 1.27))) (uuid "21000000-0000-0000-0000-000000000007"))
+	(hierarchical_label "VGND" (shape bidirectional) (at 121.92 91.44 180) (effects (font (size 1.27 1.27))) (uuid "21000000-0000-0000-0000-000000000008"))
+	(symbol
+		(lib_id "local:BLOCK")
+		(at 43.18 35.56 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "21aaaaaa-0000-0000-0000-000000000001")
+		(property "Reference" "J1"
+			(at 43.18 20.32 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "BATTERY_3S_INPUT"
+			(at 43.18 50.80 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 43.18 35.56 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 43.18 35.56 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Battery connector placeholder"
+			(at 43.18 35.56 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(instances
+			(project "future_engineers_robotics_expansion"
+				(path "/"
+					(reference "J1")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "local:BLOCK")
+		(at 81.28 40.64 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "21aaaaaa-0000-0000-0000-000000000002")
+		(property "Reference" "U2"
+			(at 81.28 25.40 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "12V_TO_5V_REGULATOR"
+			(at 81.28 55.88 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 81.28 40.64 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 81.28 40.64 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "5V regulator placeholder"
+			(at 81.28 40.64 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(instances
+			(project "future_engineers_robotics_expansion"
+				(path "/"
+					(reference "U2")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "local:BLOCK")
+		(at 81.28 76.20 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "21aaaaaa-0000-0000-0000-000000000003")
+		(property "Reference" "U3"
+			(at 81.28 60.96 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "5V_TO_3V3_REGULATOR"
+			(at 81.28 91.44 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 81.28 76.20 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 81.28 76.20 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "3V3 regulator placeholder"
+			(at 81.28 76.20 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(instances
+			(project "future_engineers_robotics_expansion"
+				(path "/"
+					(reference "U3")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(sheet_instances
+		(path "/"
+			(page "1")
+		)
+	)
+	(embedded_fonts no)
+)
