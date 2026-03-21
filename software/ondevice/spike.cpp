@@ -5,6 +5,7 @@
 #include <termios.h>
 #include <string.h>
 #include <stdarg.h>
+#include <gpiod.h>
 
 #include "sl_lidar.h" 
 #include "sl_lidar_driver.h"
@@ -27,6 +28,24 @@ static inline void delay(sl_word_size_t ms){
 }
 #endif
 
+#define GPIO_BUTTON 4
+#define GPIO_LED_BUTTON 17
+#define GPIO_RELE 12
+
+unsigned int intput_GPIO[] = {GPIO_BUTTON};
+unsigned int outputs_GPIO[] = {GPIO_LED_BUTTON, GPIO_RELE};
+
+const char *chip_path = "/dev/gpiochip4";
+static int serial_port;
+
+struct gpiod_chip *chip;
+struct gpiod_line_settings *settings_input;
+struct gpiod_line_settings *settings_outputs;
+struct gpiod_line_config *line_cfg;
+struct gpiod_request_config *req_cfg;
+struct gpiod_line_request *request;
+
+
 int serial_init(void);
 void send_serial_data(char data[]);
 char* read_data(void);
@@ -40,15 +59,24 @@ void Hold_motors(void);
 void reset_gyro(int grados);
 void print_gyro(void);
 void concatenar(int list_lenght,const char * argument_1[],char * buffer);
-
-static int serial_port;
+void vuelta_grados(int direccion, int velocidad, int grados);
+void avanzar_grados(int velocidad, int grados, int referencia);
+int init_gpio(void);
+void clean_GPIO(void);
+void wait_for_button(void);
+void power_On_Spike(void);
 
 int main(){
+    init_gpio();
+    power_On_Spike();
     serial_init();
     interpreter();
     initialize_Libraries();
-    reset_gyro(-10);
-    print_gyro();
+    wait_for_button();
+    reset_gyro(0);
+    usleep(100000); //wiating for reset gyro
+    avanzar_grados(50, 6000, 0);
+    Coast_motors();
 
     return 0;
 }
@@ -320,30 +348,12 @@ void reset_gyro(int grados){
     principio[3] = '\r';
     snprintf(string_grados, sizeof(string_grados), "%d", grados);
 
-    //const char *grados_string = (const char*)string_grados;
     const char * list[5];
     list[0] = "rg(";
     list[1] = (const char *)string_grados;
     list[2] = ")\r";
     concatenar(3,list, grados_a_recetear);
-    /*while (1){
-        grados_a_recetear[i] = principio[i];
-        if (principio[i] == '\r'){
-            while (1){
-                grados_a_recetear[i] = string_grados[a];
-                if (string_grados[a] == '\0'){
-                    break;
-                }
-                a++;
-                i++;
-            }
-            break;
-        }
-        i++;
-    }
-    grados_a_recetear[i] = ')';
-    grados_a_recetear[i+1] = '\r';
-    printf("grados a resetear: %s\n", grados_a_recetear);*/
+
     send_serial_data(grados_a_recetear);
 
 }
@@ -354,3 +364,118 @@ void print_gyro(void){
     printf("gyro: %s\n", return_value);
 }
 
+void vuelta_grados(int direccion, int velocidad, int grados){
+	char argumentos[255];
+	char string_direccion[10] = "";
+	char string_velocidad[10] = "";
+	char string_grados[10] = "";
+
+	snprintf(string_direccion, sizeof(string_direccion), "%d", direccion);
+	snprintf(string_velocidad, sizeof(string_velocidad), "%d", velocidad);
+	snprintf(string_grados, sizeof(string_grados), "%d", grados);
+
+	const char * lista_a_concatenar[10];
+	lista_a_concatenar[0] = "vuelta(";
+	lista_a_concatenar[1] = (const char *)string_direccion;
+	lista_a_concatenar[2] = ",";
+	lista_a_concatenar[3] = (const char *)string_velocidad;	
+	lista_a_concatenar[4] = ",";
+	lista_a_concatenar[5] = (const char *)string_grados;	
+	lista_a_concatenar[6] = ")\r";
+		
+	concatenar(7,lista_a_concatenar, argumentos);
+
+	send_serial_data(argumentos);
+
+}
+
+void avanzar_grados(int velocidad, int grados, int referencia){
+	char argumentos[255];
+	char string_velocidad[10] = "";
+	char string_grados[10] = "";
+    char string_referencia[10] = "";
+
+	snprintf(string_velocidad, sizeof(string_velocidad), "%d", velocidad);
+	snprintf(string_grados, sizeof(string_grados), "%d", grados);
+	snprintf(string_referencia, sizeof(string_referencia), "%d", referencia);
+
+	const char * lista_a_concatenar[10];
+	lista_a_concatenar[0] = "ag(";
+	lista_a_concatenar[1] = (const char *)string_velocidad;	
+	lista_a_concatenar[2] = ",";
+	lista_a_concatenar[3] = (const char *)string_grados;
+    lista_a_concatenar[4] = ",";
+    lista_a_concatenar[5] = (const char *)string_referencia;	
+	lista_a_concatenar[6] = ")\r";
+		
+	concatenar(7,lista_a_concatenar, argumentos);
+
+	send_serial_data(argumentos);
+
+    char * return_value = read_data();
+    if (return_value == ""){
+        return_value = "0";
+    }
+    while (atoi(return_value) != 255){
+        return_value = read_data();
+        if(return_value == ""){
+            return_value = "0";
+        }
+    }
+
+}
+
+int init_gpio(void){
+    chip = gpiod_chip_open(chip_path);
+    if (!chip) {
+        printf("Failed to open GPIO chip");
+        return EXIT_FAILURE;
+    }
+
+    settings_input = gpiod_line_settings_new();
+    settings_outputs = gpiod_line_settings_new();
+    gpiod_line_settings_set_direction(settings_input, GPIOD_LINE_DIRECTION_INPUT);
+    gpiod_line_settings_set_direction(settings_outputs, GPIOD_LINE_DIRECTION_OUTPUT);
+
+    gpiod_line_settings_set_output_value(settings_outputs, GPIOD_LINE_VALUE_INACTIVE);
+    gpiod_line_settings_set_bias(settings_input, GPIOD_LINE_BIAS_PULL_UP);
+
+    line_cfg = gpiod_line_config_new();
+
+    gpiod_line_config_add_line_settings(line_cfg, intput_GPIO, 1, settings_input);
+    gpiod_line_config_add_line_settings(line_cfg, outputs_GPIO, 2, settings_outputs);
+
+    req_cfg = gpiod_request_config_new();
+    gpiod_request_config_set_consumer(req_cfg, "First challenge program");
+
+    request = gpiod_chip_request_lines(chip, req_cfg, line_cfg);
+
+    return 0;
+}
+
+void clean_GPIO(void){
+    gpiod_line_request_release(request);
+    gpiod_request_config_free(req_cfg);
+    gpiod_line_config_free(line_cfg);
+    gpiod_line_settings_free(settings_input);
+    gpiod_line_settings_free(settings_outputs);
+    gpiod_chip_close(chip);
+    printf("Pines liberados correctamente.\n");
+}
+
+void wait_for_button(void){
+    while(gpiod_line_request_get_value(request, intput_GPIO[0]) == GPIOD_LINE_VALUE_ACTIVE){
+        gpiod_line_request_set_value(request, outputs_GPIO[0], GPIOD_LINE_VALUE_ACTIVE);
+        usleep(50000);
+        gpiod_line_request_set_value(request, outputs_GPIO[0], GPIOD_LINE_VALUE_INACTIVE);
+        usleep(50000);
+    }
+    gpiod_line_request_set_value(request, outputs_GPIO[0], GPIOD_LINE_VALUE_INACTIVE);
+}
+
+void power_On_Spike(void){
+    gpiod_line_request_set_value(request, outputs_GPIO[1], GPIOD_LINE_VALUE_ACTIVE);
+    usleep(500000);
+    gpiod_line_request_set_value(request, outputs_GPIO[1], GPIOD_LINE_VALUE_INACTIVE);
+    usleep(1000000); //one second waiting for spikr initialization 
+}
