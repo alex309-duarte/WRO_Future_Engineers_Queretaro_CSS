@@ -1,32 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <termios.h>
-#include <string.h>
-#include <stdarg.h>
-#include <gpiod.h>
-
-#include "sl_lidar.h" 
-#include "sl_lidar_driver.h"
-#ifndef _countof
-#define _countof(_Array) (int)(sizeof(_Array) / sizeof(_Array[0]))
-#endif
-
-#ifdef _WIN32
-#include <Windows.h>
-#define delay(x)   ::Sleep(x)
-#else
-#include <unistd.h>
-static inline void delay(sl_word_size_t ms){
-    while (ms>=1000){
-        usleep(1000*1000);
-        ms-=1000;
-    };
-    if (ms!=0)
-        usleep(ms*1000);
-}
-#endif
+#include "spike.h"
 
 #define GPIO_BUTTON 4
 #define GPIO_LED_BUTTON 17
@@ -44,42 +16,6 @@ struct gpiod_line_settings *settings_outputs;
 struct gpiod_line_config *line_cfg;
 struct gpiod_request_config *req_cfg;
 struct gpiod_line_request *request;
-
-
-int serial_init(void);
-void send_serial_data(char data[]);
-char* read_data(void);
-void interpreter(void);
-void initialize_Libraries(void);
-void end_funcion(void);
-void centrar_vehiculo(void);
-void centrar_vehiculo_corto(void);
-void Coast_motors(void);
-void Hold_motors(void);
-void reset_gyro(int grados);
-void print_gyro(void);
-void concatenar(int list_lenght,const char * argument_1[],char * buffer);
-void vuelta_grados(int direccion, int velocidad, int grados);
-void avanzar_grados(int velocidad, int grados, int referencia);
-int init_gpio(void);
-void clean_GPIO(void);
-void wait_for_button(void);
-void power_On_Spike(void);
-
-int main(){
-    init_gpio();
-    power_On_Spike();
-    serial_init();
-    interpreter();
-    initialize_Libraries();
-    wait_for_button();
-    reset_gyro(0);
-    usleep(100000); //wiating for reset gyro
-    avanzar_grados(50, 6000, 0);
-    Coast_motors();
-
-    return 0;
-}
 
 int serial_init(void){
 
@@ -123,13 +59,16 @@ int serial_init(void){
     return 0;
 }
 
+void close_serial(void){
+    close(serial_port);
+}
 
 void send_serial_data(char data[]){
     int num_bytes;
 
 	char buffer_read[255] = "";
 	const char * buffer_Spike = data;
-    printf("Data %s\n",buffer_Spike);
+    //printf("Data %s\n",buffer_Spike);
     int i = 0;
     write(serial_port,buffer_Spike,strlen(buffer_Spike));
 
@@ -145,7 +84,7 @@ void send_serial_data(char data[]){
 		}
 		i++;
 	}
-     printf("menssage: %s\n", buffer_read);
+    //printf("menssage: %s\n", buffer_read);
 }
 
 char* read_data(void){
@@ -247,11 +186,6 @@ void initialize_Libraries(void){
     send_serial_data("return motion_sensor.tilt_angles()[0]\r");
     end_funcion();
 
-    send_serial_data("def ad(vel,referencia):\r");
-    send_serial_data("global error\r");
-    send_serial_data("error = pd(((10)*(referencia)),motion_sensor.tilt_angles()[0],vel,0.3,1,error)\r");
-    end_funcion();
-
     send_serial_data("def vuelta(direccion,velocidad,grados):\r");
     send_serial_data("motor.run_to_relative_position(port.F, 313*(direccion), 550)\r");
     send_serial_data("while abs(grados*10) > abs(motion_sensor.tilt_angles()[0]):\r");
@@ -263,7 +197,7 @@ void initialize_Libraries(void){
 
     send_serial_data("def da(vel, referencia):\r");
     send_serial_data("global error\r");
-    send_serial_data("error = pd(motion_sensor.tilt_angles()[0],referencia,vel,0.3,1,error)\r");
+    send_serial_data("error = pd(motion_sensor.tilt_angles()[0],((10)*(referencia)),vel,0.3,1,error)\r");
     end_funcion();
 
     send_serial_data("def ag(vel,grados,referencia):\r");
@@ -478,4 +412,25 @@ void power_On_Spike(void){
     usleep(500000);
     gpiod_line_request_set_value(request, outputs_GPIO[1], GPIOD_LINE_VALUE_INACTIVE);
     usleep(1000000); //one second waiting for spikr initialization 
+}
+
+void Spike_forward(int velocidad, int referencia){
+    char argumentos[255];
+	char string_velocidad[10] = "";
+    char string_referencia[10] = "";
+
+    snprintf(string_velocidad, sizeof(string_velocidad), "%d", velocidad);
+	snprintf(string_referencia, sizeof(string_referencia), "%d", referencia);
+
+    const char * lista_a_concatenar[10];
+	lista_a_concatenar[0] = "da(";
+	lista_a_concatenar[1] = (const char *)string_velocidad;	
+	lista_a_concatenar[2] = ",";
+    lista_a_concatenar[3] = (const char *)string_referencia;	
+	lista_a_concatenar[4] = ")\r";
+
+    concatenar(5, lista_a_concatenar, argumentos);
+
+    send_serial_data(argumentos);
+
 }
