@@ -1,3 +1,5 @@
+#include "cstdint"
+#include <math.h>
 #include "spike.h"
 #include "signal.h"
 #include <pthread.h>
@@ -21,13 +23,22 @@ pthread_mutex_t buffer_mutex = PTHREAD_MUTEX_INITIALIZER;
 float lidar_shared_buffer[360]; // Your shared buffer
 volatile int terminating = 0;
 const char * opt_channel_param_first = "/dev/ttyUSB0";
-ILidarDriver *drv;
-IChannel* _channel;
+ILidarDriver * drv;
+IChannel * _channel;
 sl_result  op_result;
+
+int der = 1;
+int izq = -1;
 
 void signal_handler(int signum);
 void init_lidar(void);
 void *lidar_writer_thread(void *arg);
+float radianes_a_grados(float radianes);
+int avanzar_deteccion_sentido_lidar(int vel, int referencia);
+void avanzar_deteccion_vacio_izquierdo_lidar(int vel, int referencia);
+void avanzar_deteccion_vacio_derecho_lidar(int vel, int referencia);
+int avanzar_dos_puntos_izquierda(int vel, int grados, int referencia);
+int avanzar_dos_puntos_derecha(int vel, int grados, int referencia);
 
 int main(){
     signal(SIGINT, signal_handler); /* Set interrupt for ctrl+C */
@@ -41,15 +52,45 @@ int main(){
     initialize_Libraries();
     wait_for_button();
     reset_gyro(0);
-    usleep(100000); //wiating for reset gyro
-    float distancia = 1000;
-    while((terminating == 0) && (distancia > 400.0)){
-        pthread_mutex_lock(&buffer_mutex);
-        distancia = lidar_shared_buffer[0];
-        pthread_mutex_unlock(&buffer_mutex); // Unlock after reading
-        printf("D: %f\n",distancia);
-        Spike_forward(50,0);
+    usleep(200000); //wiating for reset gyro
+
+
+
+    int sentido = avanzar_deteccion_sentido_lidar(60, 0);
+    printf("sentido %d :\n", sentido);
+
+    if(sentido == der){
+        vuelta_grados(der, 60, 88);
+        centrar_vehiculo();
+        avanzar_grados(60, 600, -90);
+        int angulo_correccion = avanzar_dos_puntos_derecha(60, 500, -90);
+        reset_gyro(angulo_correccion);
+        usleep(200000);
+        int v;
+        while (v < 11){
+        avanzar_deteccion_vacio_derecho_lidar(60, 0);
+        vuelta_grados(der, 60, 88);
+        centrar_vehiculo();
+        avanzar_grados(60, 600, -90);
+        int angulo_correccion = avanzar_dos_puntos_derecha(60, 500, -90);
+        reset_gyro(angulo_correccion);
+        usleep(200000);
+        v = v + 1;
+        }
+
     }
+    else if (sentido == izq)
+    {
+        vuelta_grados(izq, 60, 88);
+        centrar_vehiculo();
+        avanzar_grados(60, 600, 90);
+        avanzar_deteccion_vacio_izquierdo_lidar(60, 90);
+
+
+    }
+
+
+
 
     clean_GPIO();
     Coast_motors();
@@ -103,6 +144,7 @@ void *lidar_writer_thread(void *arg){
     
         if (SL_IS_OK(op_result)) {
             drv->ascendScanData(nodes, count);
+            //printf("\n counts: %d \n", count);
             for (int pos = 0; pos < (int)count ; ++pos) {
                 angle_temp = nodes[pos].angle_z_q14 * 90.f / 16384.f;
                 buffer_temp[int(angle_temp)] = nodes[pos].dist_mm_q2/4.0f;
@@ -125,6 +167,124 @@ void *lidar_writer_thread(void *arg){
         pthread_mutex_unlock(&buffer_mutex); // Unlock after writing
     }
     return NULL;
+}
+
+float radianes_a_grados(float radianes){
+    double grados = radianes * 180/ M_PI;
+    return grados;
+}
+
+int avanzar_deteccion_sentido_lidar(int vel, int referencia){
+
+    float distancia_frente;
+    float distancia_derecha;
+    float distancia_izquierda;
+
+    pthread_mutex_lock(&buffer_mutex);
+    distancia_frente = lidar_shared_buffer[0];
+    distancia_derecha = lidar_shared_buffer[90];
+    distancia_izquierda = lidar_shared_buffer[270];
+    pthread_mutex_unlock(&buffer_mutex);
+
+    while((terminating == 0) && (((distancia_derecha < 1350) && (distancia_izquierda < 1350)) || (distancia_frente > 1100))){
+        pthread_mutex_lock(&buffer_mutex);
+        distancia_frente = lidar_shared_buffer[0];
+        distancia_derecha = lidar_shared_buffer[270];
+        distancia_izquierda = lidar_shared_buffer[90];
+        pthread_mutex_unlock(&buffer_mutex); // Unlock after reading
+        Spike_forward(vel,referencia);
+        //printf("dsitancia derecha : %f\n", distancia_derecha);
+        //printf("dsitancia izquierda : %f\n", distancia_izquierda);
+        //printf("dsitancia frente : %f\n", distancia_frente);
+    }
+    
+    if(distancia_derecha > 1350){
+        return 1;
+    }
+    else if (distancia_izquierda > 1350)
+    {
+        return -1;
+    }
+    else{
+        return 0;
+    }
+
+} 
+
+void avanzar_deteccion_vacio_izquierdo_lidar(int vel, int referencia){
+
+    float distancia_frente;
+    float distancia_izquierda;
+
+    pthread_mutex_lock(&buffer_mutex);
+    distancia_frente = lidar_shared_buffer[0];
+    distancia_izquierda = lidar_shared_buffer[90];
+    pthread_mutex_unlock(&buffer_mutex);
+
+    while((terminating == 0) && ((distancia_izquierda < 1350) || (distancia_frente > 1100))){
+        pthread_mutex_lock(&buffer_mutex);
+        distancia_frente = lidar_shared_buffer[0];
+        distancia_izquierda = lidar_shared_buffer[90];
+        pthread_mutex_unlock(&buffer_mutex); // Unlock after reading
+        Spike_forward(vel,referencia);
+        //printf("dsitancia izquierda : %f\n", distancia_izquierda);
+        //printf("dsitancia frente : %f\n", distancia_frente);
+    }
+    
+} 
+
+void avanzar_deteccion_vacio_derecho_lidar(int vel, int referencia){
+
+    float distancia_frente;
+    float distancia_derecha;
+
+    pthread_mutex_lock(&buffer_mutex);
+    distancia_frente = lidar_shared_buffer[0];
+    distancia_derecha = lidar_shared_buffer[270];
+    pthread_mutex_unlock(&buffer_mutex);
+
+    while((terminating == 0) && ((distancia_derecha < 1350)  || (distancia_frente > 1100))){
+        pthread_mutex_lock(&buffer_mutex);
+        distancia_frente = lidar_shared_buffer[0];
+        distancia_derecha = lidar_shared_buffer[270];
+        pthread_mutex_unlock(&buffer_mutex); // Unlock after reading
+        Spike_forward(vel,referencia);
+        //printf("dsitancia derecha : %f\n", distancia_derecha);
+        //printf("dsitancia frente : %f\n", distancia_frente);
+    }
+
+} 
+
+int avanzar_dos_puntos_izquierda(int vel, int grados, int referencia){
+    pthread_mutex_lock(&buffer_mutex);
+    float y1 = lidar_shared_buffer[90];
+    pthread_mutex_unlock(&buffer_mutex); // Unlock after reading
+
+    avanzar_grados(vel, grados, referencia);
+
+    pthread_mutex_lock(&buffer_mutex);
+    float y2 = lidar_shared_buffer[90];
+    pthread_mutex_unlock(&buffer_mutex); // Unlock after reading
+
+    float variacion = y1-y2;
+    int pendiente = (int)(10 *(radianes_a_grados(atan(variacion/(175.0*grados/360.0)))));
+    return pendiente;
+}
+
+int avanzar_dos_puntos_derecha(int vel, int grados, int referencia){
+    pthread_mutex_lock(&buffer_mutex);
+    float y1 = lidar_shared_buffer[270];
+    pthread_mutex_unlock(&buffer_mutex); // Unlock after reading
+
+    avanzar_grados(vel, grados, referencia);
+
+    pthread_mutex_lock(&buffer_mutex);
+    float y2 = lidar_shared_buffer[270];
+    pthread_mutex_unlock(&buffer_mutex); // Unlock after reading
+
+    float variacion = y1-y2;
+    int pendiente = (int)(-10 *(radianes_a_grados(atan(variacion/(175.0*grados/360.0)))));
+    return pendiente;
 }
 
 void signal_handler(int signum){

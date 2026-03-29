@@ -75,7 +75,7 @@ void send_serial_data(char data[]){
 	while(1){
         num_bytes = read(serial_port,&buffer_read[i],1);
         if(num_bytes <= 0){
-			printf("Error reading\n");
+			//printf("Error reading\n");
 			break;
 		}
 		if((buffer_read[i] == '\r') || (i > 255)){
@@ -94,7 +94,7 @@ char* read_data(void){
 	while(1){
 		num_bytes = read(serial_port,&buffer_read[i],1);
 		if(num_bytes <= 0){
-			printf("Error reading %s\n", buffer_read);
+			//printf("Error reading %s\n", buffer_read);
 			break;
 		}
 		// printf("%c\n",buffer_read[i]);
@@ -321,6 +321,18 @@ void vuelta_grados(int direccion, int velocidad, int grados){
 
 	send_serial_data(argumentos);
 
+    char * return_value = read_data();
+    if (return_value == ""){
+        return_value = "0";
+    }
+    while (atoi(return_value) != 255){
+        return_value = read_data();
+        if(return_value == ""){
+            return_value = "0";
+        }
+    }
+
+    Coast_motors();
 }
 
 void avanzar_grados(int velocidad, int grados, int referencia){
@@ -356,7 +368,7 @@ void avanzar_grados(int velocidad, int grados, int referencia){
             return_value = "0";
         }
     }
-
+    Coast_motors();
 }
 
 int init_gpio(void){
