@@ -197,7 +197,7 @@ void initialize_Libraries(void){
 
     send_serial_data("def da(vel, referencia):\r");
     send_serial_data("global error\r");
-    send_serial_data("error = pd(motion_sensor.tilt_angles()[0],((10)*(referencia)),vel,0.3,1,error)\r");
+    send_serial_data("error = pd(motion_sensor.tilt_angles()[0],((10)*(referencia)),vel,0.1,0.5,error)\r");
     end_funcion();
 
     send_serial_data("def ag(vel,grados,referencia):\r");
@@ -266,11 +266,11 @@ void concatenar(int list_lenght,const char * argument_1[],char * buffer){
             i++;
         }
     }
-    printf("%s\n",buffer);
+    //printf("%s\n",buffer);
 }
 
 void reset_gyro(int grados){
-    printf("concatenar \n");
+    //printf("concatenar \n");
     int i = 0;
     int a = 0;
     char grados_a_recetear[255];
