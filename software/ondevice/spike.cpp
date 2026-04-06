@@ -164,9 +164,14 @@ void initialize_Libraries(void){
     send_serial_data("return 255\r");
     end_funcion();
 
-    send_serial_data("def cvc():\r"); //cntrar vehiculo parte corta
-    send_serial_data("motor.run_to_absolute_position(port.F, 0, 550,\r");
+    send_serial_data("async def cvc_especial():\r"); //cntrar vehiculo parte corta
+    send_serial_data("await motor.run_to_absolute_position(port.F, 0, 550,\r");
     send_serial_data("direction = motor.SHORTEST_PATH, stop = motor.HOLD, acceleration = 1000, deceleration = 1000)\r");
+    send_serial_data("return 255\r");
+    end_funcion();
+
+    send_serial_data("def cvc():\r"); 
+    send_serial_data("runloop.run(cvc_especial())\r");
     send_serial_data("return 255\r");
     end_funcion();
 
@@ -187,7 +192,7 @@ void initialize_Libraries(void){
     end_funcion();
 
     send_serial_data("def vuelta(direccion,velocidad,grados):\r");
-    send_serial_data("motor.run_to_relative_position(port.F, 313*(direccion), 550)\r");
+    send_serial_data("motor.run_to_relative_position(port.F, 115*(direccion), 550)\r");
     send_serial_data("while abs(grados*10) > abs(motion_sensor.tilt_angles()[0]):\r");
     send_serial_data("motor.set_duty_cycle(port.B, (100)*(velocidad))\r");
     send_serial_data(remove);
@@ -197,14 +202,14 @@ void initialize_Libraries(void){
 
     send_serial_data("def da(vel, referencia):\r");
     send_serial_data("global error\r");
-    send_serial_data("error = pd(motion_sensor.tilt_angles()[0],((10)*(referencia)),vel,0.1,0.5,error)\r");
+    send_serial_data("error = pd(motion_sensor.tilt_angles()[0],((10)*(referencia)),vel,0.11,0.7,error)\r");
     end_funcion();
 
     send_serial_data("def ag(vel,grados,referencia):\r");
     send_serial_data("error = 0\r");
     send_serial_data("motor.reset_relative_position(port.B,0)\r");
     send_serial_data("while abs(grados) > abs(motor.relative_position(port.B)):\r");
-    send_serial_data("error = pd(motion_sensor.tilt_angles()[0],((10)*(referencia)),vel,0.3,10,error)\r");
+    send_serial_data("error = pd(motion_sensor.tilt_angles()[0],((10)*(referencia)),vel,0.1,0.5,error)\r");
     send_serial_data(remove);
     send_serial_data("fc()\r");
     send_serial_data("return 255\r");
@@ -332,7 +337,7 @@ void vuelta_grados(int direccion, int velocidad, int grados){
         }
     }
 
-    Coast_motors();
+    Hold_motors();
 }
 
 void avanzar_grados(int velocidad, int grados, int referencia){

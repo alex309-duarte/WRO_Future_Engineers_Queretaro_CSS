@@ -50,6 +50,7 @@ void avanzar_deteccion_vacio_izquierdo_lidar(int vel, int referencia);
 void avanzar_deteccion_vacio_derecho_lidar(int vel, int referencia);
 int avanzar_dos_puntos_izquierda(int vel, int grados, int referencia);
 int avanzar_dos_puntos_derecha(int vel, int grados, int referencia);
+void avanzar_hasta_la_distancia(int vel, int referencia, int distancia_objetivo);
 
 int main(){
 
@@ -71,26 +72,28 @@ int main(){
     reset_gyro(0);
     usleep(200000); //wiating for reset gyro
 
-
     distancia_frente = lidar_shared_buffer[0];
     distancia_derecha = lidar_shared_buffer[270];
     distancia_izquierda = lidar_shared_buffer[90];
 
     if((distancia_derecha > 700) || (distancia_izquierda > 700)){
+
+        printf("caso afuera\n");
+
         direction sentido = avanzar_deteccion_sentido_lidar(100, 0);
         printf("sentido %d :\n", sentido);
 
         if(sentido == right){
-            vuelta_grados(der, 60, 88);
-            centrar_vehiculo();
+            vuelta_grados(der, 100, 88);
+            centrar_vehiculo_corto();
             avanzar_grados(80, 1600, -90);
             int angulo_correccion = avanzar_dos_puntos_izquierda(80, 500, -90);
             reset_gyro(angulo_correccion);
             usleep(200000);
             while (v < 11){
             avanzar_deteccion_vacio_derecho_lidar(80, 0);
-            vuelta_grados(der, 60, 88);
-            centrar_vehiculo();
+            vuelta_grados(der, 100, 88);
+            centrar_vehiculo_corto();
             avanzar_grados(80, 600, -90);
             int angulo_correccion = avanzar_dos_puntos_izquierda(80, 500, -90);
             reset_gyro(angulo_correccion);
@@ -101,16 +104,16 @@ int main(){
         }
         else if (sentido == left)
         {
-            vuelta_grados(izq, 60, 88);
-            centrar_vehiculo();
+            vuelta_grados(izq, 100, 88);
+            centrar_vehiculo_corto();
             avanzar_grados(80, 1600, 90);
             int angulo_correccion = avanzar_dos_puntos_derecha(80, 500, 90);
             reset_gyro(angulo_correccion);
             usleep(200000);
             while (v < 11){
-            avanzar_deteccion_vacio_derecho_lidar(80, 0);
-            vuelta_grados(izq, 60, 88);
-            centrar_vehiculo();
+            avanzar_deteccion_vacio_izquierdo_lidar(80, 0);
+            vuelta_grados(izq, 100, 88);
+            centrar_vehiculo_corto();
             avanzar_grados(80, 600, 90);
             int angulo_correccion = avanzar_dos_puntos_derecha(80, 500, 90);
             reset_gyro(angulo_correccion);
@@ -122,20 +125,23 @@ int main(){
     }
 
     else{
+
+        printf("caso adentro\n");
+
         direction sentido = avanzar_deteccion_sentido_lidar(100, 0);
-        printf("sentido %d :\n", sentido);
+        printf("sentido : %d \n", sentido);
 
         if(sentido == right){
-            vuelta_grados(der, 60, 88);
-            centrar_vehiculo();
+            vuelta_grados(der, 100, 88);
+            centrar_vehiculo_corto();
             avanzar_grados(80, 600, -90);
             int angulo_correccion = avanzar_dos_puntos_izquierda(80, 500, -90);
             reset_gyro(angulo_correccion);
             usleep(200000);
             while (v < 11){
             avanzar_deteccion_vacio_derecho_lidar(80, 0);
-            vuelta_grados(der, 60, 88);
-            centrar_vehiculo();
+            vuelta_grados(der, 100, 88);
+            centrar_vehiculo_corto();
             avanzar_grados(80, 600, -90);
             int angulo_correccion = avanzar_dos_puntos_izquierda(80, 500, -90);
             reset_gyro(angulo_correccion);
@@ -146,25 +152,27 @@ int main(){
         }
         else if (sentido == left)
         {
-            vuelta_grados(izq, 60, 88);
-            centrar_vehiculo();
+            vuelta_grados(izq, 100, 88);
+            centrar_vehiculo_corto();
             avanzar_grados(80, 600, 90);
             int angulo_correccion = avanzar_dos_puntos_derecha(80, 500, 90);
             reset_gyro(angulo_correccion);
             usleep(200000);
             while (v < 11){
-            avanzar_deteccion_vacio_derecho_lidar(80, 0);
-            vuelta_grados(izq, 60, 88);
-            centrar_vehiculo();
+            avanzar_deteccion_vacio_izquierdo_lidar(80, 0);
+            vuelta_grados(izq, 100, 88);
+            centrar_vehiculo_corto();
             avanzar_grados(80, 600, 90);
             int angulo_correccion = avanzar_dos_puntos_derecha(80, 500, 90);
             reset_gyro(angulo_correccion);
             usleep(200000);
             v = v + 1;
             }
-
         }
-    }   
+    } 
+    
+    printf("ultima funcion\n");
+    avanzar_hasta_la_distancia(80, 0, 1400);
 
     clean_GPIO();
     Coast_motors();
@@ -201,8 +209,8 @@ void init_lidar(void){
 
     drv->setMotorSpeed();
     // start scan...
-    //drv->startScan(0,1);
-    drv->startScan(false, false);
+    drv->startScan(0,1);
+    //drv->startScan(false, false);
 }
 
 void *lidar_writer_thread(void *arg){
@@ -350,6 +358,18 @@ int avanzar_dos_puntos_derecha(int vel, int grados, int referencia){
     int pendiente = (int)(-10 *(radianes_a_grados(atan(variacion/(175.0*grados/360.0)))));
     printf("pendiente: %d, y1: %f, y2: %f\n", pendiente, y1, y2);
     return pendiente;
+}
+
+void avanzar_hasta_la_distancia(int vel, int referencia, int distancia_objetivo){
+    float distancia_frente;
+
+    distancia_frente = lidar_shared_buffer[0];
+
+    while((terminating == 0) && (distancia_frente > distancia_objetivo)){
+        distancia_frente = lidar_shared_buffer[0];
+        Spike_forward(vel,referencia);
+        printf("dsitancia frente : %f\n", distancia_frente);
+    }
 }
 
 void signal_handler(int signum){
