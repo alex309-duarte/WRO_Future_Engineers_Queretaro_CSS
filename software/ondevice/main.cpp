@@ -1,10 +1,11 @@
-#include "cstdint"
+#include <cstdint>
 #include <math.h>
 #include "spike.h"
-#include "signal.h"
+#include "rasp_gpio.h"
+#include <signal.h>
 #include <pthread.h>
-#include "sl_lidar.h" 
-#include "sl_lidar_driver.h"
+#include <sl_lidar.h> 
+#include <sl_lidar_driver.h>
 #ifndef _countof
 #define _countof(_Array) (int)(sizeof(_Array) / sizeof(_Array[0]))
 #endif
@@ -63,13 +64,13 @@ int main(){
     init_lidar();
     pthread_create(&writer, NULL, lidar_writer_thread, NULL);
     
-    init_gpio();
-    power_On_Spike();
-    serial_init();
-    interpreter();
-    initialize_Libraries();
-    wait_for_button();
-    reset_gyro(0);
+    Rasp_Gpio_Init();
+    Rasp_Gpio_Power_On_Spike();
+    Spike_Serial_Init();
+    Spike_Interpreter();
+    Spike_Initialize_Libraries();
+    Rasp_Gpio_Wait_For_Button();
+    Spike_Reset_Gyro(0);
     usleep(200000); //wiating for reset gyro
 
     distancia_frente = lidar_shared_buffer[0];
@@ -84,19 +85,19 @@ int main(){
         printf("sentido %d :\n", sentido);
 
         if(sentido == right){
-            vuelta_grados(der, 100, 88);
-            centrar_vehiculo_corto();
-            avanzar_grados(80, 1600, -90);
+            Spike_Turn_For_Degrees(der, 100, 88);
+            Spike_Center_Vehicle_Short();
+            Spike_Advance_For_Degrees(80, 1600, -90);
             int angulo_correccion = avanzar_dos_puntos_izquierda(80, 500, -90);
-            reset_gyro(angulo_correccion);
+            Spike_Reset_Gyro(angulo_correccion);
             usleep(200000);
             while (v < 11){
             avanzar_deteccion_vacio_derecho_lidar(80, 0);
-            vuelta_grados(der, 100, 88);
-            centrar_vehiculo_corto();
-            avanzar_grados(80, 600, -90);
+            Spike_Turn_For_Degrees(der, 100, 88);
+            Spike_Center_Vehicle_Short();
+            Spike_Advance_For_Degrees(80, 600, -90);
             int angulo_correccion = avanzar_dos_puntos_izquierda(80, 500, -90);
-            reset_gyro(angulo_correccion);
+            Spike_Reset_Gyro(angulo_correccion);
             usleep(200000);
             v = v + 1;
             }
@@ -104,19 +105,19 @@ int main(){
         }
         else if (sentido == left)
         {
-            vuelta_grados(izq, 100, 88);
-            centrar_vehiculo_corto();
-            avanzar_grados(80, 1600, 90);
+            Spike_Turn_For_Degrees(izq, 100, 88);
+            Spike_Center_Vehicle_Short();
+            Spike_Advance_For_Degrees(80, 1600, 90);
             int angulo_correccion = avanzar_dos_puntos_derecha(80, 500, 90);
-            reset_gyro(angulo_correccion);
+            Spike_Reset_Gyro(angulo_correccion);
             usleep(200000);
             while (v < 11){
             avanzar_deteccion_vacio_izquierdo_lidar(80, 0);
-            vuelta_grados(izq, 100, 88);
-            centrar_vehiculo_corto();
-            avanzar_grados(80, 600, 90);
+            Spike_Turn_For_Degrees(izq, 100, 88);
+            Spike_Center_Vehicle_Short();
+            Spike_Advance_For_Degrees(80, 600, 90);
             int angulo_correccion = avanzar_dos_puntos_derecha(80, 500, 90);
-            reset_gyro(angulo_correccion);
+            Spike_Reset_Gyro(angulo_correccion);
             usleep(200000);
             v = v + 1;
             }
@@ -128,23 +129,23 @@ int main(){
 
         printf("caso adentro\n");
 
-        direction sentido = avanzar_deteccion_sentido_lidar(100, 0);
+        direction sentido = avanzar_deteccion_sentido_lidar(60, 0);
         printf("sentido : %d \n", sentido);
 
         if(sentido == right){
-            vuelta_grados(der, 100, 88);
-            centrar_vehiculo_corto();
-            avanzar_grados(80, 600, -90);
+            Spike_Turn_For_Degrees(der, 100, 88);
+            Spike_Center_Vehicle_Short();
+            Spike_Advance_For_Degrees(80, 600, -90);
             int angulo_correccion = avanzar_dos_puntos_izquierda(80, 500, -90);
-            reset_gyro(angulo_correccion);
+            Spike_Reset_Gyro(angulo_correccion);
             usleep(200000);
             while (v < 11){
             avanzar_deteccion_vacio_derecho_lidar(80, 0);
-            vuelta_grados(der, 100, 88);
-            centrar_vehiculo_corto();
-            avanzar_grados(80, 600, -90);
+            Spike_Turn_For_Degrees(der, 100, 88);
+            Spike_Center_Vehicle_Short();
+            Spike_Advance_For_Degrees(80, 600, -90);
             int angulo_correccion = avanzar_dos_puntos_izquierda(80, 500, -90);
-            reset_gyro(angulo_correccion);
+            Spike_Reset_Gyro(angulo_correccion);
             usleep(200000);
             v = v + 1;
             }
@@ -152,19 +153,19 @@ int main(){
         }
         else if (sentido == left)
         {
-            vuelta_grados(izq, 100, 88);
-            centrar_vehiculo_corto();
-            avanzar_grados(80, 600, 90);
+            Spike_Turn_For_Degrees(izq, 100, 88);
+            Spike_Center_Vehicle_Short();
+            Spike_Advance_For_Degrees(80, 600, 90);
             int angulo_correccion = avanzar_dos_puntos_derecha(80, 500, 90);
-            reset_gyro(angulo_correccion);
+            Spike_Reset_Gyro(angulo_correccion);
             usleep(200000);
             while (v < 11){
             avanzar_deteccion_vacio_izquierdo_lidar(80, 0);
-            vuelta_grados(izq, 100, 88);
-            centrar_vehiculo_corto();
-            avanzar_grados(80, 600, 90);
+            Spike_Turn_For_Degrees(izq, 100, 88);
+            Spike_Center_Vehicle_Short();
+            Spike_Advance_For_Degrees(80, 600, 90);
             int angulo_correccion = avanzar_dos_puntos_derecha(80, 500, 90);
-            reset_gyro(angulo_correccion);
+            Spike_Reset_Gyro(angulo_correccion);
             usleep(200000);
             v = v + 1;
             }
@@ -174,9 +175,9 @@ int main(){
     printf("ultima funcion\n");
     avanzar_hasta_la_distancia(80, 0, 1400);
 
-    clean_GPIO();
-    Coast_motors();
-    close_serial();
+    Rasp_Gpio_Clean();
+    Spike_Coast_Motors();
+    Spike_Close_Serial();
 
     drv->stop();
     drv->setMotorSpeed(0);
@@ -279,8 +280,8 @@ direction avanzar_deteccion_sentido_lidar(int vel, int referencia){
         distancia_frente = lidar_shared_buffer[0];
         distancia_derecha = lidar_shared_buffer[270];
         distancia_izquierda = lidar_shared_buffer[90];
-        Spike_forward(vel,referencia);
-        //printf("dsitancia derecha : %f\n", distancia_derecha);
+        Spike_Forward(vel,referencia);
+        printf("dsitancia derecha : %f\n", distancia_derecha);
         //printf("dsitancia izquierda : %f\n", distancia_izquierda);
         //printf("dsitancia frente : %f\n", distancia_frente);
     }
@@ -309,7 +310,7 @@ void avanzar_deteccion_vacio_izquierdo_lidar(int vel, int referencia){
     while((terminating == 0) && ((distancia_izquierda < 1350) || (distancia_frente > 1100))){
         distancia_frente = lidar_shared_buffer[0];
         distancia_izquierda = lidar_shared_buffer[90];
-        Spike_forward(vel,referencia);
+        Spike_Forward(vel,referencia);
         //printf("dsitancia izquierda : %f\n", distancia_izquierda);
         //printf("dsitancia frente : %f\n", distancia_frente);
     }
@@ -327,7 +328,7 @@ void avanzar_deteccion_vacio_derecho_lidar(int vel, int referencia){
     while((terminating == 0) && ((distancia_derecha < 1350)  || (distancia_frente > 1100))){
         distancia_frente = lidar_shared_buffer[0];
         distancia_derecha = lidar_shared_buffer[270];
-        Spike_forward(vel,referencia);
+        Spike_Forward(vel,referencia);
         //printf("dsitancia derecha : %f\n", distancia_derecha);
         //printf("dsitancia frente : %f\n", distancia_frente);
     }
@@ -337,7 +338,7 @@ void avanzar_deteccion_vacio_derecho_lidar(int vel, int referencia){
 int avanzar_dos_puntos_izquierda(int vel, int grados, int referencia){
     float y1 = lidar_shared_buffer[90];
 
-    avanzar_grados(vel, grados, referencia);
+    Spike_Advance_For_Degrees(vel, grados, referencia);
 
     float y2 = lidar_shared_buffer[90];
 
@@ -350,7 +351,7 @@ int avanzar_dos_puntos_izquierda(int vel, int grados, int referencia){
 int avanzar_dos_puntos_derecha(int vel, int grados, int referencia){
     float y1 = lidar_shared_buffer[270];
 
-    avanzar_grados(vel, grados, referencia);
+    Spike_Advance_For_Degrees(vel, grados, referencia);
 
     float y2 = lidar_shared_buffer[270];
 
@@ -367,7 +368,7 @@ void avanzar_hasta_la_distancia(int vel, int referencia, int distancia_objetivo)
 
     while((terminating == 0) && (distancia_frente > distancia_objetivo)){
         distancia_frente = lidar_shared_buffer[0];
-        Spike_forward(vel,referencia);
+        Spike_Forward(vel,referencia);
         printf("dsitancia frente : %f\n", distancia_frente);
     }
 }

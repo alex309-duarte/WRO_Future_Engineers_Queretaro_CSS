@@ -12,7 +12,7 @@ LDFLAGS = -lpthread -lgpiod
 
 # Source and Target
 TARGET = my_lidar_app
-SRCS = main.cpp spike.cpp
+SRCS = main.cpp spike.cpp rasp_gpio.cpp
 
 all: $(TARGET)
 

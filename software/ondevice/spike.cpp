@@ -1,23 +1,8 @@
 #include "spike.h"
 
-#define GPIO_BUTTON 4
-#define GPIO_LED_BUTTON 17
-#define GPIO_RELE 12
-
-unsigned int intput_GPIO[] = {GPIO_BUTTON};
-unsigned int outputs_GPIO[] = {GPIO_LED_BUTTON, GPIO_RELE};
-
-const char *chip_path = "/dev/gpiochip4";
 static int serial_port;
 
-struct gpiod_chip *chip;
-struct gpiod_line_settings *settings_input;
-struct gpiod_line_settings *settings_outputs;
-struct gpiod_line_config *line_cfg;
-struct gpiod_request_config *req_cfg;
-struct gpiod_line_request *request;
-
-int serial_init(void){
+int Spike_Serial_Init(void){
 
     const char* port = "/dev/serial0";
     struct termios tty;
@@ -59,11 +44,11 @@ int serial_init(void){
     return 0;
 }
 
-void close_serial(void){
+void Spike_Close_Serial(void){
     close(serial_port);
 }
 
-void send_serial_data(char data[]){
+void Spike_Send_Serial_Data(char data[]){
     int num_bytes;
 
 	char buffer_read[255] = "";
@@ -87,7 +72,7 @@ void send_serial_data(char data[]){
     //printf("menssage: %s\n", buffer_read);
 }
 
-char* read_data(void){
+char* Spike_Read_Serial_Data(void){
 	int i = 0;
 	int num_bytes;
 	static char buffer_read[255] = "";
@@ -109,152 +94,151 @@ char* read_data(void){
 	return cp;
 }
 
-void interpreter(void){
+void Spike_Interpreter(void){
     char control_c = '\003';
     char msg[10] = "";
     msg[0] = control_c;
     msg[1] = '\r';
-    send_serial_data(msg);
-    read_data();
-    read_data();
-    read_data();
-    send_serial_data("\r");
+    Spike_Send_Serial_Data(msg);
+    Spike_Read_Serial_Data();
+    Spike_Read_Serial_Data();
+    Spike_Read_Serial_Data();
+    Spike_Send_Serial_Data("\r");
 }
 
-void end_funcion(void){
-    send_serial_data("\r");
-    send_serial_data("\r");
-    send_serial_data("\r"); 
+void Spike_End_Funcion(void){
+    Spike_Send_Serial_Data("\r");
+    Spike_Send_Serial_Data("\r");
+    Spike_Send_Serial_Data("\r"); 
 }
 
-void initialize_Libraries(void){
+void Spike_Initialize_Libraries(void){
     char command = char(127);
     char remove[10] = "";
     remove[0] = command;
     remove[1] = '\r';
 
 
-    send_serial_data("import motor\r");
-    send_serial_data("from hub import port\r");
-    send_serial_data("from hub import motion_sensor\r");
-    send_serial_data("import distance_sensor\r");
-    send_serial_data("import runloop\r");
+    Spike_Send_Serial_Data("import motor\r");
+    Spike_Send_Serial_Data("from hub import port\r");
+    Spike_Send_Serial_Data("from hub import motion_sensor\r");
+    Spike_Send_Serial_Data("import distance_sensor\r");
+    Spike_Send_Serial_Data("import runloop\r");
     //variables del spike
-    send_serial_data("der = -1\r");
-    send_serial_data("izq = 1\r");
-    send_serial_data("error = 0\r");
+    Spike_Send_Serial_Data("der = -1\r");
+    Spike_Send_Serial_Data("izq = 1\r");
+    Spike_Send_Serial_Data("error = 0\r");
     //Funciones
-    send_serial_data("def Hold():\r"); // motores en hold
-    send_serial_data("motor.stop(port.F, stop = motor.HOLD)\r");
-    send_serial_data("motor.stop(port.B, stop = motor.HOLD)\r");
-    end_funcion();
+    Spike_Send_Serial_Data("def Hold():\r"); // motores en hold
+    Spike_Send_Serial_Data("motor.stop(port.F, stop = motor.HOLD)\r");
+    Spike_Send_Serial_Data("motor.stop(port.B, stop = motor.HOLD)\r");
+    Spike_End_Funcion();
 
-    send_serial_data("def fc():\r"); // motores libres
-    send_serial_data("motor.stop(port.F, stop = motor.COAST)\r");
-    send_serial_data("motor.stop(port.B, stop = motor.COAST)\r");
-    end_funcion();
+    Spike_Send_Serial_Data("def fc():\r"); // motores libres
+    Spike_Send_Serial_Data("motor.stop(port.F, stop = motor.COAST)\r");
+    Spike_Send_Serial_Data("motor.stop(port.B, stop = motor.COAST)\r");
+    Spike_End_Funcion();
 
-    send_serial_data("async def cv_especial():\r");
-    send_serial_data("await motor.run_to_absolute_position(port.F, 0, 550,\r");
-    send_serial_data("direction = motor.LONGEST_PATH, stop = motor.HOLD, acceleration = 1000, deceleration = 1000)\r");
-    end_funcion();
+    Spike_Send_Serial_Data("async def cv_especial():\r");
+    Spike_Send_Serial_Data("await motor.run_to_absolute_position(port.F, 0, 550,\r");
+    Spike_Send_Serial_Data("direction = motor.LONGEST_PATH, stop = motor.HOLD, acceleration = 1000, deceleration = 1000)\r");
+    Spike_End_Funcion();
 
-    send_serial_data("def cv():\r"); // centrar vehiculo
-    send_serial_data("runloop.run(cv_especial())\r");
-    send_serial_data("return 255\r");
-    end_funcion();
+    Spike_Send_Serial_Data("def cv():\r"); // centrar vehiculo
+    Spike_Send_Serial_Data("runloop.run(cv_especial())\r");
+    Spike_Send_Serial_Data("return 255\r");
+    Spike_End_Funcion();
 
-    send_serial_data("async def cvc_especial():\r"); //cntrar vehiculo parte corta
-    send_serial_data("await motor.run_to_absolute_position(port.F, 0, 550,\r");
-    send_serial_data("direction = motor.SHORTEST_PATH, stop = motor.HOLD, acceleration = 1000, deceleration = 1000)\r");
-    send_serial_data("return 255\r");
-    end_funcion();
+    Spike_Send_Serial_Data("async def cvc_especial():\r"); //cntrar vehiculo parte corta
+    Spike_Send_Serial_Data("await motor.run_to_absolute_position(port.F, 0, 550,\r");
+    Spike_Send_Serial_Data("direction = motor.SHORTEST_PATH, stop = motor.HOLD, acceleration = 1000, deceleration = 1000)\r");
+    Spike_Send_Serial_Data("return 255\r");
+    Spike_End_Funcion();
 
-    send_serial_data("def cvc():\r"); 
-    send_serial_data("runloop.run(cvc_especial())\r");
-    send_serial_data("return 255\r");
-    end_funcion();
+    Spike_Send_Serial_Data("def cvc():\r"); 
+    Spike_Send_Serial_Data("runloop.run(cvc_especial())\r");
+    Spike_Send_Serial_Data("return 255\r");
+    Spike_End_Funcion();
 
-    send_serial_data("def pd(s1,s2,vel,kp,kd,ea):\r");
-    send_serial_data("error=s1-s2\r");
-    send_serial_data("et= (kp*error) + (kd*(error-ea))\r");
-    send_serial_data("motor.run_to_absolute_position(port.F, int(et*6.4), 600, direction = motor.SHORTEST_PATH, stop = motor.HOLD, acceleration = 10000)\r");
-    send_serial_data("motor.set_duty_cycle(port.B, (100)*(vel))\r");
-    send_serial_data("return error\r");
-    end_funcion();
+    Spike_Send_Serial_Data("def pd(s1,s2,vel,kp,kd,ea):\r");
+    Spike_Send_Serial_Data("error=s1-s2\r");
+    Spike_Send_Serial_Data("et= (kp*error) + (kd*(error-ea))\r");
+    Spike_Send_Serial_Data("motor.run_to_absolute_position(port.F, int(et*6.4), 600, direction = motor.SHORTEST_PATH, stop = motor.HOLD, acceleration = 10000)\r");
+    Spike_Send_Serial_Data("motor.set_duty_cycle(port.B, (100)*(vel))\r");
+    Spike_Send_Serial_Data("return error\r");
+    Spike_End_Funcion();
 
-    send_serial_data("def rg(grados):\r");
-    send_serial_data("motion_sensor.reset_yaw(grados)\r");
-    end_funcion();
+    Spike_Send_Serial_Data("def rg(degrees):\r");
+    Spike_Send_Serial_Data("motion_sensor.reset_yaw(degrees)\r");
+    Spike_End_Funcion();
 
-    send_serial_data("def pg():\r");
-    send_serial_data("return motion_sensor.tilt_angles()[0]\r");
-    end_funcion();
+    Spike_Send_Serial_Data("def pg():\r");
+    Spike_Send_Serial_Data("return motion_sensor.tilt_angles()[0]\r");
+    Spike_End_Funcion();
 
-    send_serial_data("def vuelta(direccion,velocidad,grados):\r");
-    send_serial_data("motor.run_to_relative_position(port.F, 115*(direccion), 550)\r");
-    send_serial_data("while abs(grados*10) > abs(motion_sensor.tilt_angles()[0]):\r");
-    send_serial_data("motor.set_duty_cycle(port.B, (100)*(velocidad))\r");
-    send_serial_data(remove);
-    send_serial_data("fc()\r");
-    send_serial_data("return 255\r");
-    end_funcion();
+    Spike_Send_Serial_Data("def turn(direction,speed,degrees):\r");
+    Spike_Send_Serial_Data("motor.run_to_relative_position(port.F, 115*(direction), 550)\r");
+    Spike_Send_Serial_Data("while abs(degrees*10) > abs(motion_sensor.tilt_angles()[0]):\r");
+    Spike_Send_Serial_Data("motor.set_duty_cycle(port.B, (100)*(speed))\r");
+    Spike_Send_Serial_Data(remove);
+    Spike_Send_Serial_Data("fc()\r");
+    Spike_Send_Serial_Data("return 255\r");
+    Spike_End_Funcion();
 
-    send_serial_data("def da(vel, referencia):\r");
-    send_serial_data("global error\r");
-    send_serial_data("error = pd(motion_sensor.tilt_angles()[0],((10)*(referencia)),vel,0.11,0.7,error)\r");
-    end_funcion();
+    Spike_Send_Serial_Data("def da(speed, reference):\r");
+    Spike_Send_Serial_Data("global error\r");
+    Spike_Send_Serial_Data("error = pd(motion_sensor.tilt_angles()[0],((10)*(reference)),speed,0.11,0.7,error)\r");
+    Spike_End_Funcion();
 
-    send_serial_data("def ag(vel,grados,referencia):\r");
-    send_serial_data("error = 0\r");
-    send_serial_data("motor.reset_relative_position(port.B,0)\r");
-    send_serial_data("while abs(grados) > abs(motor.relative_position(port.B)):\r");
-    send_serial_data("error = pd(motion_sensor.tilt_angles()[0],((10)*(referencia)),vel,0.1,0.5,error)\r");
-    send_serial_data(remove);
-    send_serial_data("fc()\r");
-    send_serial_data("return 255\r");
-    end_funcion();
-    end_funcion();
+    Spike_Send_Serial_Data("def ag(speed,degrees,reference):\r");
+    Spike_Send_Serial_Data("error = 0\r");
+    Spike_Send_Serial_Data("motor.reset_relative_position(port.B,0)\r");
+    Spike_Send_Serial_Data("while abs(degrees) > abs(motor.relative_position(port.B)):\r");
+    Spike_Send_Serial_Data("error = pd(motion_sensor.tilt_angles()[0],((10)*(reference)),speed,0.1,0.5,error)\r");
+    Spike_Send_Serial_Data(remove);
+    Spike_Send_Serial_Data("fc()\r");
+    Spike_Send_Serial_Data("return 255\r");
+    Spike_End_Funcion();
 }
 
 
-void centrar_vehiculo(void){
-    send_serial_data("cv()\r");
-    char * return_value = read_data();
+void Spike_Center_Vehicle(void){
+    Spike_Send_Serial_Data("cv()\r");
+    char * return_value = Spike_Read_Serial_Data();
     if (return_value == ""){
         return_value = "0";
     }
     while (atoi(return_value) != 255){
-        return_value = read_data();
+        return_value = Spike_Read_Serial_Data();
         if(return_value == ""){
             return_value = "0";
         }
     }
 }
 
-void centrar_vehiculo_corto(void){
-    send_serial_data("cvc()\r");
-    char * return_value = read_data();
+void Spike_Center_Vehicle_Short(void){
+    Spike_Send_Serial_Data("cvc()\r");
+    char * return_value = Spike_Read_Serial_Data();
     if (return_value == ""){
         return_value = "0";
     }
     while (atoi(return_value) != 255){
-        return_value = read_data();
+        return_value = Spike_Read_Serial_Data();
         if(return_value == ""){
             return_value = "0";
         }
     }
 }
 
-void Coast_motors(void){
-    send_serial_data("fc()\r");
+void Spike_Coast_Motors(void){
+    Spike_Send_Serial_Data("fc()\r");
 }
 
-void Hold_motors(void){
-    send_serial_data("fc()\r");   
+void Spike_Hold_Motors(void){
+    Spike_Send_Serial_Data("Hold()\r");   
 }
 
-void concatenar(int list_lenght,const char * argument_1[],char * buffer){
+void Spike_Concatenate(int list_lenght,const char * argument_1[],char * buffer){
     int i = 0;
     int k = 0;
     const char * current_string;
@@ -274,180 +258,125 @@ void concatenar(int list_lenght,const char * argument_1[],char * buffer){
     //printf("%s\n",buffer);
 }
 
-void reset_gyro(int grados){
+void Spike_Reset_Gyro(int degrees){
     //printf("concatenar \n");
     int i = 0;
     int a = 0;
-    char grados_a_recetear[255];
-    char string_grados[10]  = "";
-    char principio[10] = "";
-    principio[0] = 'r';
-    principio[1] = 'g';
-    principio[2] = '(';
-    principio[3] = '\r';
-    snprintf(string_grados, sizeof(string_grados), "%d", grados);
+    char reset_degrees[255];
+    char degrees_get_string[10]  = "";
+    char principle[10] = "";
+    principle[0] = 'r';
+    principle[1] = 'g';
+    principle[2] = '(';
+    principle[3] = '\r';
+    snprintf(degrees_get_string, sizeof(degrees_get_string), "%d", degrees);
 
     const char * list[5];
     list[0] = "rg(";
-    list[1] = (const char *)string_grados;
+    list[1] = (const char *)degrees_get_string;
     list[2] = ")\r";
-    concatenar(3,list, grados_a_recetear);
+    Spike_Concatenate(3,list, reset_degrees);
 
-    send_serial_data(grados_a_recetear);
+    Spike_Send_Serial_Data(reset_degrees);
 
 }
 
-void print_gyro(void){
-    send_serial_data("pg()\r");
-    char *return_value = read_data();
+void Spike_Print_Gyro(void){
+    Spike_Send_Serial_Data("pg()\r");
+    char *return_value = Spike_Read_Serial_Data();
     printf("gyro: %s\n", return_value);
 }
 
-void vuelta_grados(int direccion, int velocidad, int grados){
-	char argumentos[255];
-	char string_direccion[10] = "";
-	char string_velocidad[10] = "";
-	char string_grados[10] = "";
+void Spike_Turn_For_Degrees(int direction, int speed, int degrees){
+	char arguments[255];
+	char string_direction[10] = "";
+	char string_speed[10] = "";
+	char string_degrees[10] = "";
 
-	snprintf(string_direccion, sizeof(string_direccion), "%d", direccion);
-	snprintf(string_velocidad, sizeof(string_velocidad), "%d", velocidad);
-	snprintf(string_grados, sizeof(string_grados), "%d", grados);
+	snprintf(string_direction, sizeof(string_direction), "%d", direction);
+	snprintf(string_speed, sizeof(string_speed), "%d", speed);
+	snprintf(string_degrees, sizeof(string_degrees), "%d", degrees);
 
-	const char * lista_a_concatenar[10];
-	lista_a_concatenar[0] = "vuelta(";
-	lista_a_concatenar[1] = (const char *)string_direccion;
-	lista_a_concatenar[2] = ",";
-	lista_a_concatenar[3] = (const char *)string_velocidad;	
-	lista_a_concatenar[4] = ",";
-	lista_a_concatenar[5] = (const char *)string_grados;	
-	lista_a_concatenar[6] = ")\r";
+	const char * cocatenate_list[10];
+	cocatenate_list[0] = "turn(";
+	cocatenate_list[1] = (const char *)string_direction;
+	cocatenate_list[2] = ",";
+	cocatenate_list[3] = (const char *)string_speed;	
+	cocatenate_list[4] = ",";
+	cocatenate_list[5] = (const char *)string_degrees;	
+	cocatenate_list[6] = ")\r";
 		
-	concatenar(7,lista_a_concatenar, argumentos);
+	Spike_Concatenate(7,cocatenate_list, arguments);
 
-	send_serial_data(argumentos);
+	Spike_Send_Serial_Data(arguments);
 
-    char * return_value = read_data();
+    char * return_value = Spike_Read_Serial_Data();
     if (return_value == ""){
         return_value = "0";
     }
     while (atoi(return_value) != 255){
-        return_value = read_data();
+        return_value = Spike_Read_Serial_Data();
         if(return_value == ""){
             return_value = "0";
         }
     }
 
-    Hold_motors();
+    Spike_Hold_Motors();
 }
 
-void avanzar_grados(int velocidad, int grados, int referencia){
-	char argumentos[255];
-	char string_velocidad[10] = "";
-	char string_grados[10] = "";
-    char string_referencia[10] = "";
+void Spike_Advance_For_Degrees(int speed, int degrees, int reference){
+	char arguments[255];
+	char string_speed[10] = "";
+	char string_degrees[10] = "";
+    char string_reference[10] = "";
 
-	snprintf(string_velocidad, sizeof(string_velocidad), "%d", velocidad);
-	snprintf(string_grados, sizeof(string_grados), "%d", grados);
-	snprintf(string_referencia, sizeof(string_referencia), "%d", referencia);
+	snprintf(string_speed, sizeof(string_speed), "%d", speed);
+	snprintf(string_degrees, sizeof(string_degrees), "%d", degrees);
+	snprintf(string_reference, sizeof(string_reference), "%d", reference);
 
-	const char * lista_a_concatenar[10];
-	lista_a_concatenar[0] = "ag(";
-	lista_a_concatenar[1] = (const char *)string_velocidad;	
-	lista_a_concatenar[2] = ",";
-	lista_a_concatenar[3] = (const char *)string_grados;
-    lista_a_concatenar[4] = ",";
-    lista_a_concatenar[5] = (const char *)string_referencia;	
-	lista_a_concatenar[6] = ")\r";
+	const char * cocatenate_list[10];
+	cocatenate_list[0] = "ag(";
+	cocatenate_list[1] = (const char *)string_speed;	
+	cocatenate_list[2] = ",";
+	cocatenate_list[3] = (const char *)string_degrees;
+    cocatenate_list[4] = ",";
+    cocatenate_list[5] = (const char *)string_reference;	
+	cocatenate_list[6] = ")\r";
 		
-	concatenar(7,lista_a_concatenar, argumentos);
+	Spike_Concatenate(7,cocatenate_list, arguments);
 
-	send_serial_data(argumentos);
+	Spike_Send_Serial_Data(arguments);
 
-    char * return_value = read_data();
+    char * return_value = Spike_Read_Serial_Data();
     if (return_value == ""){
         return_value = "0";
     }
     while (atoi(return_value) != 255){
-        return_value = read_data();
+        return_value = Spike_Read_Serial_Data();
         if(return_value == ""){
             return_value = "0";
         }
     }
-    Coast_motors();
+    Spike_Coast_Motors();
 }
 
-int init_gpio(void){
-    chip = gpiod_chip_open(chip_path);
-    if (!chip) {
-        printf("Failed to open GPIO chip");
-        return EXIT_FAILURE;
-    }
+void Spike_Forward(int speed, int reference){
+    char arguments[255];
+	char string_speed[10] = "";
+    char string_reference[10] = "";
 
-    settings_input = gpiod_line_settings_new();
-    settings_outputs = gpiod_line_settings_new();
-    gpiod_line_settings_set_direction(settings_input, GPIOD_LINE_DIRECTION_INPUT);
-    gpiod_line_settings_set_direction(settings_outputs, GPIOD_LINE_DIRECTION_OUTPUT);
+    snprintf(string_speed, sizeof(string_speed), "%d", speed);
+	snprintf(string_reference, sizeof(string_reference), "%d", reference);
 
-    gpiod_line_settings_set_output_value(settings_outputs, GPIOD_LINE_VALUE_INACTIVE);
-    gpiod_line_settings_set_bias(settings_input, GPIOD_LINE_BIAS_PULL_UP);
+    const char * cocatenate_list[10];
+	cocatenate_list[0] = "da(";
+	cocatenate_list[1] = (const char *)string_speed;	
+	cocatenate_list[2] = ",";
+    cocatenate_list[3] = (const char *)string_reference;	
+	cocatenate_list[4] = ")\r";
 
-    line_cfg = gpiod_line_config_new();
+    Spike_Concatenate(5, cocatenate_list, arguments);
 
-    gpiod_line_config_add_line_settings(line_cfg, intput_GPIO, 1, settings_input);
-    gpiod_line_config_add_line_settings(line_cfg, outputs_GPIO, 2, settings_outputs);
-
-    req_cfg = gpiod_request_config_new();
-    gpiod_request_config_set_consumer(req_cfg, "First challenge program");
-
-    request = gpiod_chip_request_lines(chip, req_cfg, line_cfg);
-
-    return 0;
-}
-
-void clean_GPIO(void){
-    gpiod_line_request_release(request);
-    gpiod_request_config_free(req_cfg);
-    gpiod_line_config_free(line_cfg);
-    gpiod_line_settings_free(settings_input);
-    gpiod_line_settings_free(settings_outputs);
-    gpiod_chip_close(chip);
-    printf("Pines liberados correctamente.\n");
-}
-
-void wait_for_button(void){
-    while(gpiod_line_request_get_value(request, intput_GPIO[0]) == GPIOD_LINE_VALUE_ACTIVE){
-        gpiod_line_request_set_value(request, outputs_GPIO[0], GPIOD_LINE_VALUE_ACTIVE);
-        usleep(50000);
-        gpiod_line_request_set_value(request, outputs_GPIO[0], GPIOD_LINE_VALUE_INACTIVE);
-        usleep(50000);
-    }
-    gpiod_line_request_set_value(request, outputs_GPIO[0], GPIOD_LINE_VALUE_INACTIVE);
-}
-
-void power_On_Spike(void){
-    gpiod_line_request_set_value(request, outputs_GPIO[1], GPIOD_LINE_VALUE_ACTIVE);
-    usleep(500000);
-    gpiod_line_request_set_value(request, outputs_GPIO[1], GPIOD_LINE_VALUE_INACTIVE);
-    usleep(1000000); //one second waiting for spikr initialization 
-}
-
-void Spike_forward(int velocidad, int referencia){
-    char argumentos[255];
-	char string_velocidad[10] = "";
-    char string_referencia[10] = "";
-
-    snprintf(string_velocidad, sizeof(string_velocidad), "%d", velocidad);
-	snprintf(string_referencia, sizeof(string_referencia), "%d", referencia);
-
-    const char * lista_a_concatenar[10];
-	lista_a_concatenar[0] = "da(";
-	lista_a_concatenar[1] = (const char *)string_velocidad;	
-	lista_a_concatenar[2] = ",";
-    lista_a_concatenar[3] = (const char *)string_referencia;	
-	lista_a_concatenar[4] = ")\r";
-
-    concatenar(5, lista_a_concatenar, argumentos);
-
-    send_serial_data(argumentos);
+    Spike_Send_Serial_Data(arguments);
 
 }
