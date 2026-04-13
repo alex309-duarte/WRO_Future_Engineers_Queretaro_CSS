@@ -1,6 +1,7 @@
 #ifndef SPIKE_H
 #define SPIKE_H
 
+#include "common_var.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
