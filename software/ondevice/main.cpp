@@ -3,6 +3,8 @@
 #include "RPLidar_S2L.h"
 #include "common_var.h"
 
+void signal_handler(int signum);
+
 pthread_t writer;
 
 int der = 1;
@@ -16,11 +18,15 @@ int main(){
     float distancia_derecha;
     float distancia_izquierda;
     int v = 0;
+    int angulo_correccion = 0;
+    int angulo_correccion_t = 0;
+    int angulo_correccion_t2 = 0;
+    int angulo = 0;
 
     signal(SIGINT, signal_handler); /* Set interrupt for ctrl+C */
-    init_lidar();
-    pthread_create(&writer, NULL, lidar_writer_thread, NULL);
-    
+    RPLidar_S2L_Init_Lidar();
+    pthread_create(&writer, NULL, RPLidar_S2L_Lidar_Writer_Thread, NULL);
+
     Rasp_Gpio_Init();
     Rasp_Gpio_Power_On_Spike();
     Spike_Serial_Init();
@@ -43,23 +49,30 @@ int main(){
 
         printf("caso afuera\n");
 
-        direction sentido = avanzar_deteccion_sentido_lidar(100, 0);
+        direction sentido = RPLidar_S2L_Avanzar_Deteccion_Sentido_Lidar(100, 0);
         printf("sentido %d :\n", sentido);
 
         if(sentido == right){
             Spike_Turn_For_Degrees(der, 100, 88);
             Spike_Center_Vehicle_Short();
             Spike_Advance_For_Degrees(80, 1600, -90);
-            int angulo_correccion = avanzar_dos_puntos_izquierda(80, 500, -90);
-            Spike_Reset_Gyro(angulo_correccion);
+            angulo_correccion_t = RPLidar_S2L_Correction_For_Triangles_Left(12);
+            angulo_correccion = RPLidar_S2L_Avanzar_Dos_Puntos_Izquierda(80, 500, -90);
+            angulo_correccion_t2 = RPLidar_S2L_Correction_For_Triangles_Left(12);
+            angulo = RPLidar_S2L_Comparation(angulo_correccion_t, angulo_correccion, angulo_correccion_t2);
+            Spike_Reset_Gyro(angulo);
             usleep(200000);
             while (v < 11){
-            avanzar_deteccion_vacio_derecho_lidar(80, 0);
+            RPLidar_S2L_Avanzar_Deteccion_Vacio_Derecho_Lidar(80, 0);
             Spike_Turn_For_Degrees(der, 100, 88);
             Spike_Center_Vehicle_Short();
             Spike_Advance_For_Degrees(80, 600, -90);
-            int angulo_correccion = avanzar_dos_puntos_izquierda(80, 500, -90);
-            Spike_Reset_Gyro(angulo_correccion);
+            angulo_correccion_t = RPLidar_S2L_Correction_For_Triangles_Left(12);
+            angulo_correccion = RPLidar_S2L_Avanzar_Dos_Puntos_Izquierda(80, 500, -90);
+            angulo_correccion_t2 = RPLidar_S2L_Correction_For_Triangles_Left(12);
+            angulo = RPLidar_S2L_Comparation(angulo_correccion_t, angulo_correccion, angulo_correccion_t2);
+            Spike_Reset_Gyro(angulo);
+            printf("v : %d, angulo : %d \n", v, angulo);
             usleep(200000);
             v = v + 1;
             }
@@ -70,16 +83,23 @@ int main(){
             Spike_Turn_For_Degrees(izq, 100, 88);
             Spike_Center_Vehicle_Short();
             Spike_Advance_For_Degrees(80, 1600, 90);
-            int angulo_correccion = avanzar_dos_puntos_derecha(80, 500, 90);
-            Spike_Reset_Gyro(angulo_correccion);
+            angulo_correccion_t = RPLidar_S2L_Correction_For_Triangles_Right(12);
+            angulo_correccion = RPLidar_S2L_Avanzar_Dos_Puntos_Derecha(80, 500, 90);
+            angulo_correccion_t2 = RPLidar_S2L_Correction_For_Triangles_Right(12);
+            angulo = RPLidar_S2L_Comparation(angulo_correccion_t, angulo_correccion, angulo_correccion_t2);
+            Spike_Reset_Gyro(angulo);
             usleep(200000);
             while (v < 11){
-            avanzar_deteccion_vacio_izquierdo_lidar(80, 0);
+            RPLidar_S2L_Avanzar_Deteccion_Vacio_Izquierdo_Lidar(80, 0);
             Spike_Turn_For_Degrees(izq, 100, 88);
             Spike_Center_Vehicle_Short();
             Spike_Advance_For_Degrees(80, 600, 90);
-            int angulo_correccion = avanzar_dos_puntos_derecha(80, 500, 90);
-            Spike_Reset_Gyro(angulo_correccion);
+            angulo_correccion_t = RPLidar_S2L_Correction_For_Triangles_Right(12);
+            angulo_correccion = RPLidar_S2L_Avanzar_Dos_Puntos_Derecha(80, 500, 90);
+            angulo_correccion_t2 = RPLidar_S2L_Correction_For_Triangles_Right(12);
+            angulo = RPLidar_S2L_Comparation(angulo_correccion_t, angulo_correccion, angulo_correccion_t2);
+            Spike_Reset_Gyro(angulo);
+            printf("v : %d, angulo : %d \n", v, angulo);
             usleep(200000);
             v = v + 1;
             }
@@ -91,23 +111,30 @@ int main(){
 
         printf("caso adentro\n");
 
-        direction sentido = avanzar_deteccion_sentido_lidar(60, 0);
+        direction sentido = RPLidar_S2L_Avanzar_Deteccion_Sentido_Lidar(60, 0);
         printf("sentido : %d \n", sentido);
 
         if(sentido == right){
             Spike_Turn_For_Degrees(der, 100, 88);
             Spike_Center_Vehicle_Short();
             Spike_Advance_For_Degrees(80, 600, -90);
-            int angulo_correccion = avanzar_dos_puntos_izquierda(80, 500, -90);
-            Spike_Reset_Gyro(angulo_correccion);
+            angulo_correccion_t = RPLidar_S2L_Correction_For_Triangles_Left(12);
+            angulo_correccion = RPLidar_S2L_Avanzar_Dos_Puntos_Izquierda(80, 500, -90);
+            angulo_correccion_t2 = RPLidar_S2L_Correction_For_Triangles_Left(12);
+            angulo = RPLidar_S2L_Comparation(angulo_correccion_t, angulo_correccion, angulo_correccion_t2);
+            Spike_Reset_Gyro(angulo);
             usleep(200000);
             while (v < 11){
-            avanzar_deteccion_vacio_derecho_lidar(80, 0);
+            RPLidar_S2L_Avanzar_Deteccion_Vacio_Derecho_Lidar(80, 0);
             Spike_Turn_For_Degrees(der, 100, 88);
             Spike_Center_Vehicle_Short();
             Spike_Advance_For_Degrees(80, 600, -90);
-            int angulo_correccion = avanzar_dos_puntos_izquierda(80, 500, -90);
-            Spike_Reset_Gyro(angulo_correccion);
+            angulo_correccion_t = RPLidar_S2L_Correction_For_Triangles_Left(12);
+            angulo_correccion = RPLidar_S2L_Avanzar_Dos_Puntos_Izquierda(80, 500, -90);
+            angulo_correccion_t2 = RPLidar_S2L_Correction_For_Triangles_Left(12);
+            angulo = RPLidar_S2L_Comparation(angulo_correccion_t, angulo_correccion, angulo_correccion_t2);
+            Spike_Reset_Gyro(angulo);
+            printf("v : %d, angulo : %d \n", v, angulo);
             usleep(200000);
             v = v + 1;
             }
@@ -118,16 +145,23 @@ int main(){
             Spike_Turn_For_Degrees(izq, 100, 88);
             Spike_Center_Vehicle_Short();
             Spike_Advance_For_Degrees(80, 600, 90);
-            int angulo_correccion = avanzar_dos_puntos_derecha(80, 500, 90);
-            Spike_Reset_Gyro(angulo_correccion);
+            angulo_correccion_t = RPLidar_S2L_Correction_For_Triangles_Right(12);
+            angulo_correccion = RPLidar_S2L_Avanzar_Dos_Puntos_Derecha(80, 500, 90);
+            angulo_correccion_t2 = RPLidar_S2L_Correction_For_Triangles_Right(12);
+            angulo = RPLidar_S2L_Comparation(angulo_correccion_t, angulo_correccion, angulo_correccion_t2);
+            Spike_Reset_Gyro(angulo);
             usleep(200000);
             while (v < 11){
-            avanzar_deteccion_vacio_izquierdo_lidar(80, 0);
+            RPLidar_S2L_Avanzar_Deteccion_Vacio_Izquierdo_Lidar(80, 0);
             Spike_Turn_For_Degrees(izq, 100, 88);
             Spike_Center_Vehicle_Short();
             Spike_Advance_For_Degrees(80, 600, 90);
-            int angulo_correccion = avanzar_dos_puntos_derecha(80, 500, 90);
-            Spike_Reset_Gyro(angulo_correccion);
+            angulo_correccion_t = RPLidar_S2L_Correction_For_Triangles_Right(12);
+            angulo_correccion = RPLidar_S2L_Avanzar_Dos_Puntos_Derecha(80, 500, 90);
+            angulo_correccion_t2 = RPLidar_S2L_Correction_For_Triangles_Right(12);
+            angulo = RPLidar_S2L_Comparation(angulo_correccion_t, angulo_correccion, angulo_correccion_t2);
+            Spike_Reset_Gyro(angulo);
+            printf("v : %d, angulo : %d \n", v, angulo);
             usleep(200000);
             v = v + 1;
             }
@@ -135,7 +169,7 @@ int main(){
     } 
     
     printf("ultima funcion\n");
-    avanzar_hasta_la_distancia(80, 0, 1400);
+    RPLidar_S2L_Avanzar_Hasta_La_Distancia(80, 0, 1400);
 
     Rasp_Gpio_Clean();
     Spike_Coast_Motors();
@@ -147,6 +181,6 @@ int main(){
 
 void signal_handler(int signum){
     printf("\nCtrl+C detceted\n");
-    rplidar_s2l_set_terminating();
+    RPLidar_S2L_Set_Terminating();
     signal(SIGINT, SIG_DFL);
 }

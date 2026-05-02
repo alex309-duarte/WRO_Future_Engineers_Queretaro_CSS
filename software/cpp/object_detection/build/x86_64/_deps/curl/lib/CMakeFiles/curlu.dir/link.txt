@@ -1,0 +1,2 @@
+/usr/bin/ar qc libcurlu.a CMakeFiles/curlu.dir/Unity/unity_0_c.c.o
+/usr/bin/ranlib libcurlu.a
