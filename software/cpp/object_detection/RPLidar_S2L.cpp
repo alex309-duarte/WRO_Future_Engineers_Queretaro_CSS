@@ -268,5 +268,7 @@ void RPLidar_S2L_Set_Terminating(void){
 }
 
 void RPLidar_S2L_Get_Buffer(float *buffer){
-    *buffer = lidar_shared_buffer[0];
+    for(int i = 0; i < 360; i++){
+        buffer[i] = lidar_shared_buffer[i];
+    }
 }

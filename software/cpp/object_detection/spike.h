@@ -28,6 +28,7 @@ void Spike_Concatenate(int list_lenght,const char * argument_1[],char * buffer);
 void Spike_Turn_For_Degrees(int direction, int speed, int degrees);
 void Spike_Advance_For_Degrees(int speed, int degrees, int reference);
 void Spike_Forward(int speed, int reference);
+void Spike_Follow_Reference(int speed, float reference_1, float reference_2);
 
 // Contenido del archivo de cabecera (prototipos, definiciones, etc.)
 

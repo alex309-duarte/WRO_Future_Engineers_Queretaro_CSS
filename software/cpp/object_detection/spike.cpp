@@ -190,6 +190,11 @@ void Spike_Initialize_Libraries(void){
     Spike_Send_Serial_Data("error = pd(motion_sensor.tilt_angles()[0],((10)*(reference)),speed,0.11,0.7,error)\r");
     Spike_End_Funcion();
 
+    Spike_Send_Serial_Data("def apd(speed, reference_1, reference_2):\r");
+    Spike_Send_Serial_Data("global error\r");
+    Spike_Send_Serial_Data("error = pd(reference_1 ,reference_2,speed,50,0,error)\r");
+    Spike_End_Funcion();
+
     Spike_Send_Serial_Data("def ag(speed,degrees,reference):\r");
     Spike_Send_Serial_Data("error = 0\r");
     Spike_Send_Serial_Data("motor.reset_relative_position(port.B,0)\r");
@@ -376,6 +381,31 @@ void Spike_Forward(int speed, int reference){
 	cocatenate_list[4] = ")\r";
 
     Spike_Concatenate(5, cocatenate_list, arguments);
+
+    Spike_Send_Serial_Data(arguments);
+
+}
+
+void Spike_Follow_Reference(int speed, float reference_1, float reference_2){
+    char arguments[255];
+	char string_speed[10] = "";
+    char string_reference_1[10] = "";
+    char string_reference_2[10] = "";
+
+    snprintf(string_speed, sizeof(string_speed), "%d", speed);
+	snprintf(string_reference_1, sizeof(string_reference_1), "%.3f", reference_1);
+	snprintf(string_reference_2, sizeof(string_reference_2), "%.3f", reference_2);
+
+    const char * cocatenate_list[10];
+	cocatenate_list[0] = "apd(";
+	cocatenate_list[1] = (const char *)string_speed;	
+	cocatenate_list[2] = ",";
+    cocatenate_list[3] = (const char *)string_reference_1;	
+	cocatenate_list[4] = ",";
+    cocatenate_list[5] = (const char *)string_reference_2;	
+	cocatenate_list[6] = ")\r";
+
+    Spike_Concatenate(7, cocatenate_list, arguments);
 
     Spike_Send_Serial_Data(arguments);
 

@@ -7,9 +7,37 @@
 #include "RPLidar_S2L.h"
 #include "common_var.h"
 
+struct traffic_lights_struct{
+    float  middle_point_x;
+    float  middle_point_y;
+    int light_color; /* red = 2,  green = 1, xparking = 3 */
+    float area;
+};
+
+static traffic_lights_struct traffic_lights;
+
 pthread_t writer;
+pthread_t Main_Actions;
+static volatile int terminating_main = 0;
 
 void signal_handler(int signum);
+void *Obstacle_Challenge_Thread(void *arg);
+void Follow_cubes(int vel, float referencia_2);
+
+int find_max_index(float arr[], int n) {
+    if (n <= 0) return -1; // Handle empty array case
+
+    int max_index = 0;
+    float max_value = arr[0];
+
+    for (int i = 1; i < n; i++) {
+        if (arr[i] > max_value) {
+            max_value = arr[i];
+            max_index = i;
+        }
+    }
+    return max_index;
+}
 
 using namespace hailo_utils;
 using Clock = std::chrono::steady_clock;
@@ -21,7 +49,7 @@ constexpr size_t MAX_QUEUE_SIZE = 60;
 
 std::shared_ptr<BoundedTSQueue<std::pair<std::vector<cv::Mat>, std::vector<cv::Mat>>>> preprocessed_batch_queue =
     std::make_shared<BoundedTSQueue<std::pair<std::vector<cv::Mat>, std::vector<cv::Mat>>>>(MAX_QUEUE_SIZE);
-
+ 
 std::shared_ptr<BoundedTSQueue<InferenceResult>> results_queue =
     std::make_shared<BoundedTSQueue<InferenceResult>>(MAX_QUEUE_SIZE);
 
@@ -76,15 +104,27 @@ void postprocess_callback(
     const std::vector<std::pair<uint8_t*, hailo_vstream_info_t>> &output_data_and_infos,
     const VisualizationParams &vis)
 {
-    const size_t class_count = 80;
+    const size_t class_count = 3;
+    float traffic_light_area[10] = {0}; 
+
     auto bboxes = parse_nms_data(output_data_and_infos[0].first, class_count);
 
     draw_bounding_boxes(frame_to_draw, bboxes, vis);
-
+    int index = 0;
     for (const auto &named_bbox : bboxes){
-        printf(" score = %f, class_id = %lu", named_bbox.bbox.score, named_bbox.class_id);
+        traffic_light_area[index] = (named_bbox.bbox.x_max - named_bbox.bbox.x_min) * (named_bbox.bbox.y_max - named_bbox.bbox.y_min);
+        index++;
     }
-    printf("\n");
+    int max_index = find_max_index(traffic_light_area, 10);
+    if (bboxes.size() > 0){
+        const auto named_bbox = bboxes.at(max_index); // Assuming only one bbox for traffic light detection
+        traffic_lights.middle_point_x = (named_bbox.bbox.x_min + named_bbox.bbox.x_max) / 2.0;
+        traffic_lights.middle_point_y = (named_bbox.bbox.y_min + named_bbox.bbox.y_max) / 2.0;
+        traffic_lights.light_color = (int)named_bbox.class_id;
+        traffic_lights.area = traffic_light_area[max_index];
+        printf(" color = %d, area = %f, middle point = (%f, %f)", traffic_lights.light_color, traffic_lights.area, traffic_lights.middle_point_x, traffic_lights.middle_point_y);
+        printf("\n");
+    }
 }
 
 
@@ -99,7 +139,7 @@ int main(int argc, char** argv)
     Spike_Serial_Init();
     Spike_Interpreter();
     Spike_Initialize_Libraries();
-    Rasp_Gpio_Wait_For_Button();
+    pthread_create(&Main_Actions, NULL, Obstacle_Challenge_Thread, NULL);
 
     try {
         const std::string APP_NAME = "object_detection";
@@ -188,8 +228,45 @@ int main(int argc, char** argv)
     }
 }
 
+void *Obstacle_Challenge_Thread(void *arg){
+    float distancia_frente;
+    float distancia_derecha;
+    float distancia_izquierda;
+    float lidar_shared_buffer[360]; // Your shared buffer
+
+    Rasp_Gpio_Wait_For_Button();
+    Spike_Reset_Gyro(0);
+    usleep(200000); //wiating for reset gyro
+
+    RPLidar_S2L_Get_Buffer(&lidar_shared_buffer[0] );
+    distancia_frente = lidar_shared_buffer[0];
+    distancia_derecha = lidar_shared_buffer[270];
+    distancia_izquierda = lidar_shared_buffer[90];
+
+    printf("dsitancia derecha : %f\n", distancia_derecha);
+    printf("dsitancia izquierda : %f\n", distancia_izquierda);
+    printf("dsitancia frente : %f\n", distancia_frente);
+
+    while(terminating_main == 0){
+        Follow_cubes(60, 0.5);
+        usleep(20000000);
+    }
+    return NULL;
+}
+
+void Follow_cubes(int vel, float referencia_2){
+
+    while((terminating_main == 0) && (traffic_lights.area < 0.07)){
+        Spike_Follow_Reference(vel, traffic_lights.middle_point_x, referencia_2);
+        usleep(1000);
+    }
+    Spike_Coast_Motors();
+
+}
+
 void signal_handler(int signum){
     printf("\nCtrl+C detceted\n");
+    terminating_main = 1;
     RPLidar_S2L_Set_Terminating();
     Rasp_Gpio_Clean();
     Spike_Close_Serial();
