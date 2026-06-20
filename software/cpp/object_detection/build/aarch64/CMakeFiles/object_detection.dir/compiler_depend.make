@@ -30,6 +30,7 @@ CMakeFiles/object_detection.dir/RPLidar_S2L.cpp.o: /home/maker/WRO_Future_Engine
   /usr/include/aarch64-linux-gnu/bits/iscanonical.h \
   /usr/include/aarch64-linux-gnu/bits/libc-header-start.h \
   /usr/include/aarch64-linux-gnu/bits/libm-simd-decl-stubs.h \
+  /usr/include/aarch64-linux-gnu/bits/local_lim.h \
   /usr/include/aarch64-linux-gnu/bits/locale.h \
   /usr/include/aarch64-linux-gnu/bits/long-double.h \
   /usr/include/aarch64-linux-gnu/bits/math-vector.h \
@@ -37,6 +38,8 @@ CMakeFiles/object_detection.dir/RPLidar_S2L.cpp.o: /home/maker/WRO_Future_Engine
   /usr/include/aarch64-linux-gnu/bits/mathcalls-macros.h \
   /usr/include/aarch64-linux-gnu/bits/mathcalls-narrow.h \
   /usr/include/aarch64-linux-gnu/bits/mathcalls.h \
+  /usr/include/aarch64-linux-gnu/bits/posix1_lim.h \
+  /usr/include/aarch64-linux-gnu/bits/posix2_lim.h \
   /usr/include/aarch64-linux-gnu/bits/posix_opt.h \
   /usr/include/aarch64-linux-gnu/bits/procfs-extra.h \
   /usr/include/aarch64-linux-gnu/bits/procfs-id.h \
@@ -122,21 +125,33 @@ CMakeFiles/object_detection.dir/RPLidar_S2L.cpp.o: /home/maker/WRO_Future_Engine
   /usr/include/aarch64-linux-gnu/bits/types/wint_t.h \
   /usr/include/aarch64-linux-gnu/bits/typesizes.h \
   /usr/include/aarch64-linux-gnu/bits/uintn-identity.h \
+  /usr/include/aarch64-linux-gnu/bits/uio_lim.h \
   /usr/include/aarch64-linux-gnu/bits/unistd_ext.h \
   /usr/include/aarch64-linux-gnu/bits/waitflags.h \
   /usr/include/aarch64-linux-gnu/bits/waitstatus.h \
   /usr/include/aarch64-linux-gnu/bits/wchar.h \
+  /usr/include/aarch64-linux-gnu/bits/wctype-wchar.h \
   /usr/include/aarch64-linux-gnu/bits/wordsize.h \
+  /usr/include/aarch64-linux-gnu/bits/xopen_lim.h \
+  /usr/include/aarch64-linux-gnu/c++/14/bits/atomic_word.h \
   /usr/include/aarch64-linux-gnu/c++/14/bits/c++allocator.h \
   /usr/include/aarch64-linux-gnu/c++/14/bits/c++config.h \
   /usr/include/aarch64-linux-gnu/c++/14/bits/c++locale.h \
   /usr/include/aarch64-linux-gnu/c++/14/bits/cpu_defines.h \
+  /usr/include/aarch64-linux-gnu/c++/14/bits/ctype_base.h \
+  /usr/include/aarch64-linux-gnu/c++/14/bits/ctype_inline.h \
+  /usr/include/aarch64-linux-gnu/c++/14/bits/error_constants.h \
+  /usr/include/aarch64-linux-gnu/c++/14/bits/gthr-default.h \
+  /usr/include/aarch64-linux-gnu/c++/14/bits/gthr.h \
+  /usr/include/aarch64-linux-gnu/c++/14/bits/messages_members.h \
   /usr/include/aarch64-linux-gnu/c++/14/bits/os_defines.h \
+  /usr/include/aarch64-linux-gnu/c++/14/bits/time_members.h \
   /usr/include/aarch64-linux-gnu/gnu/stubs-lp64.h \
   /usr/include/aarch64-linux-gnu/gnu/stubs.h \
   /usr/include/aarch64-linux-gnu/sys/cdefs.h \
   /usr/include/aarch64-linux-gnu/sys/procfs.h \
   /usr/include/aarch64-linux-gnu/sys/select.h \
+  /usr/include/aarch64-linux-gnu/sys/single_threaded.h \
   /usr/include/aarch64-linux-gnu/sys/time.h \
   /usr/include/aarch64-linux-gnu/sys/ttydefaults.h \
   /usr/include/aarch64-linux-gnu/sys/types.h \
@@ -149,54 +164,109 @@ CMakeFiles/object_detection.dir/RPLidar_S2L.cpp.o: /home/maker/WRO_Future_Engine
   /usr/include/asm-generic/int-ll64.h \
   /usr/include/asm-generic/posix_types.h \
   /usr/include/asm-generic/types.h \
+  /usr/include/assert.h \
+  /usr/include/c++/14/algorithm \
+  /usr/include/c++/14/array \
+  /usr/include/c++/14/backward/auto_ptr.h \
   /usr/include/c++/14/backward/binders.h \
   /usr/include/c++/14/bit \
+  /usr/include/c++/14/bits/algorithmfwd.h \
+  /usr/include/c++/14/bits/align.h \
   /usr/include/c++/14/bits/alloc_traits.h \
+  /usr/include/c++/14/bits/allocated_ptr.h \
   /usr/include/c++/14/bits/allocator.h \
+  /usr/include/c++/14/bits/atomic_base.h \
+  /usr/include/c++/14/bits/atomic_lockfree_defines.h \
+  /usr/include/c++/14/bits/basic_ios.h \
+  /usr/include/c++/14/bits/basic_ios.tcc \
   /usr/include/c++/14/bits/basic_string.h \
   /usr/include/c++/14/bits/basic_string.tcc \
   /usr/include/c++/14/bits/char_traits.h \
   /usr/include/c++/14/bits/charconv.h \
+  /usr/include/c++/14/bits/chrono.h \
+  /usr/include/c++/14/bits/codecvt.h \
   /usr/include/c++/14/bits/concept_check.h \
   /usr/include/c++/14/bits/cpp_type_traits.h \
   /usr/include/c++/14/bits/cxxabi_forced.h \
+  /usr/include/c++/14/bits/cxxabi_init_exception.h \
+  /usr/include/c++/14/bits/deque.tcc \
+  /usr/include/c++/14/bits/enable_special_members.h \
   /usr/include/c++/14/bits/erase_if.h \
   /usr/include/c++/14/bits/exception.h \
   /usr/include/c++/14/bits/exception_defines.h \
+  /usr/include/c++/14/bits/exception_ptr.h \
   /usr/include/c++/14/bits/functexcept.h \
   /usr/include/c++/14/bits/functional_hash.h \
   /usr/include/c++/14/bits/hash_bytes.h \
+  /usr/include/c++/14/bits/hashtable.h \
+  /usr/include/c++/14/bits/hashtable_policy.h \
   /usr/include/c++/14/bits/invoke.h \
+  /usr/include/c++/14/bits/ios_base.h \
+  /usr/include/c++/14/bits/istream.tcc \
+  /usr/include/c++/14/bits/list.tcc \
+  /usr/include/c++/14/bits/locale_classes.h \
+  /usr/include/c++/14/bits/locale_classes.tcc \
+  /usr/include/c++/14/bits/locale_conv.h \
+  /usr/include/c++/14/bits/locale_facets.h \
+  /usr/include/c++/14/bits/locale_facets.tcc \
+  /usr/include/c++/14/bits/locale_facets_nonio.h \
+  /usr/include/c++/14/bits/locale_facets_nonio.tcc \
   /usr/include/c++/14/bits/localefwd.h \
   /usr/include/c++/14/bits/memory_resource.h \
   /usr/include/c++/14/bits/memoryfwd.h \
   /usr/include/c++/14/bits/move.h \
+  /usr/include/c++/14/bits/nested_exception.h \
   /usr/include/c++/14/bits/new_allocator.h \
   /usr/include/c++/14/bits/node_handle.h \
+  /usr/include/c++/14/bits/ostream.tcc \
   /usr/include/c++/14/bits/ostream_insert.h \
+  /usr/include/c++/14/bits/parse_numbers.h \
   /usr/include/c++/14/bits/postypes.h \
   /usr/include/c++/14/bits/predefined_ops.h \
   /usr/include/c++/14/bits/ptr_traits.h \
+  /usr/include/c++/14/bits/quoted_string.h \
   /usr/include/c++/14/bits/range_access.h \
   /usr/include/c++/14/bits/refwrap.h \
   /usr/include/c++/14/bits/requires_hosted.h \
+  /usr/include/c++/14/bits/shared_ptr.h \
+  /usr/include/c++/14/bits/shared_ptr_atomic.h \
+  /usr/include/c++/14/bits/shared_ptr_base.h \
   /usr/include/c++/14/bits/specfun.h \
+  /usr/include/c++/14/bits/sstream.tcc \
   /usr/include/c++/14/bits/std_abs.h \
+  /usr/include/c++/14/bits/std_function.h \
+  /usr/include/c++/14/bits/std_mutex.h \
+  /usr/include/c++/14/bits/stl_algo.h \
   /usr/include/c++/14/bits/stl_algobase.h \
   /usr/include/c++/14/bits/stl_bvector.h \
   /usr/include/c++/14/bits/stl_construct.h \
+  /usr/include/c++/14/bits/stl_deque.h \
   /usr/include/c++/14/bits/stl_function.h \
+  /usr/include/c++/14/bits/stl_heap.h \
   /usr/include/c++/14/bits/stl_iterator.h \
   /usr/include/c++/14/bits/stl_iterator_base_funcs.h \
   /usr/include/c++/14/bits/stl_iterator_base_types.h \
+  /usr/include/c++/14/bits/stl_list.h \
   /usr/include/c++/14/bits/stl_map.h \
   /usr/include/c++/14/bits/stl_multimap.h \
+  /usr/include/c++/14/bits/stl_multiset.h \
   /usr/include/c++/14/bits/stl_pair.h \
+  /usr/include/c++/14/bits/stl_queue.h \
+  /usr/include/c++/14/bits/stl_raw_storage_iter.h \
+  /usr/include/c++/14/bits/stl_relops.h \
+  /usr/include/c++/14/bits/stl_set.h \
+  /usr/include/c++/14/bits/stl_tempbuf.h \
   /usr/include/c++/14/bits/stl_tree.h \
   /usr/include/c++/14/bits/stl_uninitialized.h \
   /usr/include/c++/14/bits/stl_vector.h \
+  /usr/include/c++/14/bits/streambuf.tcc \
+  /usr/include/c++/14/bits/streambuf_iterator.h \
   /usr/include/c++/14/bits/string_view.tcc \
   /usr/include/c++/14/bits/stringfwd.h \
+  /usr/include/c++/14/bits/uniform_int_dist.h \
+  /usr/include/c++/14/bits/unique_lock.h \
+  /usr/include/c++/14/bits/unique_ptr.h \
+  /usr/include/c++/14/bits/unordered_map.h \
   /usr/include/c++/14/bits/uses_allocator.h \
   /usr/include/c++/14/bits/uses_allocator_args.h \
   /usr/include/c++/14/bits/utility.h \
@@ -204,31 +274,63 @@ CMakeFiles/object_detection.dir/RPLidar_S2L.cpp.o: /home/maker/WRO_Future_Engine
   /usr/include/c++/14/bits/version.h \
   /usr/include/c++/14/cctype \
   /usr/include/c++/14/cerrno \
+  /usr/include/c++/14/cfloat \
+  /usr/include/c++/14/chrono \
+  /usr/include/c++/14/climits \
   /usr/include/c++/14/clocale \
   /usr/include/c++/14/cmath \
+  /usr/include/c++/14/compare \
+  /usr/include/c++/14/complex \
   /usr/include/c++/14/concepts \
   /usr/include/c++/14/cstddef \
   /usr/include/c++/14/cstdint \
   /usr/include/c++/14/cstdio \
   /usr/include/c++/14/cstdlib \
+  /usr/include/c++/14/cstring \
+  /usr/include/c++/14/ctime \
   /usr/include/c++/14/cwchar \
+  /usr/include/c++/14/cwctype \
   /usr/include/c++/14/debug/assertions.h \
   /usr/include/c++/14/debug/debug.h \
+  /usr/include/c++/14/deque \
+  /usr/include/c++/14/exception \
   /usr/include/c++/14/ext/aligned_buffer.h \
   /usr/include/c++/14/ext/alloc_traits.h \
+  /usr/include/c++/14/ext/atomicity.h \
+  /usr/include/c++/14/ext/concurrence.h \
   /usr/include/c++/14/ext/numeric_traits.h \
   /usr/include/c++/14/ext/string_conversions.h \
   /usr/include/c++/14/ext/type_traits.h \
+  /usr/include/c++/14/functional \
   /usr/include/c++/14/initializer_list \
+  /usr/include/c++/14/iomanip \
+  /usr/include/c++/14/ios \
   /usr/include/c++/14/iosfwd \
+  /usr/include/c++/14/iostream \
+  /usr/include/c++/14/istream \
   /usr/include/c++/14/limits \
+  /usr/include/c++/14/list \
+  /usr/include/c++/14/locale \
   /usr/include/c++/14/map \
   /usr/include/c++/14/math.h \
+  /usr/include/c++/14/memory \
+  /usr/include/c++/14/mutex \
   /usr/include/c++/14/new \
+  /usr/include/c++/14/ostream \
+  /usr/include/c++/14/pstl/execution_defs.h \
+  /usr/include/c++/14/pstl/glue_algorithm_defs.h \
+  /usr/include/c++/14/pstl/glue_memory_defs.h \
   /usr/include/c++/14/pstl/pstl_config.h \
+  /usr/include/c++/14/queue \
+  /usr/include/c++/14/ratio \
+  /usr/include/c++/14/set \
+  /usr/include/c++/14/sstream \
+  /usr/include/c++/14/stdexcept \
   /usr/include/c++/14/stdlib.h \
+  /usr/include/c++/14/streambuf \
   /usr/include/c++/14/string \
   /usr/include/c++/14/string_view \
+  /usr/include/c++/14/system_error \
   /usr/include/c++/14/tr1/bessel_function.tcc \
   /usr/include/c++/14/tr1/beta_function.tcc \
   /usr/include/c++/14/tr1/ell_integral.tcc \
@@ -243,6 +345,9 @@ CMakeFiles/object_detection.dir/RPLidar_S2L.cpp.o: /home/maker/WRO_Future_Engine
   /usr/include/c++/14/tr1/special_function_util.h \
   /usr/include/c++/14/tuple \
   /usr/include/c++/14/type_traits \
+  /usr/include/c++/14/typeinfo \
+  /usr/include/c++/14/unordered_map \
+  /usr/include/c++/14/utility \
   /usr/include/c++/14/vector \
   /usr/include/ctype.h \
   /usr/include/endian.h \
@@ -250,15 +355,127 @@ CMakeFiles/object_detection.dir/RPLidar_S2L.cpp.o: /home/maker/WRO_Future_Engine
   /usr/include/fcntl.h \
   /usr/include/features-time64.h \
   /usr/include/features.h \
+  /usr/include/libintl.h \
+  /usr/include/limits.h \
   /usr/include/linux/close_range.h \
   /usr/include/linux/errno.h \
   /usr/include/linux/falloc.h \
+  /usr/include/linux/limits.h \
   /usr/include/linux/posix_types.h \
   /usr/include/linux/sched/types.h \
   /usr/include/linux/stddef.h \
   /usr/include/linux/types.h \
   /usr/include/locale.h \
   /usr/include/math.h \
+  /usr/include/opencv4/opencv2/calib3d.hpp \
+  /usr/include/opencv4/opencv2/core.hpp \
+  /usr/include/opencv4/opencv2/core/affine.hpp \
+  /usr/include/opencv4/opencv2/core/async.hpp \
+  /usr/include/opencv4/opencv2/core/base.hpp \
+  /usr/include/opencv4/opencv2/core/bufferpool.hpp \
+  /usr/include/opencv4/opencv2/core/check.hpp \
+  /usr/include/opencv4/opencv2/core/cuda.hpp \
+  /usr/include/opencv4/opencv2/core/cuda.inl.hpp \
+  /usr/include/opencv4/opencv2/core/cuda_types.hpp \
+  /usr/include/opencv4/opencv2/core/cv_cpu_dispatch.h \
+  /usr/include/opencv4/opencv2/core/cvdef.h \
+  /usr/include/opencv4/opencv2/core/cvstd.hpp \
+  /usr/include/opencv4/opencv2/core/cvstd.inl.hpp \
+  /usr/include/opencv4/opencv2/core/cvstd_wrapper.hpp \
+  /usr/include/opencv4/opencv2/core/fast_math.hpp \
+  /usr/include/opencv4/opencv2/core/hal/interface.h \
+  /usr/include/opencv4/opencv2/core/mat.hpp \
+  /usr/include/opencv4/opencv2/core/mat.inl.hpp \
+  /usr/include/opencv4/opencv2/core/matx.hpp \
+  /usr/include/opencv4/opencv2/core/matx.inl.hpp \
+  /usr/include/opencv4/opencv2/core/neon_utils.hpp \
+  /usr/include/opencv4/opencv2/core/operations.hpp \
+  /usr/include/opencv4/opencv2/core/optim.hpp \
+  /usr/include/opencv4/opencv2/core/ovx.hpp \
+  /usr/include/opencv4/opencv2/core/persistence.hpp \
+  /usr/include/opencv4/opencv2/core/saturate.hpp \
+  /usr/include/opencv4/opencv2/core/traits.hpp \
+  /usr/include/opencv4/opencv2/core/types.hpp \
+  /usr/include/opencv4/opencv2/core/utility.hpp \
+  /usr/include/opencv4/opencv2/core/utils/logger.defines.hpp \
+  /usr/include/opencv4/opencv2/core/utils/logger.hpp \
+  /usr/include/opencv4/opencv2/core/utils/logtag.hpp \
+  /usr/include/opencv4/opencv2/core/version.hpp \
+  /usr/include/opencv4/opencv2/core/vsx_utils.hpp \
+  /usr/include/opencv4/opencv2/dnn.hpp \
+  /usr/include/opencv4/opencv2/dnn/dict.hpp \
+  /usr/include/opencv4/opencv2/dnn/dnn.hpp \
+  /usr/include/opencv4/opencv2/dnn/dnn.inl.hpp \
+  /usr/include/opencv4/opencv2/dnn/layer.hpp \
+  /usr/include/opencv4/opencv2/dnn/utils/inference_engine.hpp \
+  /usr/include/opencv4/opencv2/dnn/version.hpp \
+  /usr/include/opencv4/opencv2/features2d.hpp \
+  /usr/include/opencv4/opencv2/flann.hpp \
+  /usr/include/opencv4/opencv2/flann/all_indices.h \
+  /usr/include/opencv4/opencv2/flann/allocator.h \
+  /usr/include/opencv4/opencv2/flann/any.h \
+  /usr/include/opencv4/opencv2/flann/autotuned_index.h \
+  /usr/include/opencv4/opencv2/flann/composite_index.h \
+  /usr/include/opencv4/opencv2/flann/config.h \
+  /usr/include/opencv4/opencv2/flann/defines.h \
+  /usr/include/opencv4/opencv2/flann/dist.h \
+  /usr/include/opencv4/opencv2/flann/dynamic_bitset.h \
+  /usr/include/opencv4/opencv2/flann/flann_base.hpp \
+  /usr/include/opencv4/opencv2/flann/general.h \
+  /usr/include/opencv4/opencv2/flann/ground_truth.h \
+  /usr/include/opencv4/opencv2/flann/heap.h \
+  /usr/include/opencv4/opencv2/flann/hierarchical_clustering_index.h \
+  /usr/include/opencv4/opencv2/flann/index_testing.h \
+  /usr/include/opencv4/opencv2/flann/kdtree_index.h \
+  /usr/include/opencv4/opencv2/flann/kdtree_single_index.h \
+  /usr/include/opencv4/opencv2/flann/kmeans_index.h \
+  /usr/include/opencv4/opencv2/flann/linear_index.h \
+  /usr/include/opencv4/opencv2/flann/logger.h \
+  /usr/include/opencv4/opencv2/flann/lsh_index.h \
+  /usr/include/opencv4/opencv2/flann/lsh_table.h \
+  /usr/include/opencv4/opencv2/flann/matrix.h \
+  /usr/include/opencv4/opencv2/flann/miniflann.hpp \
+  /usr/include/opencv4/opencv2/flann/nn_index.h \
+  /usr/include/opencv4/opencv2/flann/params.h \
+  /usr/include/opencv4/opencv2/flann/random.h \
+  /usr/include/opencv4/opencv2/flann/result_set.h \
+  /usr/include/opencv4/opencv2/flann/sampling.h \
+  /usr/include/opencv4/opencv2/flann/saving.h \
+  /usr/include/opencv4/opencv2/flann/timer.h \
+  /usr/include/opencv4/opencv2/highgui.hpp \
+  /usr/include/opencv4/opencv2/imgcodecs.hpp \
+  /usr/include/opencv4/opencv2/imgproc.hpp \
+  /usr/include/opencv4/opencv2/imgproc/segmentation.hpp \
+  /usr/include/opencv4/opencv2/ml.hpp \
+  /usr/include/opencv4/opencv2/ml/ml.inl.hpp \
+  /usr/include/opencv4/opencv2/objdetect.hpp \
+  /usr/include/opencv4/opencv2/objdetect/aruco_board.hpp \
+  /usr/include/opencv4/opencv2/objdetect/aruco_detector.hpp \
+  /usr/include/opencv4/opencv2/objdetect/aruco_dictionary.hpp \
+  /usr/include/opencv4/opencv2/objdetect/barcode.hpp \
+  /usr/include/opencv4/opencv2/objdetect/charuco_detector.hpp \
+  /usr/include/opencv4/opencv2/objdetect/detection_based_tracker.hpp \
+  /usr/include/opencv4/opencv2/objdetect/face.hpp \
+  /usr/include/opencv4/opencv2/objdetect/graphical_code_detector.hpp \
+  /usr/include/opencv4/opencv2/opencv.hpp \
+  /usr/include/opencv4/opencv2/opencv_modules.hpp \
+  /usr/include/opencv4/opencv2/photo.hpp \
+  /usr/include/opencv4/opencv2/stitching.hpp \
+  /usr/include/opencv4/opencv2/stitching/detail/blenders.hpp \
+  /usr/include/opencv4/opencv2/stitching/detail/camera.hpp \
+  /usr/include/opencv4/opencv2/stitching/detail/exposure_compensate.hpp \
+  /usr/include/opencv4/opencv2/stitching/detail/matchers.hpp \
+  /usr/include/opencv4/opencv2/stitching/detail/motion_estimators.hpp \
+  /usr/include/opencv4/opencv2/stitching/detail/seam_finders.hpp \
+  /usr/include/opencv4/opencv2/stitching/detail/util.hpp \
+  /usr/include/opencv4/opencv2/stitching/detail/util_inl.hpp \
+  /usr/include/opencv4/opencv2/stitching/detail/warpers.hpp \
+  /usr/include/opencv4/opencv2/stitching/detail/warpers_inl.hpp \
+  /usr/include/opencv4/opencv2/stitching/warpers.hpp \
+  /usr/include/opencv4/opencv2/video.hpp \
+  /usr/include/opencv4/opencv2/video/background_segm.hpp \
+  /usr/include/opencv4/opencv2/video/tracking.hpp \
+  /usr/include/opencv4/opencv2/videoio.hpp \
   /usr/include/pthread.h \
   /usr/include/sched.h \
   /usr/include/signal.h \
@@ -272,9 +489,16 @@ CMakeFiles/object_detection.dir/RPLidar_S2L.cpp.o: /home/maker/WRO_Future_Engine
   /usr/include/time.h \
   /usr/include/unistd.h \
   /usr/include/wchar.h \
+  /usr/include/wctype.h \
+  /usr/lib/gcc/aarch64-linux-gnu/14/include/arm_bf16.h \
+  /usr/lib/gcc/aarch64-linux-gnu/14/include/arm_fp16.h \
+  /usr/lib/gcc/aarch64-linux-gnu/14/include/arm_neon.h \
+  /usr/lib/gcc/aarch64-linux-gnu/14/include/float.h \
+  /usr/lib/gcc/aarch64-linux-gnu/14/include/limits.h \
   /usr/lib/gcc/aarch64-linux-gnu/14/include/stdarg.h \
   /usr/lib/gcc/aarch64-linux-gnu/14/include/stddef.h \
   /usr/lib/gcc/aarch64-linux-gnu/14/include/stdint.h \
+  /usr/lib/gcc/aarch64-linux-gnu/14/include/syslimits.h \
   /usr/lib/linux/uapi/arm64/asm/bitsperlong.h \
   /usr/lib/linux/uapi/arm64/asm/errno.h \
   /usr/lib/linux/uapi/arm64/asm/posix_types.h \
@@ -4044,163 +4268,27 @@ CMakeFiles/object_detection.dir/spike.cpp.o:
 
 /usr/lib/gcc/aarch64-linux-gnu/14/include/stdbool.h:
 
-/usr/include/c++/14/fstream:
-
-/usr/lib/gcc/aarch64-linux-gnu/14/include/limits.h:
-
-/lib/aarch64-linux-gnu/libavutil.so.59:
-
-/usr/lib/gcc/aarch64-linux-gnu/14/include/arm_fp16.h:
-
-/usr/lib/gcc/aarch64-linux-gnu/14/include/arm_bf16.h:
-
-/usr/include/wctype.h:
-
 /usr/include/poll.h:
 
-/usr/include/opencv4/opencv2/videoio.hpp:
+/usr/include/netinet/in.h:
 
-/usr/include/opencv4/opencv2/video/tracking.hpp:
+/usr/include/hailo/vstream.hpp:
 
-/usr/include/opencv4/opencv2/video.hpp:
+/lib/aarch64-linux-gnu/libdav1d.so.7:
 
-/usr/include/aarch64-linux-gnu/c++/14/bits/cpu_defines.h:
+/usr/include/hailo/vdevice.hpp:
 
-/usr/include/aarch64-linux-gnu/bits/types/wint_t.h:
+/usr/include/hailo/stream.hpp:
 
-/usr/lib/aarch64-linux-gnu/libopencv_plot.so.4.10.0:
+/lib/aarch64-linux-gnu/libabsl_graphcycles_internal.so.20240722:
 
-/usr/include/linux/types.h:
+/usr/include/hailo/runtime_statistics.hpp:
 
-/usr/lib/gcc/aarch64-linux-gnu/14/libgcc_s.so:
+/usr/include/hailo/network_group.hpp:
 
-/lib/aarch64-linux-gnu/libgdcmjpeg8.so.3.0:
+/lib/aarch64-linux-gnu/libodbc.so.2:
 
-/usr/include/c++/14/bits/std_abs.h:
-
-/lib/aarch64-linux-gnu/libnspr4.so:
-
-/lib/aarch64-linux-gnu/libabsl_strings_internal.so.20240722:
-
-/usr/include/linux/posix_types.h:
-
-/usr/include/linux/falloc.h:
-
-/usr/include/opencv4/opencv2/objdetect/barcode.hpp:
-
-/usr/include/linux/close_range.h:
-
-/usr/include/features.h:
-
-/lib/aarch64-linux-gnu/libfyut.so.0:
-
-/usr/include/c++/14/bits/gslice_array.h:
-
-/usr/include/c++/14/bits/node_handle.h:
-
-/lib/aarch64-linux-gnu/libpoppler.so.147:
-
-/usr/include/c++/14/tuple:
-
-/lib/aarch64-linux-gnu/libtirpc.so.3:
-
-/lib/aarch64-linux-gnu/libcjson.so.1:
-
-/usr/include/opencv4/opencv2/opencv.hpp:
-
-/usr/include/aarch64-linux-gnu/bits/flt-eval-method.h:
-
-/usr/include/c++/14/tr1/poly_hermite.tcc:
-
-/usr/include/opencv4/opencv2/flann/saving.h:
-
-/usr/include/c++/14/tr1/modified_bessel_func.tcc:
-
-/usr/include/c++/14/tr1/gamma.tcc:
-
-/usr/include/c++/14/tr1/exp_integral.tcc:
-
-/usr/include/aarch64-linux-gnu/bits/errno.h:
-
-/usr/include/c++/14/string_view:
-
-/usr/include/c++/14/string:
-
-/usr/include/c++/14/iosfwd:
-
-/lib/aarch64-linux-gnu/libLerc.so.4:
-
-/home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/external/yaml-cpp/include/yaml-cpp/node/detail/impl.h:
-
-/usr/include/c++/14/initializer_list:
-
-/lib/aarch64-linux-gnu/libxcb-shm.so.0:
-
-/lib/aarch64-linux-gnu/libffi.so.8:
-
-/usr/include/c++/14/bits/postypes.h:
-
-/usr/include/aarch64-linux-gnu/bits/termios-c_oflag.h:
-
-/usr/include/c++/14/ext/type_traits.h:
-
-/usr/include/linux/stddef.h:
-
-/usr/include/c++/14/bits/stl_tempbuf.h:
-
-/usr/include/opencv4/opencv2/flann/lsh_table.h:
-
-/usr/include/c++/14/bits/concept_check.h:
-
-/usr/lib/aarch64-linux-gnu/libopencv_structured_light.so.4.10.0:
-
-/usr/include/c++/14/bits/align.h:
-
-/usr/include/c++/14/bits/ostream.tcc:
-
-/usr/include/errno.h:
-
-/usr/include/c++/14/bits/slice_array.h:
-
-/usr/include/c++/14/debug/debug.h:
-
-/usr/include/c++/14/tr1/hypergeometric.tcc:
-
-/home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/external/yaml-cpp/include/yaml-cpp/null.h:
-
-/usr/include/c++/14/debug/assertions.h:
-
-/lib/aarch64-linux-gnu/libopus.so.0:
-
-/usr/include/c++/14/bits/regex_compiler.h:
-
-/usr/include/aarch64-linux-gnu/bits/pthreadtypes-arch.h:
-
-/usr/include/c++/14/cstdlib:
-
-/usr/lib/aarch64-linux-gnu/libopencv_hfs.so.4.10.0:
-
-/usr/include/c++/14/cstdint:
-
-/lib/aarch64-linux-gnu/libgpg-error.so.0:
-
-/usr/include/aarch64-linux-gnu/c++/14/bits/time_members.h:
-
-/usr/include/opencv4/opencv2/stitching/detail/warpers_inl.hpp:
-
-/lib/aarch64-linux-gnu/libchromaprint.so.1:
-
-/usr/include/c++/14/cstddef:
-
-/usr/include/opencv4/opencv2/core/async.hpp:
-
-/usr/include/c++/14/cerrno:
-
-/usr/include/opencv4/opencv2/highgui.hpp:
-
-/usr/include/c++/14/bits/uses_allocator.h:
-
-/usr/include/c++/14/bits/stringfwd.h:
+/usr/include/hailo/inference_pipeline.hpp:
 
 /lib/aarch64-linux-gnu/libexpat.so.1:
 
@@ -4212,6 +4300,12 @@ CMakeFiles/object_detection.dir/spike.cpp.o:
 
 /usr/include/assert.h:
 
+/lib/aarch64-linux-gnu/libdeflate.so.0:
+
+/usr/include/c++/14/bits/stl_heap.h:
+
+/usr/include/aarch64-linux-gnu/bits/select.h:
+
 /lib/aarch64-linux-gnu/libmariadb.so.3:
 
 /usr/include/c++/14/bits/stl_function.h:
@@ -4220,21 +4314,27 @@ CMakeFiles/object_detection.dir/spike.cpp.o:
 
 /usr/include/opencv4/opencv2/core/cvstd.inl.hpp:
 
-/usr/include/c++/14/bits/stl_vector.h:
+/lib/aarch64-linux-gnu/libgomp.so.1:
 
-/lib/aarch64-linux-gnu/liblber.so.2:
+/usr/include/c++/14/bits/std_function.h:
 
-/usr/include/aarch64-linux-gnu/bits/libm-simd-decl-stubs.h:
+/usr/lib/gcc/aarch64-linux-gnu/14/libgcc_s.so:
 
-/lib/aarch64-linux-gnu/libXau.so.6:
+/lib/aarch64-linux-gnu/libgdcmjpeg8.so.3.0:
 
-/usr/include/c++/14/pstl/pstl_config.h:
+/usr/include/c++/14/bits/std_abs.h:
 
-/usr/include/aarch64-linux-gnu/c++/14/bits/os_defines.h:
+/home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/external/yaml-cpp/include/yaml-cpp/node/detail/node_iterator.h:
 
-/usr/include/opencv4/opencv2/flann/result_set.h:
+/usr/include/aarch64-linux-gnu/c++/14/bits/ctype_inline.h:
 
-/usr/include/aarch64-linux-gnu/bits/types/struct_timeval.h:
+/usr/include/c++/14/bits/stl_set.h:
+
+/usr/include/c++/14/bits/shared_ptr.h:
+
+/lib/aarch64-linux-gnu/libshine.so.3:
+
+/usr/include/aarch64-linux-gnu/bits/siginfo-arch.h:
 
 /lib/aarch64-linux-gnu/libx264.so.164:
 
@@ -4244,6 +4344,10 @@ CMakeFiles/object_detection.dir/spike.cpp.o:
 
 /usr/include/c++/14/bits/range_access.h:
 
+/usr/include/c++/14/bits/quoted_string.h:
+
+/usr/include/c++/14/bits/locale_facets_nonio.tcc:
+
 /usr/lib/aarch64-linux-gnu/libopencv_phase_unwrapping.so.4.10.0:
 
 /usr/include/c++/14/bits/fstream.tcc:
@@ -4252,33 +4356,99 @@ CMakeFiles/object_detection.dir/spike.cpp.o:
 
 /usr/include/aarch64-linux-gnu/bits/sigstack.h:
 
-/usr/include/c++/14/bits/locale_facets_nonio.tcc:
-
 /lib/aarch64-linux-gnu/libbrotlidec.so.1:
 
 /usr/include/linux/sched/types.h:
 
 /usr/include/opencv4/opencv2/stitching/warpers.hpp:
 
-/home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/external/curl/include/curl/websockets.h:
+/lib/aarch64-linux-gnu/libxcb-shm.so.0:
 
-/usr/include/c++/14/tr1/beta_function.tcc:
+/lib/aarch64-linux-gnu/libffi.so.8:
 
-/usr/include/c++/14/bits/shared_ptr_base.h:
+/usr/include/c++/14/bits/postypes.h:
+
+/usr/include/aarch64-linux-gnu/bits/termios-c_oflag.h:
+
+/lib/aarch64-linux-gnu/libLerc.so.4:
+
+/home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/external/yaml-cpp/include/yaml-cpp/node/detail/impl.h:
+
+/usr/include/c++/14/initializer_list:
+
+/lib/aarch64-linux-gnu/libfyut.so.0:
+
+/usr/include/c++/14/bits/gslice_array.h:
+
+/usr/include/c++/14/bits/node_handle.h:
+
+/usr/include/features.h:
+
+/usr/include/c++/14/bits/nested_exception.h:
+
+/usr/include/aarch64-linux-gnu/bits/signal_ext.h:
+
+/usr/lib/aarch64-linux-gnu/libopencv_hdf.so.4.10.0:
+
+/usr/include/aarch64-linux-gnu/bits/types/__FILE.h:
 
 /usr/include/c++/14/bits/memoryfwd.h:
 
+/usr/include/aarch64-linux-gnu/bits/termios-tcflow.h:
+
+/usr/include/c++/14/bits/locale_facets.h:
+
+/usr/include/c++/14/bits/basic_string.h:
+
+/usr/include/c++/14/bits/locale_conv.h:
+
+/usr/include/c++/14/bits/locale_classes.tcc:
+
+/lib/aarch64-linux-gnu/libpangoft2-1.0.so.0:
+
+/lib/aarch64-linux-gnu/libldap.so.2:
+
+/usr/include/libintl.h:
+
+/usr/include/opencv4/opencv2/stitching/detail/exposure_compensate.hpp:
+
+CMakeFiles/object_detection.dir/home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/common/hailo_infer.cpp.o:
+
+/usr/include/c++/14/bits/list.tcc:
+
+/usr/lib/aarch64-linux-gnu/libopencv_cvv.so.4.10.0:
+
+/usr/include/opencv4/opencv2/opencv_modules.hpp:
+
+/usr/include/c++/14/regex:
+
+/usr/include/c++/14/bits/istream.tcc:
+
+/usr/include/c++/14/bits/ptr_traits.h:
+
+/usr/include/c++/14/bits/algorithmfwd.h:
+
 /usr/include/c++/14/bits/invoke.h:
+
+/usr/include/hailo/platform.h:
+
+/usr/include/hailo/hailort.hpp:
 
 /usr/include/c++/14/bits/functional_hash.h:
 
-/usr/include/c++/14/limits:
-
 /usr/include/c++/14/iomanip:
+
+/usr/include/c++/14/limits:
 
 /usr/include/c++/14/bits/erase_if.h:
 
 /usr/include/aarch64-linux-gnu/sys/socket.h:
+
+/usr/include/c++/14/bits/deque.tcc:
+
+/usr/include/aarch64-linux-gnu/bits/posix2_lim.h:
+
+/usr/include/c++/14/bits/cxxabi_init_exception.h:
 
 /usr/include/c++/14/bits/hash_bytes.h:
 
@@ -4294,13 +4464,11 @@ CMakeFiles/object_detection.dir/spike.cpp.o:
 
 /usr/include/c++/14/list:
 
-/lib/aarch64-linux-gnu/libX11-xcb.so.1:
-
-/usr/include/c++/14/tr1/riemann_zeta.tcc:
-
-/usr/include/c++/14/bits/basic_string.h:
+/usr/include/aarch64-linux-gnu/bits/siginfo-consts.h:
 
 /usr/include/c++/14/bits/allocator.h:
+
+/usr/include/opencv4/opencv2/dnn/dict.hpp:
 
 /usr/include/c++/14/bits/fs_dir.h:
 
@@ -4308,25 +4476,27 @@ CMakeFiles/object_detection.dir/spike.cpp.o:
 
 /usr/include/string.h:
 
-/usr/include/opencv4/opencv2/dnn/dict.hpp:
+/usr/include/linux/falloc.h:
+
+/usr/include/opencv4/opencv2/objdetect/barcode.hpp:
+
+/usr/include/c++/14/bits/ostream.tcc:
+
+/usr/include/c++/14/bits/concept_check.h:
+
+/usr/lib/aarch64-linux-gnu/libopencv_structured_light.so.4.10.0:
+
+/usr/include/c++/14/bits/align.h:
+
+/usr/include/c++/14/bits/locale_facets.tcc:
+
+/usr/include/c++/14/bits/chrono.h:
 
 /usr/include/aarch64-linux-gnu/bits/stdint-least.h:
-
-/lib/aarch64-linux-gnu/libXfixes.so.3:
-
-/usr/include/c++/14/math.h:
-
-/usr/include/c++/14/tr1/bessel_function.tcc:
-
-/usr/include/hailo/network_group.hpp:
 
 /lib/aarch64-linux-gnu/libsqlite3.so.0:
 
 /usr/include/asm-generic/posix_types.h:
-
-/usr/lib/gcc/aarch64-linux-gnu/14/include/syslimits.h:
-
-/usr/include/c++/14/bits/predefined_ops.h:
 
 /usr/include/asm-generic/types.h:
 
@@ -4344,9 +4514,49 @@ CMakeFiles/object_detection.dir/spike.cpp.o:
 
 /usr/include/aarch64-linux-gnu/sys/ttydefaults.h:
 
+/usr/include/c++/14/compare:
+
+/lib/aarch64-linux-gnu/libwebp.so.7:
+
+/usr/include/c++/14/ostream:
+
+/usr/include/opencv4/opencv2/core/ovx.hpp:
+
+/usr/include/opencv4/opencv2/stitching/detail/motion_estimators.hpp:
+
 /usr/include/aarch64-linux-gnu/sys/select.h:
 
+/usr/lib/aarch64-linux-gnu/libopencv_core.so.4.10.0:
+
+/lib/aarch64-linux-gnu/librist.so.4:
+
+/usr/include/aarch64-linux-gnu/c++/14/bits/messages_members.h:
+
+/usr/lib/aarch64-linux-gnu/libopencv_video.so.4.10.0:
+
+/home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/external/yaml-cpp/include/yaml-cpp/stlemitter.h:
+
+/usr/include/opencv4/opencv2/dnn/dnn.hpp:
+
+/usr/include/c++/14/bits/parse_numbers.h:
+
+/usr/include/asm-generic/errno.h:
+
+/usr/include/opencv4/opencv2/imgproc/segmentation.hpp:
+
+/usr/include/aarch64-linux-gnu/c++/14/bits/error_constants.h:
+
+/usr/include/ctype.h:
+
+/usr/include/aarch64-linux-gnu/c++/14/bits/cpu_defines.h:
+
+/usr/include/aarch64-linux-gnu/bits/types/wint_t.h:
+
 /usr/include/aarch64-linux-gnu/c++/14/bits/c++locale.h:
+
+/usr/include/c++/14/algorithm:
+
+/usr/lib/linux/uapi/arm64/asm/posix_types.h:
 
 /usr/include/opencv4/opencv2/flann/dist.h:
 
@@ -4356,89 +4566,49 @@ CMakeFiles/object_detection.dir/spike.cpp.o:
 
 /usr/include/opencv4/opencv2/flann/kmeans_index.h:
 
-/usr/include/aarch64-linux-gnu/bits/sigthread.h:
-
-/usr/include/opencv4/opencv2/flann/allocator.h:
-
-/usr/include/aarch64-linux-gnu/bits/siginfo-consts.h:
-
-/usr/include/aarch64-linux-gnu/bits/locale.h:
-
-/lib/aarch64-linux-gnu/libheif.so.1:
-
-/usr/include/opencv4/opencv2/core/version.hpp:
-
-/usr/include/hailo/event.hpp:
-
-/usr/include/aarch64-linux-gnu/bits/posix2_lim.h:
-
-/usr/include/c++/14/bits/deque.tcc:
-
-/usr/include/aarch64-linux-gnu/bits/types/__locale_t.h:
-
-/usr/include/c++/14/stdlib.h:
-
-/usr/lib/aarch64-linux-gnu/libopencv_calib3d.so.4.10.0:
-
-/lib/aarch64-linux-gnu/libpsl.so.5:
-
-/usr/include/aarch64-linux-gnu/bits/pthread_stack_min-dynamic.h:
-
-/usr/include/c++/14/ext/numeric_traits.h:
-
-/usr/include/aarch64-linux-gnu/bits/types/sigval_t.h:
-
-/usr/include/opencv4/opencv2/ml.hpp:
-
-/usr/include/c++/14/bits/utility.h:
-
-/lib/aarch64-linux-gnu/libshine.so.3:
-
-/usr/include/aarch64-linux-gnu/bits/siginfo-arch.h:
-
-/usr/include/c++/14/bits/shared_ptr.h:
-
-/lib/aarch64-linux-gnu/libpq.so.5:
-
-/usr/include/c++/14/bits/stl_iterator.h:
-
-/usr/include/opencv4/opencv2/flann/timer.h:
-
-/usr/include/aarch64-linux-gnu/gnu/stubs.h:
-
-/usr/lib/aarch64-linux-gnu/libopencv_xphoto.so.4.10.0:
-
-/usr/include/opencv4/opencv2/flann/any.h:
-
-/usr/include/aarch64-linux-gnu/bits/stdint-intn.h:
-
-/usr/include/c++/14/bits/cpp_type_traits.h:
-
-/usr/include/aarch64-linux-gnu/bits/fp-logb.h:
-
-/usr/include/aarch64-linux-gnu/bits/pthreadtypes.h:
-
-/usr/include/aarch64-linux-gnu/bits/sigstksz.h:
-
-/lib/aarch64-linux-gnu/libswscale.so.8:
-
-/usr/include/opencv4/opencv2/stitching/detail/matchers.hpp:
-
-/usr/include/aarch64-linux-gnu/bits/stdio.h:
-
-/usr/include/aarch64-linux-gnu/bits/signum-generic.h:
-
-/usr/include/c++/14/bits/streambuf.tcc:
-
-/usr/include/c++/14/bits/stl_multimap.h:
-
-/usr/include/opencv4/opencv2/objdetect/detection_based_tracker.hpp:
-
 /usr/include/aarch64-linux-gnu/bits/struct_rwlock.h:
 
 /lib/aarch64-linux-gnu/liblapack.so.3:
 
 /usr/include/c++/14/clocale:
+
+/lib/aarch64-linux-gnu/libpq.so.5:
+
+/usr/include/c++/14/bits/stl_iterator.h:
+
+/usr/include/opencv4/opencv2/objdetect/aruco_board.hpp:
+
+/usr/include/c++/14/bits/stl_algobase.h:
+
+/usr/include/opencv4/opencv2/flann/timer.h:
+
+/usr/include/aarch64-linux-gnu/bits/wchar.h:
+
+CMakeFiles/object_detection.dir/object_detection.cpp.o:
+
+/lib/aarch64-linux-gnu/libkmlbase.so.1:
+
+/usr/include/opencv4/opencv2/imgproc.hpp:
+
+/usr/include/opencv4/opencv2/flann/defines.h:
+
+/usr/include/aarch64-linux-gnu/bits/socket_type.h:
+
+/usr/include/aarch64-linux-gnu/bits/locale.h:
+
+/usr/include/aarch64-linux-gnu/bits/types/__locale_t.h:
+
+/usr/include/aarch64-linux-gnu/bits/pthreadtypes.h:
+
+/lib/aarch64-linux-gnu/libopus.so.0:
+
+/usr/include/c++/14/bits/regex_compiler.h:
+
+/usr/include/aarch64-linux-gnu/bits/pthreadtypes-arch.h:
+
+/home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/external/yaml-cpp/include/yaml-cpp/null.h:
+
+/usr/include/c++/14/debug/assertions.h:
 
 /lib/aarch64-linux-gnu/libgstbase-1.0.so.0:
 
@@ -4458,13 +4628,17 @@ CMakeFiles/object_detection.dir/spike.cpp.o:
 
 /usr/include/opencv4/opencv2/core/cvstd.hpp:
 
-/usr/include/c++/14/vector:
+/usr/include/c++/14/bits/shared_ptr_base.h:
 
-/usr/include/aarch64-linux-gnu/bits/termios-misc.h:
+/home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/external/curl/include/curl/websockets.h:
 
-/usr/include/features-time64.h:
+/usr/include/c++/14/tr1/beta_function.tcc:
 
-/usr/include/aarch64-linux-gnu/bits/procfs-prregset.h:
+/lib/aarch64-linux-gnu/libheif.so.1:
+
+/usr/include/hailo/event.hpp:
+
+/usr/include/opencv4/opencv2/core/version.hpp:
 
 /lib/aarch64-linux-gnu/libsoxr.so.0:
 
@@ -4482,11 +4656,53 @@ CMakeFiles/object_detection.dir/spike.cpp.o:
 
 /usr/lib/gcc/aarch64-linux-gnu/14/include/stdint.h:
 
-/usr/include/aarch64-linux-gnu/bits/termios.h:
-
 /usr/include/aarch64-linux-gnu/bits/procfs-id.h:
 
 /usr/include/c++/14/bits/localefwd.h:
+
+/usr/include/aarch64-linux-gnu/bits/signum-generic.h:
+
+/usr/include/c++/14/bits/streambuf.tcc:
+
+/usr/include/aarch64-linux-gnu/gnu/stubs.h:
+
+/usr/lib/aarch64-linux-gnu/libopencv_xphoto.so.4.10.0:
+
+/usr/include/opencv4/opencv2/flann/any.h:
+
+/usr/include/aarch64-linux-gnu/bits/stdint-intn.h:
+
+/usr/include/c++/14/bits/cpp_type_traits.h:
+
+/usr/include/aarch64-linux-gnu/bits/fp-logb.h:
+
+/usr/include/c++/14/bits/stl_multimap.h:
+
+/usr/include/opencv4/opencv2/objdetect/detection_based_tracker.hpp:
+
+/usr/include/c++/14/bits/std_mutex.h:
+
+/usr/lib/aarch64-linux-gnu/libopencv_calib3d.so.4.10.0:
+
+/lib/aarch64-linux-gnu/libpsl.so.5:
+
+/usr/include/aarch64-linux-gnu/bits/pthread_stack_min-dynamic.h:
+
+/usr/include/c++/14/stdlib.h:
+
+/usr/include/aarch64-linux-gnu/bits/siginfo-consts-arch.h:
+
+/usr/include/aarch64-linux-gnu/bits/errno.h:
+
+/usr/include/asm-generic/int-ll64.h:
+
+/usr/lib/aarch64-linux-gnu/libopencv_img_hash.so.4.10.0:
+
+/lib/aarch64-linux-gnu/libjbig.so.0:
+
+/usr/include/c++/14/ios:
+
+/usr/include/aarch64-linux-gnu/bits/types/timer_t.h:
 
 /usr/include/c++/14/backward/binders.h:
 
@@ -4495,6 +4711,10 @@ CMakeFiles/object_detection.dir/spike.cpp.o:
 /usr/include/aarch64-linux-gnu/bits/mathcalls-narrow.h:
 
 /usr/include/hailo/hailort_defaults.hpp:
+
+/usr/include/aarch64-linux-gnu/sys/single_threaded.h:
+
+/usr/include/aarch64-linux-gnu/bits/mathcalls-macros.h:
 
 /usr/include/c++/14/tr1/poly_laguerre.tcc:
 
@@ -4505,10 +4725,6 @@ CMakeFiles/object_detection.dir/spike.cpp.o:
 /usr/include/aarch64-linux-gnu/bits/posix1_lim.h:
 
 /usr/include/opencv4/opencv2/flann/miniflann.hpp:
-
-/usr/include/c++/14/map:
-
-/usr/include/opencv4/opencv2/calib3d.hpp:
 
 /usr/include/aarch64-linux-gnu/bits/libc-header-start.h:
 
@@ -4526,25 +4742,51 @@ CMakeFiles/object_detection.dir/spike.cpp.o:
 
 /usr/include/hailo/buffer.hpp:
 
+/home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/common/resources_manager.cpp:
+
+/usr/include/c++/14/bits/atomic_lockfree_defines.h:
+
+/usr/include/aarch64-linux-gnu/c++/14/bits/gthr.h:
+
+/usr/include/aarch64-linux-gnu/bits/math-vector.h:
+
+/usr/include/c++/14/backward/auto_ptr.h:
+
 /usr/include/aarch64-linux-gnu/bits/cpu-set.h:
+
+/usr/lib/aarch64-linux-gnu/libopencv_imgproc.so.4.10.0:
+
+/usr/include/c++/14/array:
+
+/usr/include/c++/14/bits/stl_multiset.h:
+
+/usr/include/aarch64-linux-gnu/bits/unistd_ext.h:
 
 /usr/include/c++/14/condition_variable:
 
 /usr/include/aarch64-linux-gnu/bits/byteswap.h:
 
-/usr/include/ctype.h:
+/usr/lib/gcc/aarch64-linux-gnu/14/include/arm_bf16.h:
 
-/usr/include/aarch64-linux-gnu/c++/14/bits/error_constants.h:
+/usr/include/aarch64-linux-gnu/c++/14/bits/os_defines.h:
+
+/usr/include/opencv4/opencv2/flann/result_set.h:
+
+/usr/include/aarch64-linux-gnu/bits/types/struct_timeval.h:
+
+/lib/aarch64-linux-gnu/libXau.so.6:
+
+/usr/include/c++/14/pstl/pstl_config.h:
 
 /home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/object_detection/rplidar_sdk/sdk/include/sl_types.h:
 
-/usr/include/opencv4/opencv2/video/background_segm.hpp:
-
-/usr/include/c++/14/cwchar:
-
-/usr/include/opencv4/opencv2/objdetect/graphical_code_detector.hpp:
-
 /usr/include/c++/14/bits/charconv.h:
+
+/lib/aarch64-linux-gnu/libicudata.so.76:
+
+/usr/include/c++/14/bits/stl_raw_storage_iter.h:
+
+/usr/include/aarch64-linux-gnu/bits/types/__sigset_t.h:
 
 /home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/external/yaml-cpp/include/yaml-cpp/node/type.h:
 
@@ -4554,17 +4796,23 @@ CMakeFiles/object_detection.dir/spike.cpp.o:
 
 /usr/include/opencv4/opencv2/dnn/version.hpp:
 
+/usr/include/aarch64-linux-gnu/bits/floatn-common.h:
+
+/usr/include/c++/14/bits/stl_algo.h:
+
+/usr/include/c++/14/cmath:
+
+/usr/include/c++/14/sstream:
+
+/home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/common/hailo_infer.hpp:
+
+/usr/include/c++/14/bits/sstream.tcc:
+
+/usr/include/aarch64-linux-gnu/bits/mman-map-flags-generic.h:
+
 /lib/aarch64-linux-gnu/libpango-1.0.so.0:
 
 /home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/object_detection/rplidar_sdk/sdk/include/sl_lidar_driver.h:
-
-/usr/include/endian.h:
-
-/lib/aarch64-linux-gnu/libgeos_c.so.1:
-
-/usr/include/stdint.h:
-
-/usr/include/opencv4/opencv2/photo.hpp:
 
 /usr/include/aarch64-linux-gnu/bits/procfs-extra.h:
 
@@ -4572,9 +4820,13 @@ CMakeFiles/object_detection.dir/spike.cpp.o:
 
 /usr/include/aarch64-linux-gnu/bits/termios-struct.h:
 
-/home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/common/toolbox.cpp:
+/usr/include/aarch64-linux-gnu/bits/confname.h:
 
-/usr/include/linux/errno.h:
+/usr/include/c++/14/bits/basic_ios.tcc:
+
+/home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/object_detection/rplidar_sdk/sdk/include/sl_lidar_protocol.h:
+
+/usr/include/c++/14/vector:
 
 /usr/include/c++/14/bits/functexcept.h:
 
@@ -4584,23 +4836,21 @@ CMakeFiles/object_detection.dir/spike.cpp.o:
 
 /usr/include/opencv4/opencv2/flann/logger.h:
 
-/home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/object_detection/rplidar_sdk/sdk/include/sl_lidar_protocol.h:
-
-/usr/include/c++/14/bits/basic_ios.tcc:
-
-/usr/include/aarch64-linux-gnu/bits/confname.h:
-
-/home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/external/yaml-cpp/include/yaml-cpp/node/detail/node_iterator.h:
-
-/usr/include/aarch64-linux-gnu/c++/14/bits/ctype_inline.h:
-
-/usr/include/c++/14/bits/stl_set.h:
-
 /lib/aarch64-linux-gnu/libxml2.so.2:
 
 /usr/include/aarch64-linux-gnu/bits/types/struct_itimerspec.h:
 
 /home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/object_detection/common_var.h:
+
+/lib/aarch64-linux-gnu/libcurl-gnutls.so.4:
+
+/usr/include/aarch64-linux-gnu/bits/local_lim.h:
+
+/usr/include/aarch64-linux-gnu/bits/types/__mbstate_t.h:
+
+/usr/include/c++/14/bits/stl_tempbuf.h:
+
+/usr/include/linux/stddef.h:
 
 /usr/include/aarch64-linux-gnu/bits/sigcontext.h:
 
@@ -4611,6 +4861,12 @@ CMakeFiles/object_detection.dir/spike.cpp.o:
 /lib/aarch64-linux-gnu/libxcb-dri3.so.0:
 
 /usr/include/c++/14/bits/specfun.h:
+
+/usr/include/hailo/quantization.hpp:
+
+/usr/include/c++/14/bits/locale_classes.h:
+
+/usr/include/c++/14/bits/stl_uninitialized.h:
 
 /usr/include/aarch64-linux-gnu/bits/types/time_t.h:
 
@@ -4624,19 +4880,19 @@ CMakeFiles/object_detection.dir/spike.cpp.o:
 
 /usr/include/opencv4/opencv2/flann/general.h:
 
-/usr/include/c++/14/concepts:
-
-/usr/include/aarch64-linux-gnu/bits/getopt_posix.h:
-
-/usr/include/aarch64-linux-gnu/bits/signal_ext.h:
-
-/usr/lib/aarch64-linux-gnu/libopencv_hdf.so.4.10.0:
-
-/usr/include/aarch64-linux-gnu/bits/types/__FILE.h:
-
-/usr/include/c++/14/bits/nested_exception.h:
-
 /usr/include/opencv4/opencv2/core/cvstd_wrapper.hpp:
+
+/usr/include/c++/14/bits/hashtable.h:
+
+/usr/include/aarch64-linux-gnu/bits/procfs.h:
+
+/usr/include/c++/14/cerrno:
+
+/lib/aarch64-linux-gnu/liblber.so.2:
+
+/usr/include/aarch64-linux-gnu/bits/libm-simd-decl-stubs.h:
+
+/usr/include/c++/14/bits/stl_vector.h:
 
 /usr/include/c++/14/set:
 
@@ -4644,23 +4900,13 @@ CMakeFiles/object_detection.dir/spike.cpp.o:
 
 /usr/include/c++/14/functional:
 
-/usr/include/aarch64-linux-gnu/bits/siginfo-consts-arch.h:
-
-/usr/include/asm-generic/int-ll64.h:
-
-/usr/lib/aarch64-linux-gnu/libopencv_img_hash.so.4.10.0:
-
-/lib/aarch64-linux-gnu/libjbig.so.0:
-
-/usr/include/c++/14/ios:
-
-/usr/include/aarch64-linux-gnu/bits/types/timer_t.h:
-
-/usr/include/c++/14/bits/vector.tcc:
-
 /lib/aarch64-linux-gnu/libabsl_kernel_timeout_internal.so.20240722:
 
 /home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/object_detection/spike.h:
+
+/usr/lib/aarch64-linux-gnu/crti.o:
+
+/usr/include/c++/14/bits/codecvt.h:
 
 /usr/include/aarch64-linux-gnu/bits/types/sigset_t.h:
 
@@ -4672,19 +4918,11 @@ CMakeFiles/object_detection.dir/spike.cpp.o:
 
 /usr/include/opencv4/opencv2/objdetect/charuco_detector.hpp:
 
-/usr/include/c++/14/cmath:
+/usr/lib/aarch64-linux-gnu/libopencv_text.so.4.10.0:
 
-/home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/common/hailo_infer.hpp:
+/lib/aarch64-linux-gnu/libthai.so.0:
 
-/usr/include/c++/14/bits/sstream.tcc:
-
-/usr/include/aarch64-linux-gnu/bits/mman-map-flags-generic.h:
-
-/usr/include/aarch64-linux-gnu/bits/floatn-common.h:
-
-/usr/include/c++/14/bits/stl_algo.h:
-
-/usr/include/c++/14/sstream:
+/usr/include/aarch64-linux-gnu/bits/fcntl-linux.h:
 
 /usr/include/aarch64-linux-gnu/bits/types/mbstate_t.h:
 
@@ -4692,23 +4930,53 @@ CMakeFiles/object_detection.dir/spike.cpp.o:
 
 /usr/include/aarch64-linux-gnu/bits/fcntl.h:
 
-/usr/lib/linux/uapi/arm64/asm/types.h:
-
 /usr/include/c++/14/bits/uniform_int_dist.h:
+
+/usr/lib/linux/uapi/arm64/asm/types.h:
 
 /usr/include/aarch64-linux-gnu/bits/mathcalls.h:
 
 /usr/include/aarch64-linux-gnu/bits/floatn.h:
 
+/lib/aarch64-linux-gnu/libQt5OpenGL.so.5:
+
+/usr/include/aarch64-linux-gnu/sys/poll.h:
+
+/usr/include/aarch64-linux-gnu/bits/termios-c_iflag.h:
+
+/usr/include/aarch64-linux-gnu/bits/waitstatus.h:
+
+/usr/include/aarch64-linux-gnu/bits/types/FILE.h:
+
 /lib/aarch64-linux-gnu/libblkid.so.1:
 
 /usr/include/aarch64-linux-gnu/bits/fp-fast.h:
 
-/usr/include/c++/14/ext/string_conversions.h:
+/lib/aarch64-linux-gnu/libgsm.so.1:
+
+/usr/include/aarch64-linux-gnu/c++/14/bits/c++config.h:
+
+/usr/include/aarch64-linux-gnu/c++/14/bits/c++allocator.h:
+
+/usr/include/opencv4/opencv2/ml.hpp:
+
+/home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/external/curl/include/curl/system.h:
+
+/usr/include/c++/14/bits/stl_relops.h:
+
+/usr/include/aarch64-linux-gnu/bits/sigstksz.h:
+
+/lib/aarch64-linux-gnu/libswscale.so.8:
+
+/usr/include/opencv4/opencv2/stitching/detail/matchers.hpp:
+
+/usr/include/aarch64-linux-gnu/bits/stdio.h:
+
+/usr/include/aarch64-linux-gnu/bits/sigthread.h:
+
+/usr/include/opencv4/opencv2/flann/allocator.h:
 
 /usr/include/aarch64-linux-gnu/bits/stat.h:
-
-/usr/include/c++/14/stdexcept:
 
 /lib/aarch64-linux-gnu/libpgm-5.3.so.0:
 
@@ -4719,10 +4987,6 @@ CMakeFiles/object_detection.dir/spike.cpp.o:
 /home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/common/hailo_infer.cpp:
 
 /usr/include/aarch64-linux-gnu/bits/stdio_lim.h:
-
-/lib/aarch64-linux-gnu/libdav1d.so.7:
-
-/usr/include/hailo/vdevice.hpp:
 
 /usr/include/aarch64-linux-gnu/bits/types/__fpos_t.h:
 
@@ -4736,15 +5000,25 @@ CMakeFiles/object_detection.dir/spike.cpp.o:
 
 /usr/include/aarch64-linux-gnu/bits/stdlib-float.h:
 
+/usr/include/aarch64-linux-gnu/bits/flt-eval-method.h:
+
+/usr/include/c++/14/tr1/poly_hermite.tcc:
+
+/usr/include/opencv4/opencv2/flann/saving.h:
+
 /usr/include/alloca.h:
 
 /usr/include/aarch64-linux-gnu/bits/time64.h:
 
-/usr/include/aarch64-linux-gnu/bits/select.h:
+/usr/include/c++/14/bits/atomic_base.h:
 
-/lib/aarch64-linux-gnu/libdeflate.so.0:
+/usr/include/opencv4/opencv2/core/check.hpp:
 
-/usr/include/c++/14/bits/stl_heap.h:
+/lib/aarch64-linux-gnu/libavutil.so.59:
+
+/usr/lib/gcc/aarch64-linux-gnu/14/include/arm_fp16.h:
+
+/usr/include/aarch64-linux-gnu/bits/socket.h:
 
 /lib/aarch64-linux-gnu/libdvdread.so.8:
 
@@ -4768,9 +5042,13 @@ CMakeFiles/object_detection.dir/spike.cpp.o:
 
 /usr/include/aarch64-linux-gnu/bits/types.h:
 
+/usr/include/aarch64-linux-gnu/c++/14/bits/ctype_base.h:
+
 /lib/aarch64-linux-gnu/libfreetype.so.6:
 
 /usr/include/aarch64-linux-gnu/bits/timex.h:
+
+/usr/include/c++/14/bits/exception_ptr.h:
 
 /home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/object_detection/RPLidar_S2L.h:
 
@@ -4782,23 +5060,11 @@ CMakeFiles/object_detection.dir/spike.cpp.o:
 
 /usr/include/aarch64-linux-gnu/bits/types/siginfo_t.h:
 
-/usr/lib/aarch64-linux-gnu/libopencv_text.so.4.10.0:
-
-/lib/aarch64-linux-gnu/libthai.so.0:
-
-/usr/include/aarch64-linux-gnu/bits/fcntl-linux.h:
-
-/usr/include/aarch64-linux-gnu/bits/types/__mbstate_t.h:
-
-/usr/include/c++/14/bits/locale_facets.h:
-
-/usr/include/aarch64-linux-gnu/bits/termios-tcflow.h:
-
-/usr/include/c++/14/bits/chrono.h:
-
-/usr/include/c++/14/bits/locale_facets.tcc:
-
 /usr/include/aarch64-linux-gnu/bits/types/struct___jmp_buf_tag.h:
+
+/usr/include/aarch64-linux-gnu/bits/getopt_posix.h:
+
+/usr/include/c++/14/concepts:
 
 /usr/include/aarch64-linux-gnu/bits/types/clock_t.h:
 
@@ -4808,17 +5074,31 @@ CMakeFiles/object_detection.dir/spike.cpp.o:
 
 /usr/include/aarch64-linux-gnu/bits/types/cookie_io_functions_t.h:
 
+/lib/aarch64-linux-gnu/libswresample.so.5:
+
+/usr/include/asm-generic/errno-base.h:
+
+/usr/include/c++/14/bits/hashtable_policy.h:
+
+/usr/include/c++/14/bits/ios_base.h:
+
+/usr/include/c++/14/bits/shared_ptr_atomic.h:
+
+/usr/include/aarch64-linux-gnu/bits/types/sigevent_t.h:
+
 /usr/include/aarch64-linux-gnu/bits/mman_ext.h:
 
-/usr/include/aarch64-linux-gnu/bits/types/FILE.h:
-
-/usr/include/aarch64-linux-gnu/bits/waitstatus.h:
-
-/usr/include/aarch64-linux-gnu/bits/socket_type.h:
-
-/usr/include/opencv4/opencv2/flann/defines.h:
-
 /usr/include/c++/14/bits/exception.h:
+
+/usr/include/aarch64-linux-gnu/bits/wctype-wchar.h:
+
+/usr/include/c++/14/bits/memory_resource.h:
+
+/usr/include/opencv4/opencv2/core/cuda.hpp:
+
+/lib/aarch64-linux-gnu/libkrb5.so.3:
+
+/usr/include/time.h:
 
 /usr/include/linux/limits.h:
 
@@ -4830,6 +5110,10 @@ CMakeFiles/object_detection.dir/spike.cpp.o:
 
 /usr/include/aarch64-linux-gnu/bits/types/struct_iovec.h:
 
+/usr/include/aarch64-linux-gnu/c++/14/bits/basic_file.h:
+
+/usr/include/opencv4/opencv2/core/mat.inl.hpp:
+
 /lib/aarch64-linux-gnu/libzmq.so.5:
 
 /lib/aarch64-linux-gnu/libudev.so.1:
@@ -4837,10 +5121,6 @@ CMakeFiles/object_detection.dir/spike.cpp.o:
 /usr/include/c++/14/bits/fs_ops.h:
 
 /usr/include/termios.h:
-
-/usr/include/aarch64-linux-gnu/c++/14/bits/basic_file.h:
-
-/usr/include/opencv4/opencv2/core/mat.inl.hpp:
 
 /usr/include/aarch64-linux-gnu/bits/stdint-uintn.h:
 
@@ -4850,19 +5130,13 @@ CMakeFiles/object_detection.dir/spike.cpp.o:
 
 /usr/include/aarch64-linux-gnu/bits/types/struct_timespec.h:
 
-/usr/include/c++/14/cctype:
-
-/usr/include/aarch64-linux-gnu/bits/termios-baud.h:
-
-/usr/include/fcntl.h:
-
-/usr/include/c++/14/cstdio:
-
-/usr/include/aarch64-linux-gnu/bits/iscanonical.h:
-
 /lib/aarch64-linux-gnu/libssh.so.4:
 
 /usr/include/aarch64-linux-gnu/bits/types/struct_tm.h:
+
+/usr/include/c++/14/bits/stl_deque.h:
+
+/usr/include/c++/14/bits/unique_ptr.h:
 
 /usr/include/aarch64-linux-gnu/bits/typesizes.h:
 
@@ -4874,6 +5148,26 @@ CMakeFiles/object_detection.dir/spike.cpp.o:
 
 /usr/include/c++/14/climits:
 
+/lib/aarch64-linux-gnu/libxcb.so.1:
+
+/usr/include/c++/14/bits/basic_ios.h:
+
+/usr/include/c++/14/utility:
+
+/usr/lib/gcc/aarch64-linux-gnu/14/include/arm_neon.h:
+
+/lib/aarch64-linux-gnu/libgpg-error.so.0:
+
+/usr/include/aarch64-linux-gnu/c++/14/bits/time_members.h:
+
+/usr/lib/aarch64-linux-gnu/libopencv_hfs.so.4.10.0:
+
+/usr/include/c++/14/cstdint:
+
+/usr/include/opencv4/opencv2/stitching/detail/warpers_inl.hpp:
+
+/usr/include/aarch64-linux-gnu/bits/termios.h:
+
 /lib/aarch64-linux-gnu/libabsl_spinlock_wait.so.20240722:
 
 /usr/include/aarch64-linux-gnu/bits/waitflags.h:
@@ -4884,185 +5178,51 @@ CMakeFiles/object_detection.dir/spike.cpp.o:
 
 /usr/include/c++/14/fenv.h:
 
-/usr/include/aarch64-linux-gnu/bits/wchar.h:
+/usr/lib/gcc/aarch64-linux-gnu/14/libstdc++.so:
 
-CMakeFiles/object_detection.dir/object_detection.cpp.o:
+/usr/include/opencv4/opencv2/objdetect.hpp:
 
-/lib/aarch64-linux-gnu/libkmlbase.so.1:
+/usr/include/c++/14/bits/stringfwd.h:
 
-/usr/include/opencv4/opencv2/imgproc.hpp:
+/usr/include/c++/14/bits/unique_lock.h:
 
-/lib/aarch64-linux-gnu/libgsm.so.1:
+/lib/aarch64-linux-gnu/libabsl_demangle_rust.so.20240722:
 
-/usr/include/aarch64-linux-gnu/c++/14/bits/c++config.h:
+/usr/include/c++/14/bits/unordered_map.h:
 
-/usr/include/aarch64-linux-gnu/c++/14/bits/c++allocator.h:
-
-/usr/include/opencv4/opencv2/flann/flann_base.hpp:
-
-/usr/include/math.h:
-
-/usr/include/c++/14/bits/new_allocator.h:
-
-/usr/include/sched.h:
-
-/usr/include/signal.h:
-
-/usr/include/aarch64-linux-gnu/bits/sched.h:
-
-/usr/include/strings.h:
-
-/usr/include/opencv4/opencv2/core/cuda.inl.hpp:
-
-/usr/include/stdc-predef.h:
-
-/lib/aarch64-linux-gnu/libnettle.so.8:
-
-/usr/include/aarch64-linux-gnu/bits/types/clockid_t.h:
-
-/usr/include/stdio.h:
-
-/lib/aarch64-linux-gnu/libgphoto2.so.6:
-
-/lib/aarch64-linux-gnu/libc.so.6:
-
-/usr/include/stdlib.h:
-
-/lib/aarch64-linux-gnu/libkrb5.so.3:
-
-/usr/include/time.h:
-
-/usr/include/aarch64-linux-gnu/bits/wctype-wchar.h:
-
-/usr/include/c++/14/bits/memory_resource.h:
-
-/usr/include/opencv4/opencv2/core/cuda.hpp:
-
-/usr/include/unistd.h:
-
-/usr/include/wchar.h:
-
-/usr/lib/gcc/aarch64-linux-gnu/14/include/stdarg.h:
-
-/usr/lib/gcc/aarch64-linux-gnu/14/include/stddef.h:
-
-/usr/lib/linux/uapi/arm64/asm/posix_types.h:
-
-/usr/include/c++/14/algorithm:
-
-/usr/lib/linux/uapi/arm64/asm/sigcontext.h:
-
-/usr/include/opencv4/opencv2/flann/nn_index.h:
-
-/usr/lib/linux/uapi/arm64/asm/sve_context.h:
-
-/usr/include/aarch64-linux-gnu/bits/in.h:
-
-/lib/aarch64-linux-gnu/libcurl-gnutls.so.4:
-
-/usr/include/aarch64-linux-gnu/bits/local_lim.h:
-
-/usr/include/c++/14/bits/basic_string.tcc:
-
-/usr/include/aarch64-linux-gnu/bits/mman-linux.h:
-
-/usr/include/opencv4/opencv2/core/cuda_types.hpp:
-
-/usr/include/aarch64-linux-gnu/bits/poll.h:
-
-/lib/aarch64-linux-gnu/libhdf5_serial_hl.so.310:
-
-/home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/external/yaml-cpp/include/yaml-cpp/yaml.h:
-
-/usr/include/aarch64-linux-gnu/bits/sockaddr.h:
-
-/usr/include/aarch64-linux-gnu/bits/socket.h:
-
-/usr/include/c++/14/bits/atomic_base.h:
-
-/usr/include/opencv4/opencv2/core/check.hpp:
-
-/usr/include/c++/14/iterator:
-
-/usr/include/aarch64-linux-gnu/bits/types/struct_osockaddr.h:
-
-/usr/include/c++/14/complex:
-
-/usr/include/c++/14/ctime:
-
-/usr/include/aarch64-linux-gnu/bits/xopen_lim.h:
-
-/usr/include/aarch64-linux-gnu/c++/14/bits/ctype_base.h:
-
-/usr/include/c++/14/bits/uses_allocator_args.h:
+/usr/include/c++/14/bits/uses_allocator.h:
 
 /usr/include/aarch64-linux-gnu/c++/14/bits/gthr-default.h:
 
-/usr/include/opencv4/opencv2/imgproc/segmentation.hpp:
+/usr/include/c++/14/bits/uses_allocator_args.h:
 
-/usr/lib/aarch64-linux-gnu/libopencv_core.so.4.10.0:
+/usr/include/c++/14/bits/utility.h:
 
-/lib/aarch64-linux-gnu/librist.so.4:
+/usr/include/aarch64-linux-gnu/bits/iscanonical.h:
 
-/usr/include/aarch64-linux-gnu/c++/14/bits/messages_members.h:
+/usr/include/c++/14/cstdio:
 
-/usr/lib/aarch64-linux-gnu/libopencv_video.so.4.10.0:
+/usr/include/c++/14/bits/vector.tcc:
 
-/home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/external/yaml-cpp/include/yaml-cpp/stlemitter.h:
+/usr/include/c++/14/bits/stl_queue.h:
 
-/usr/include/opencv4/opencv2/dnn/dnn.hpp:
+/usr/include/c++/14/bits/version.h:
 
-/usr/include/aarch64-linux-gnu/sys/mman.h:
+/usr/include/opencv4/opencv2/highgui.hpp:
 
-/lib/aarch64-linux-gnu/libQt5OpenGL.so.5:
+/lib/aarch64-linux-gnu/libusb-1.0.so.0:
 
-/usr/include/aarch64-linux-gnu/bits/termios-c_iflag.h:
+/usr/include/c++/14/bits/streambuf_iterator.h:
 
-/usr/include/aarch64-linux-gnu/sys/poll.h:
+/usr/include/aarch64-linux-gnu/bits/fenv.h:
 
-/usr/include/aarch64-linux-gnu/bits/mman-shared.h:
+/usr/include/aarch64-linux-gnu/bits/termios-baud.h:
 
-/usr/include/c++/14/bits/enable_special_members.h:
+/usr/include/c++/14/cctype:
 
-/lib/aarch64-linux-gnu/libgomp.so.1:
+/lib/aarch64-linux-gnu/libmd4c.so.0:
 
-/usr/include/c++/14/bits/std_function.h:
-
-/usr/include/aarch64-linux-gnu/bits/mathcalls-macros.h:
-
-/usr/include/aarch64-linux-gnu/sys/single_threaded.h:
-
-/usr/include/c++/14/bits/stl_pair.h:
-
-/usr/include/aarch64-linux-gnu/sys/un.h:
-
-/usr/lib/aarch64-linux-gnu/libopencv_reg.so.4.10.0:
-
-/usr/include/arpa/inet.h:
-
-/usr/include/c++/14/type_traits:
-
-/usr/include/opencv4/opencv2/flann/hierarchical_clustering_index.h:
-
-/usr/include/asm-generic/socket.h:
-
-/usr/include/opencv4/opencv2/flann/lsh_index.h:
-
-/usr/include/opencv4/opencv2/stitching/detail/util.hpp:
-
-/lib/aarch64-linux-gnu/libnuma.so.1:
-
-/lib/aarch64-linux-gnu/libblosc.so.1:
-
-/usr/include/asm-generic/sockios.h:
-
-/usr/lib/aarch64-linux-gnu/libopencv_imgproc.so.4.10.0:
-
-/usr/include/c++/14/array:
-
-/lib/aarch64-linux-gnu/libgdcmIOD.so.3.0:
-
-/usr/include/c++/14/atomic:
+/usr/include/c++/14/cfloat:
 
 /usr/lib/aarch64-linux-gnu/libgcc_s.so.1:
 
@@ -5072,161 +5232,47 @@ CMakeFiles/object_detection.dir/object_detection.cpp.o:
 
 /usr/include/c++/14/exception:
 
-/home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/common/resources_manager.cpp:
+/lib/aarch64-linux-gnu/libgdcmIOD.so.3.0:
 
-/usr/include/c++/14/bits/atomic_lockfree_defines.h:
+/usr/include/c++/14/atomic:
 
-/usr/include/aarch64-linux-gnu/bits/math-vector.h:
+/usr/include/c++/14/complex:
 
-/usr/include/aarch64-linux-gnu/c++/14/bits/gthr.h:
+/usr/include/c++/14/iterator:
 
-/usr/include/c++/14/backward/auto_ptr.h:
+/usr/include/aarch64-linux-gnu/bits/types/struct_osockaddr.h:
 
-/usr/include/c++/14/bits/ptr_traits.h:
+/lib/aarch64-linux-gnu/libchromaprint.so.1:
 
-/usr/include/c++/14/bits/algorithmfwd.h:
+/usr/include/c++/14/cstddef:
 
-/usr/include/c++/14/regex:
+/usr/include/opencv4/opencv2/core/async.hpp:
 
-/usr/include/c++/14/bits/istream.tcc:
-
-/lib/aarch64-linux-gnu/libxcb.so.1:
-
-/usr/lib/gcc/aarch64-linux-gnu/14/include/arm_neon.h:
-
-/usr/include/c++/14/utility:
-
-/usr/include/c++/14/bits/basic_ios.h:
-
-/usr/lib/aarch64-linux-gnu/crti.o:
-
-/usr/include/c++/14/bits/codecvt.h:
-
-/usr/include/c++/14/bits/cxxabi_init_exception.h:
-
-/usr/include/c++/14/bits/exception_ptr.h:
-
-/usr/include/aarch64-linux-gnu/bits/procfs.h:
-
-/usr/include/c++/14/bits/hashtable.h:
-
-/usr/include/hailo/platform.h:
-
-/usr/include/hailo/hailort.hpp:
-
-/lib/aarch64-linux-gnu/libswresample.so.5:
-
-/usr/include/asm-generic/errno-base.h:
-
-/usr/include/c++/14/bits/hashtable_policy.h:
-
-/usr/include/c++/14/bits/ios_base.h:
-
-CMakeFiles/object_detection.dir/home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/common/hailo_infer.cpp.o:
-
-/usr/include/c++/14/bits/list.tcc:
-
-/usr/lib/aarch64-linux-gnu/libopencv_cvv.so.4.10.0:
-
-/usr/include/opencv4/opencv2/opencv_modules.hpp:
-
-/usr/include/c++/14/bits/locale_classes.tcc:
-
-/lib/aarch64-linux-gnu/libpangoft2-1.0.so.0:
-
-/lib/aarch64-linux-gnu/libldap.so.2:
-
-/usr/include/libintl.h:
-
-/usr/include/opencv4/opencv2/stitching/detail/exposure_compensate.hpp:
-
-/usr/include/c++/14/bits/locale_conv.h:
-
-/usr/include/asm-generic/errno.h:
-
-/usr/include/c++/14/bits/parse_numbers.h:
-
-/usr/include/c++/14/compare:
-
-/lib/aarch64-linux-gnu/libwebp.so.7:
-
-/usr/include/c++/14/ostream:
-
-/usr/include/opencv4/opencv2/core/ovx.hpp:
-
-/usr/include/opencv4/opencv2/stitching/detail/motion_estimators.hpp:
-
-/usr/include/c++/14/bits/quoted_string.h:
-
-/usr/include/aarch64-linux-gnu/bits/types/sigevent_t.h:
-
-/usr/include/c++/14/bits/shared_ptr_atomic.h:
-
-/usr/include/c++/14/bits/std_mutex.h:
-
-/usr/include/c++/14/bits/stl_deque.h:
-
-/usr/include/c++/14/bits/unique_ptr.h:
-
-/usr/include/c++/14/bits/mask_array.h:
-
-/usr/include/c++/14/new:
-
-/usr/include/c++/14/bits/stl_list.h:
-
-/usr/include/c++/14/bits/stl_algobase.h:
-
-/usr/include/opencv4/opencv2/objdetect/aruco_board.hpp:
-
-/usr/include/aarch64-linux-gnu/bits/unistd_ext.h:
-
-/usr/include/c++/14/bits/stl_multiset.h:
-
-/usr/include/c++/14/bits/version.h:
-
-/usr/include/c++/14/bits/stl_queue.h:
-
-/lib/aarch64-linux-gnu/libicudata.so.76:
-
-/usr/include/aarch64-linux-gnu/bits/types/__sigset_t.h:
-
-/usr/include/c++/14/bits/stl_raw_storage_iter.h:
-
-/home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/external/curl/include/curl/system.h:
-
-/usr/include/c++/14/bits/stl_relops.h:
-
-/lib/aarch64-linux-gnu/libusb-1.0.so.0:
-
-/usr/include/aarch64-linux-gnu/bits/fenv.h:
-
-/usr/include/c++/14/bits/streambuf_iterator.h:
-
-/usr/lib/gcc/aarch64-linux-gnu/14/libstdc++.so:
-
-/usr/include/opencv4/opencv2/objdetect.hpp:
-
-/usr/include/c++/14/bits/unique_lock.h:
-
-/lib/aarch64-linux-gnu/libabsl_demangle_rust.so.20240722:
-
-/usr/include/c++/14/bits/unordered_map.h:
-
-/usr/lib/aarch64-linux-gnu/libopencv_saliency.so.4.10.0:
-
-/usr/include/c++/14/cassert:
-
-/lib/aarch64-linux-gnu/libmd4c.so.0:
-
-/usr/include/c++/14/cfloat:
+/usr/include/c++/14/cstdlib:
 
 /lib/aarch64-linux-gnu/libproj.so.25:
 
 /usr/include/c++/14/cstring:
 
+/usr/include/aarch64-linux-gnu/bits/xopen_lim.h:
+
+/usr/include/c++/14/ctime:
+
+/usr/include/aarch64-linux-gnu/bits/types/sigval_t.h:
+
+/usr/include/c++/14/ext/numeric_traits.h:
+
+/usr/include/opencv4/opencv2/objdetect/graphical_code_detector.hpp:
+
 /usr/include/asm-generic/bitsperlong.h:
 
 /usr/include/c++/14/cwctype:
+
+/usr/include/c++/14/bits/slice_array.h:
+
+/usr/include/c++/14/debug/debug.h:
+
+/usr/include/c++/14/tr1/hypergeometric.tcc:
 
 /usr/include/aarch64-linux-gnu/c++/14/bits/atomic_word.h:
 
@@ -5242,6 +5288,12 @@ CMakeFiles/object_detection.dir/home/maker/WRO_Future_Engineers_Queretaro_CSS/so
 
 /usr/include/c++/14/ext/concurrence.h:
 
+/usr/include/c++/14/ext/string_conversions.h:
+
+/usr/include/c++/14/ext/type_traits.h:
+
+/usr/include/c++/14/iosfwd:
+
 /usr/include/aarch64-linux-gnu/bits/time.h:
 
 /usr/include/aarch64-linux-gnu/bits/uintn-identity.h:
@@ -5256,7 +5308,19 @@ CMakeFiles/object_detection.dir/home/maker/WRO_Future_Engineers_Queretaro_CSS/so
 
 /usr/include/opencv4/opencv2/flann/sampling.h:
 
+/usr/include/c++/14/map:
+
+/usr/include/opencv4/opencv2/calib3d.hpp:
+
 /usr/include/c++/14/mutex:
+
+/usr/include/c++/14/bits/mask_array.h:
+
+/usr/include/c++/14/bits/stl_list.h:
+
+/usr/include/c++/14/new:
+
+/usr/include/opencv4/opencv2/flann/lsh_table.h:
 
 /usr/include/c++/14/pstl/glue_algorithm_defs.h:
 
@@ -5270,13 +5334,45 @@ CMakeFiles/object_detection.dir/home/maker/WRO_Future_Engineers_Queretaro_CSS/so
 
 /usr/include/c++/14/ratio:
 
-/lib/aarch64-linux-gnu/libgstpbutils-1.0.so.0:
+/usr/include/c++/14/stdexcept:
 
-/usr/include/aarch64-linux-gnu/bits/stdlib-bsearch.h:
+/usr/include/c++/14/string:
+
+/usr/include/c++/14/string_view:
+
+/lib/aarch64-linux-gnu/libgstpbutils-1.0.so.0:
 
 /usr/include/opencv4/opencv2/flann/config.h:
 
+/usr/include/aarch64-linux-gnu/bits/stdlib-bsearch.h:
+
 /usr/include/c++/14/system_error:
+
+/lib/aarch64-linux-gnu/libXfixes.so.3:
+
+/usr/include/c++/14/math.h:
+
+/usr/include/c++/14/tr1/bessel_function.tcc:
+
+/usr/include/c++/14/tr1/exp_integral.tcc:
+
+/usr/include/c++/14/tr1/gamma.tcc:
+
+/usr/include/c++/14/tr1/modified_bessel_func.tcc:
+
+/lib/aarch64-linux-gnu/libX11-xcb.so.1:
+
+/usr/include/c++/14/tr1/riemann_zeta.tcc:
+
+/lib/aarch64-linux-gnu/libpoppler.so.147:
+
+/usr/include/c++/14/tuple:
+
+/lib/aarch64-linux-gnu/libtirpc.so.3:
+
+/lib/aarch64-linux-gnu/libcjson.so.1:
+
+/usr/include/opencv4/opencv2/opencv.hpp:
 
 /usr/include/c++/14/future:
 
@@ -5286,45 +5382,43 @@ CMakeFiles/object_detection.dir/home/maker/WRO_Future_Engineers_Queretaro_CSS/so
 
 /usr/include/c++/14/unordered_map:
 
-/lib/aarch64-linux-gnu/libnssutil3.so:
+/usr/include/endian.h:
 
-/usr/include/pthread.h:
+/usr/include/opencv4/opencv2/photo.hpp:
 
-/usr/include/hailo/device.hpp:
+/lib/aarch64-linux-gnu/libgeos_c.so.1:
 
-/usr/include/hailo/expected.hpp:
+/usr/include/stdint.h:
 
-/usr/include/c++/14/bits/stl_stack.h:
+/usr/include/errno.h:
 
-/usr/include/hailo/hailort.h:
+/usr/include/fcntl.h:
 
-/usr/include/c++/14/ext/alloc_traits.h:
+/usr/include/aarch64-linux-gnu/bits/termios-misc.h:
 
-/usr/include/hailo/hailort_common.hpp:
+/usr/include/aarch64-linux-gnu/bits/procfs-prregset.h:
 
-/lib/aarch64-linux-gnu/libpng16.so.16:
+/usr/include/features-time64.h:
 
-/usr/include/hailo/hef.hpp:
+/usr/include/linux/close_range.h:
 
-/lib/aarch64-linux-gnu/libodbc.so.2:
+/home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/common/toolbox.cpp:
 
-/usr/include/hailo/inference_pipeline.hpp:
+/usr/include/linux/errno.h:
 
-/usr/include/c++/14/bits/locale_classes.h:
+/lib/aarch64-linux-gnu/libnspr4.so:
 
-/usr/include/c++/14/bits/stl_uninitialized.h:
+/lib/aarch64-linux-gnu/libabsl_strings_internal.so.20240722:
 
-/usr/include/hailo/quantization.hpp:
+/usr/include/linux/posix_types.h:
 
-/lib/aarch64-linux-gnu/libabsl_graphcycles_internal.so.20240722:
+/usr/lib/aarch64-linux-gnu/libopencv_plot.so.4.10.0:
 
-/usr/include/hailo/runtime_statistics.hpp:
+/usr/include/linux/types.h:
 
-/usr/include/hailo/stream.hpp:
+/usr/include/opencv4/opencv2/flann/flann_base.hpp:
 
-/usr/include/hailo/vstream.hpp:
-
-/usr/include/netinet/in.h:
+/usr/include/math.h:
 
 /usr/lib/aarch64-linux-gnu/libopencv_highgui.so.4.10.0:
 
@@ -5332,13 +5426,23 @@ CMakeFiles/object_detection.dir/home/maker/WRO_Future_Engineers_Queretaro_CSS/so
 
 /usr/include/opencv4/opencv2/core.hpp:
 
-/usr/include/c++/14/bits/unordered_set.h:
+/usr/include/opencv4/opencv2/core/base.hpp:
 
-/usr/include/aarch64-linux-gnu/bits/mman.h:
+/usr/include/opencv4/opencv2/core/cuda.inl.hpp:
+
+/usr/include/signal.h:
+
+/usr/include/aarch64-linux-gnu/bits/sched.h:
+
+/usr/include/strings.h:
+
+/usr/include/opencv4/opencv2/core/cuda_types.hpp:
+
+/usr/include/c++/14/bits/unordered_set.h:
 
 /usr/include/opencv4/opencv2/core/affine.hpp:
 
-/usr/include/opencv4/opencv2/core/base.hpp:
+/usr/include/aarch64-linux-gnu/bits/mman.h:
 
 /home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/common/resources_manager.hpp:
 
@@ -5371,6 +5475,8 @@ CMakeFiles/object_detection.dir/home/maker/WRO_Future_Engineers_Queretaro_CSS/so
 /usr/include/c++/14/bits/stl_bvector.h:
 
 /usr/include/opencv4/opencv2/core/operations.hpp:
+
+/usr/include/opencv4/opencv2/video/tracking.hpp:
 
 /lib/aarch64-linux-gnu/libdc1394.so.25:
 
@@ -5412,9 +5518,9 @@ CMakeFiles/object_detection.dir/home/maker/WRO_Future_Engineers_Queretaro_CSS/so
 
 /usr/include/opencv4/opencv2/core/vsx_utils.hpp:
 
-/usr/lib/linux/uapi/arm64/asm/bitsperlong.h:
-
 /usr/include/hailo/network_rate_calculator.hpp:
+
+/usr/lib/linux/uapi/arm64/asm/bitsperlong.h:
 
 /usr/include/opencv4/opencv2/dnn/dnn.inl.hpp:
 
@@ -5442,6 +5548,14 @@ CMakeFiles/object_detection.dir/home/maker/WRO_Future_Engineers_Queretaro_CSS/so
 
 /usr/include/opencv4/opencv2/flann/heap.h:
 
+/usr/include/c++/14/type_traits:
+
+/usr/include/opencv4/opencv2/flann/hierarchical_clustering_index.h:
+
+/usr/lib/aarch64-linux-gnu/libopencv_reg.so.4.10.0:
+
+/usr/include/arpa/inet.h:
+
 /usr/include/c++/14/ext/aligned_buffer.h:
 
 /usr/include/opencv4/opencv2/flann/index_testing.h:
@@ -5467,6 +5581,16 @@ _deps/yaml-cpp/libyaml-cpp.a:
 /lib/aarch64-linux-gnu/libkmlengine.so.1:
 
 /usr/include/opencv4/opencv2/flann/linear_index.h:
+
+/usr/include/opencv4/opencv2/flann/lsh_index.h:
+
+/usr/include/opencv4/opencv2/stitching/detail/util.hpp:
+
+/usr/include/asm-generic/socket.h:
+
+/usr/include/opencv4/opencv2/flann/nn_index.h:
+
+/usr/lib/linux/uapi/arm64/asm/sigcontext.h:
 
 /lib/aarch64-linux-gnu/libgdcmMSFF.so.3.0:
 
@@ -5494,12 +5618,112 @@ _deps/yaml-cpp/libyaml-cpp.a:
 
 /usr/include/opencv4/opencv2/stitching/detail/seam_finders.hpp:
 
-/usr/include/c++/14/bit:
-
 /usr/include/hailo/transform.hpp:
+
+/usr/include/c++/14/bit:
 
 /usr/include/opencv4/opencv2/stitching/detail/util_inl.hpp:
 
 /lib/aarch64-linux-gnu/libcom_err.so.2:
 
 /usr/include/opencv4/opencv2/stitching/detail/warpers.hpp:
+
+/usr/include/opencv4/opencv2/video.hpp:
+
+/usr/include/c++/14/cwchar:
+
+/usr/include/opencv4/opencv2/video/background_segm.hpp:
+
+/usr/include/opencv4/opencv2/videoio.hpp:
+
+/usr/include/c++/14/bits/new_allocator.h:
+
+/usr/include/sched.h:
+
+/usr/include/wctype.h:
+
+/usr/include/stdc-predef.h:
+
+/lib/aarch64-linux-gnu/libnettle.so.8:
+
+/usr/include/aarch64-linux-gnu/bits/types/clockid_t.h:
+
+/usr/include/stdio.h:
+
+/lib/aarch64-linux-gnu/libgphoto2.so.6:
+
+/lib/aarch64-linux-gnu/libc.so.6:
+
+/usr/include/stdlib.h:
+
+/usr/include/unistd.h:
+
+/usr/include/wchar.h:
+
+/usr/include/c++/14/fstream:
+
+/usr/lib/gcc/aarch64-linux-gnu/14/include/limits.h:
+
+/usr/include/c++/14/bits/stl_pair.h:
+
+/usr/include/aarch64-linux-gnu/sys/un.h:
+
+/usr/lib/gcc/aarch64-linux-gnu/14/include/stdarg.h:
+
+/usr/lib/gcc/aarch64-linux-gnu/14/include/stddef.h:
+
+/usr/include/c++/14/bits/predefined_ops.h:
+
+/usr/lib/gcc/aarch64-linux-gnu/14/include/syslimits.h:
+
+/usr/lib/linux/uapi/arm64/asm/sve_context.h:
+
+/usr/include/aarch64-linux-gnu/bits/in.h:
+
+/usr/include/c++/14/bits/basic_string.tcc:
+
+/usr/include/aarch64-linux-gnu/bits/mman-linux.h:
+
+/usr/include/c++/14/bits/enable_special_members.h:
+
+/usr/include/aarch64-linux-gnu/bits/mman-shared.h:
+
+/usr/include/aarch64-linux-gnu/bits/poll.h:
+
+/lib/aarch64-linux-gnu/libhdf5_serial_hl.so.310:
+
+/home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/external/yaml-cpp/include/yaml-cpp/yaml.h:
+
+/usr/include/aarch64-linux-gnu/bits/sockaddr.h:
+
+/usr/include/aarch64-linux-gnu/sys/mman.h:
+
+/lib/aarch64-linux-gnu/libnuma.so.1:
+
+/lib/aarch64-linux-gnu/libblosc.so.1:
+
+/usr/include/asm-generic/sockios.h:
+
+/usr/lib/aarch64-linux-gnu/libopencv_saliency.so.4.10.0:
+
+/usr/include/c++/14/cassert:
+
+/lib/aarch64-linux-gnu/libnssutil3.so:
+
+/usr/include/pthread.h:
+
+/usr/include/hailo/device.hpp:
+
+/usr/include/hailo/expected.hpp:
+
+/usr/include/c++/14/bits/stl_stack.h:
+
+/usr/include/hailo/hailort.h:
+
+/usr/include/c++/14/ext/alloc_traits.h:
+
+/usr/include/hailo/hailort_common.hpp:
+
+/lib/aarch64-linux-gnu/libpng16.so.16:
+
+/usr/include/hailo/hef.hpp:

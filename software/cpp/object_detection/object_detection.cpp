@@ -12,6 +12,7 @@ struct traffic_lights_struct{
     float  middle_point_y;
     int light_color; /* red = 2,  green = 1, xparking = 3 */
     float area;
+    float confidence;
 };
 
 static traffic_lights_struct traffic_lights;
@@ -22,7 +23,10 @@ static volatile int terminating_main = 0;
 
 void signal_handler(int signum);
 void *Obstacle_Challenge_Thread(void *arg);
-void Follow_cubes(int vel, float referencia_2);
+void Follow_cubes(int vel, float referencia_2, float area);
+float Slope(float dis[], int angle[], int n);
+void Print_Slope(const int point, const int middle_point);
+void Follow_Wall(const direction side,const int point);
 
 int find_max_index(float arr[], int n) {
     if (n <= 0) return -1; // Handle empty array case
@@ -105,11 +109,31 @@ void postprocess_callback(
     const VisualizationParams &vis)
 {
     const size_t class_count = 3;
-    float traffic_light_area[10] = {0}; 
+    float traffic_light_area[10] = {0};
 
     auto bboxes = parse_nms_data(output_data_and_infos[0].first, class_count);
 
     draw_bounding_boxes(frame_to_draw, bboxes, vis);
+
+    // Show lidar points in their own window (mm scaled down to pixels)
+    {
+        const int canvas_size = 680;
+        const float lidar_scale = 0.2f; // pixels per mm
+        const cv::Point origin(canvas_size / 2, canvas_size / 2);
+        cv::Mat lidar_canvas = cv::Mat::zeros(canvas_size, canvas_size, CV_8UC3);
+        float lidar_buffer[360];
+        RPLidar_S2L_Get_Buffer(&lidar_buffer[0]);
+        for (int angle = 0; angle < 360; angle++) {
+            if (lidar_buffer[angle] <= 0) continue;
+            float x_point = lidar_buffer[angle] * cos(RPLidar_S2L_Grados_A_Radianes((float)angle)) * lidar_scale;
+            float y_point = lidar_buffer[angle] * sin(RPLidar_S2L_Grados_A_Radianes((float)angle)) * lidar_scale;
+            cv::Point p = origin + cv::Point((int)x_point, (int)y_point);
+            if (p.x >= 0 && p.x < lidar_canvas.cols && p.y >= 0 && p.y < lidar_canvas.rows) {
+                cv::circle(lidar_canvas, p, 0.5, cv::Scalar(0, 255, 0), -1);
+            }
+        }
+        cv::imshow("Lidar Coordinates", lidar_canvas);
+    }
     int index = 0;
     for (const auto &named_bbox : bboxes){
         traffic_light_area[index] = (named_bbox.bbox.x_max - named_bbox.bbox.x_min) * (named_bbox.bbox.y_max - named_bbox.bbox.y_min);
@@ -122,8 +146,9 @@ void postprocess_callback(
         traffic_lights.middle_point_y = (named_bbox.bbox.y_min + named_bbox.bbox.y_max) / 2.0;
         traffic_lights.light_color = (int)named_bbox.class_id;
         traffic_lights.area = traffic_light_area[max_index];
-        printf(" color = %d, area = %f, middle point = (%f, %f)", traffic_lights.light_color, traffic_lights.area, traffic_lights.middle_point_x, traffic_lights.middle_point_y);
-        printf("\n");
+        traffic_lights.confidence = named_bbox.bbox.score;
+        //printf(" color = %d, area = %f, middle point = (%f, %f), confidence = %f", traffic_lights.light_color, traffic_lights.area, traffic_lights.middle_point_x, traffic_lights.middle_point_y, traffic_lights.confidence);
+        //printf("\n");
     }
 }
 
@@ -136,6 +161,7 @@ int main(int argc, char** argv)
 
     Rasp_Gpio_Init();
     Rasp_Gpio_Power_On_Spike();
+
     Spike_Serial_Init();
     Spike_Interpreter();
     Spike_Initialize_Libraries();
@@ -234,10 +260,6 @@ void *Obstacle_Challenge_Thread(void *arg){
     float distancia_izquierda;
     float lidar_shared_buffer[360]; // Your shared buffer
 
-    Rasp_Gpio_Wait_For_Button();
-    Spike_Reset_Gyro(0);
-    usleep(200000); //wiating for reset gyro
-
     RPLidar_S2L_Get_Buffer(&lidar_shared_buffer[0] );
     distancia_frente = lidar_shared_buffer[0];
     distancia_derecha = lidar_shared_buffer[270];
@@ -247,16 +269,71 @@ void *Obstacle_Challenge_Thread(void *arg){
     printf("dsitancia izquierda : %f\n", distancia_izquierda);
     printf("dsitancia frente : %f\n", distancia_frente);
 
-    while(terminating_main == 0){
-        Follow_cubes(60, 0.5);
-        usleep(20000000);
+    /*
+    while(1){
+        Print_Slope(13, 60);
+        usleep(1000);
+    }*/
+
+    Rasp_Gpio_Wait_For_Button();
+    usleep(200000); //wiating for reset gyro
+    Spike_Reset_Gyro(0);
+    Spike_Center_Vehicle_Short();
+    
+    /*if(distancia_derecha > 600){
+        printf("Sentido horario\n");
+        Spike_Turn_For_Degrees(right, 60, 88, 40);
+
+
     }
+
+    else if (distancia_izquierda > 600){
+        printf("Sentido antihorario\n");
+        Spike_Turn_For_Degrees(left, 60, 88, 40);
+
+    
+    }*/
+   Follow_cubes(60, 0.5, 0.06);
+   float grados = Spike_Get_Gyro();
+   Spike_Turn_To_Zero(left, 60, 0, 30);
+   Spike_Turn_For_Degrees(left, 60, grados + 30, 30);
+   Spike_Center_Vehicle_Short();
+   Spike_Advance_For_Degrees(60,30*abs(grados), 30);
+   Spike_Turn_To_Zero(right, 60, 0, 30);
+   Spike_Center_Vehicle_Short();
+   Follow_cubes(60, 0.5, 0.06);  
+   grados = Spike_Get_Gyro();
+   
+   Spike_Turn_For_Degrees(right, 60, (grados*-1) + 30, 30);
+   Spike_Center_Vehicle_Short();
+   Spike_Advance_For_Degrees(60,30*abs(grados), -30);
+   Spike_Turn_To_Zero(left, 60, 0, 30);
+   Spike_Center_Vehicle_Short();
+
+
+   
+
+   
+
+
+    while(terminating_main == 0){
+        /*RPLidar_S2L_Get_Buffer(&lidar_shared_buffer[0] );
+        distancia_izquierda = lidar_shared_buffer[90];
+        printf("dsitancia izquierda : %f\n", distancia_izquierda);*/
+        usleep(1000);
+    }
+
+    Spike_Coast_Motors();
+    RPLidar_S2L_Set_Terminating();
+    Rasp_Gpio_Clean();
+    Spike_Close_Serial();
+    RPLidar_S2L_Close();
     return NULL;
 }
 
-void Follow_cubes(int vel, float referencia_2){
+void Follow_cubes(int vel, float referencia_2, float area){
 
-    while((terminating_main == 0) && (traffic_lights.area < 0.07)){
+    while((terminating_main == 0) && (traffic_lights.area < area) && (traffic_lights.confidence > 0.8)){
         Spike_Follow_Reference(vel, traffic_lights.middle_point_x, referencia_2);
         usleep(1000);
     }
@@ -264,12 +341,92 @@ void Follow_cubes(int vel, float referencia_2){
 
 }
 
+float Slope(float dis[], int angle[], int n) {
+    double sum_x = 0, sum_y = 0, sum_xy = 0, sum_x2 = 0;
+    float x_point[n] = {0};
+    float y_point[n] = {0};
+
+    for(int i = 0; i < n; i++) {
+        x_point[i] = (dis[i] * cos(RPLidar_S2L_Grados_A_Radianes(angle[i])));
+        y_point[i] = (dis[i] * sin(RPLidar_S2L_Grados_A_Radianes(angle[i])));
+    }
+
+    for (int i = 0; i < n; i++) {
+        sum_x += x_point[i];
+        sum_y += y_point[i];
+        sum_xy += x_point[i] * y_point[i];
+        sum_x2 += x_point[i] * x_point[i];
+    }
+
+    double det = n * sum_x2 - sum_x * sum_x;
+
+    if (det == 0) {
+        printf("Error: El sistema no tiene solución única (todos los X son iguales).\n");
+        return 0;
+    }
+    float p = RPLidar_S2L_Radianes_A_Grados(atan((n * sum_xy - sum_x * sum_y) / det));
+
+    return (p);
+
+}
+
+/** 
+ * function name: Print_Slope
+ * description: This function calculates the slope of the line formed by the points detected by the lidar
+ * return: void
+ * parameters: direction side, const int point
+ * side: the side of the vehicle where the points are located (right or left)
+ * point: the number of points to be used for the calculation of the slope, this parameter shuold be odd
+ */
+void Print_Slope(const int point, const int middle_point){
+    float pendiente = 0;
+    float lidar_shared_buffer[360];
+    float dis[point] = {0};
+    int angle[point] = {0};
+
+    RPLidar_S2L_Get_Buffer(&lidar_shared_buffer[0] );
+    for(int i = 0; i < point; i++){
+        dis[i] = lidar_shared_buffer[middle_point - point + i];
+        angle[i] = middle_point - point  +i;
+    }
+
+    pendiente = Slope(dis, angle, point);
+    printf("Pendiente: %f\n", pendiente);
+}
+
+void Follow_Wall(const direction side, const int point){
+    float pendiente = 0;
+    int left_right_point = 0;
+    float lidar_shared_buffer[360];
+    float dis[point] = {0};
+    int angle[point] = {0};
+
+    if (side == right){
+        left_right_point = 270;
+    }
+    else if (side == left)
+    {
+        left_right_point = 90;
+    }
+    while(terminating_main == 0){
+        RPLidar_S2L_Get_Buffer(&lidar_shared_buffer[0] );
+        for(int i = 0; i < point; i++){
+            dis[i] = lidar_shared_buffer[left_right_point - point + i];
+            angle[i] = left_right_point - point + i;
+        }
+
+
+        pendiente = Slope(dis, angle, point);
+        printf("Pendiente: %f\n", pendiente);
+        
+
+        Spike_Follow_Reference(60, 0 ,pendiente);
+    }
+}
+
+
 void signal_handler(int signum){
     printf("\nCtrl+C detceted\n");
     terminating_main = 1;
-    RPLidar_S2L_Set_Terminating();
-    Rasp_Gpio_Clean();
-    Spike_Close_Serial();
-    RPLidar_S2L_Close();
     signal(SIGINT, SIG_DFL);
 }

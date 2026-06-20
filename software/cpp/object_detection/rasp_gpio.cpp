@@ -63,5 +63,5 @@ void Rasp_Gpio_Power_On_Spike(void){
     gpiod_line_request_set_value(request, outputs_GPIO[1], GPIOD_LINE_VALUE_ACTIVE);
     usleep(500000);
     gpiod_line_request_set_value(request, outputs_GPIO[1], GPIOD_LINE_VALUE_INACTIVE);
-    usleep(1000000); //one second waiting for spikr initialization 
+    usleep(1200000); //one second waiting for spikr initialization 
 }

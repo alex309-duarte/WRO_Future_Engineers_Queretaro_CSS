@@ -1,5 +1,6 @@
 #include "RPLidar_S2L.h"
 #include "spike.h"
+#include <opencv2/opencv.hpp>
 
 using namespace sl;
 
@@ -39,8 +40,14 @@ void RPLidar_S2L_Init_Lidar(void){
     drv->setMotorSpeed(DEFAULT_MOTOR_SPEED);
     usleep(200000);
     // start scan...
-    drv->startScan(0,1);
-    //drv->startScan(false, false);
+  
+    std::vector<LidarScanMode> scanModes;
+    drv->getAllSupportedScanModes(scanModes);
+    for(const auto& mode : scanModes) {
+        printf("mode id  = %d\n",mode.id);
+    }
+    //drv->startScanExpress(false, scanModes[2].id);
+    drv->startScan(false, true);
 }
 
 void *RPLidar_S2L_Lidar_Writer_Thread(void *arg){
@@ -52,6 +59,7 @@ void *RPLidar_S2L_Lidar_Writer_Thread(void *arg){
 
     while(terminating == 0){
 
+        count = _countof(nodes);
         op_result = drv->grabScanDataHq(nodes, count);
         if (SL_IS_OK(op_result)) {
             for (int i = 0; i < 360; i++) {
@@ -61,12 +69,12 @@ void *RPLidar_S2L_Lidar_Writer_Thread(void *arg){
             drv->ascendScanData(nodes, count);
             //printf("\n counts: %d \n", count);
             for (int pos = 0; pos < (int)count ; ++pos) {
-                if((nodes[pos].quality >> SL_LIDAR_RESP_MEASUREMENT_QUALITY_SHIFT) == 47){
+                if((nodes[pos].quality >> SL_LIDAR_RESP_MEASUREMENT_QUALITY_SHIFT) > 20){
                     angle_temp = ((nodes[pos].angle_z_q14) * 90.f) / 16384.f;
                     promedio[int(angle_temp)].distance += nodes[pos].dist_mm_q2/4.0f;
                     promedio[int(angle_temp)].repetitions += 1;
                 }
-                /*if( int(angle_temp) == 90)
+                /*if( int(angle_temp) == 100 || int(angle_temp) == 90)
                 {
                     
                     printf("%s theta: %03.2f Dist: %08.2f Q: %d \n", 
@@ -114,7 +122,10 @@ direction RPLidar_S2L_Avanzar_Deteccion_Sentido_Lidar(int vel, int referencia){
     distancia_izquierda = lidar_shared_buffer[270];
 
 
-    while((terminating == 0) && (((distancia_derecha < 1350) && (distancia_izquierda < 1350)) || (distancia_frente > 1100))){
+    while(    (terminating == 0)
+            && (((distancia_derecha < 1350)
+            && (distancia_izquierda < 1350)) 
+            || (distancia_frente > 1100))){
         distancia_frente = lidar_shared_buffer[0];
         distancia_derecha = lidar_shared_buffer[270];
         distancia_izquierda = lidar_shared_buffer[90];

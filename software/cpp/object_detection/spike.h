@@ -23,12 +23,13 @@ void Spike_Center_Vehicle_Short(void);
 void Spike_Coast_Motors(void);
 void Spike_Hold_Motors(void);
 void Spike_Reset_Gyro(int degrees);
-void Spike_Print_Gyro(void);
+float Spike_Get_Gyro(void);
 void Spike_Concatenate(int list_lenght,const char * argument_1[],char * buffer);
-void Spike_Turn_For_Degrees(int direction, int speed, int degrees);
+void Spike_Turn_For_Degrees(int direction, int speed, float degrees, int tire_turn);
 void Spike_Advance_For_Degrees(int speed, int degrees, int reference);
 void Spike_Forward(int speed, int reference);
 void Spike_Follow_Reference(int speed, float reference_1, float reference_2);
+void Spike_Turn_To_Zero(int direction, int speed, float degrees, int tire_turn);
 
 // Contenido del archivo de cabecera (prototipos, definiciones, etc.)
 
