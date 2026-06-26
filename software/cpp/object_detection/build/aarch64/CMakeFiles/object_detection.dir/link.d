@@ -2,6 +2,7 @@ object_detection: \
   /usr/lib/gcc/aarch64-linux-gnu/14/../../../aarch64-linux-gnu/Scrt1.o \
   /usr/lib/gcc/aarch64-linux-gnu/14/../../../aarch64-linux-gnu/crti.o \
   /usr/lib/gcc/aarch64-linux-gnu/14/crtbeginS.o \
+  CMakeFiles/object_detection.dir/Oradar_S2L.cpp.o \
   CMakeFiles/object_detection.dir/RPLidar_S2L.cpp.o \
   CMakeFiles/object_detection.dir/object_detection.cpp.o \
   CMakeFiles/object_detection.dir/rasp_gpio.cpp.o \
@@ -50,6 +51,7 @@ object_detection: \
   _deps/yaml-cpp/libyaml-cpp.a \
   _deps/curl/lib/libcurl.a \
   /home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/object_detection/rplidar_sdk/output/Linux/Release/libsl_lidar_sdk.a \
+  liboradar_sdk.a \
   /usr/lib/gcc/aarch64-linux-gnu/14/../../../aarch64-linux-gnu/libgpiod.so \
   /usr/lib/aarch64-linux-gnu/libopencv_highgui.so.4.10.0 \
   /usr/lib/aarch64-linux-gnu/libopencv_datasets.so.4.10.0 \
@@ -73,6 +75,8 @@ object_detection: \
   /usr/lib/aarch64-linux-gnu/libssl.so \
   /usr/lib/aarch64-linux-gnu/libcrypto.so \
   /usr/lib/aarch64-linux-gnu/libz.so \
+  /usr/lib/gcc/aarch64-linux-gnu/14/../../../aarch64-linux-gnu/libpthread.a \
+  /usr/lib/gcc/aarch64-linux-gnu/14/../../../aarch64-linux-gnu/librt.a \
   /usr/lib/gcc/aarch64-linux-gnu/14/libstdc++.so \
   /usr/lib/gcc/aarch64-linux-gnu/14/../../../aarch64-linux-gnu/libm.so \
   /usr/lib/gcc/aarch64-linux-gnu/14/../../../aarch64-linux-gnu/libm.so \
@@ -388,6 +392,8 @@ object_detection: \
 
 /usr/lib/gcc/aarch64-linux-gnu/14/crtbeginS.o:
 
+CMakeFiles/object_detection.dir/Oradar_S2L.cpp.o:
+
 CMakeFiles/object_detection.dir/RPLidar_S2L.cpp.o:
 
 CMakeFiles/object_detection.dir/object_detection.cpp.o:
@@ -484,6 +490,8 @@ _deps/curl/lib/libcurl.a:
 
 /home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/object_detection/rplidar_sdk/output/Linux/Release/libsl_lidar_sdk.a:
 
+liboradar_sdk.a:
+
 /usr/lib/gcc/aarch64-linux-gnu/14/../../../aarch64-linux-gnu/libgpiod.so:
 
 /usr/lib/aarch64-linux-gnu/libopencv_highgui.so.4.10.0:
@@ -529,6 +537,10 @@ _deps/curl/lib/libcurl.a:
 /usr/lib/aarch64-linux-gnu/libcrypto.so:
 
 /usr/lib/aarch64-linux-gnu/libz.so:
+
+/usr/lib/gcc/aarch64-linux-gnu/14/../../../aarch64-linux-gnu/libpthread.a:
+
+/usr/lib/gcc/aarch64-linux-gnu/14/../../../aarch64-linux-gnu/librt.a:
 
 /usr/lib/gcc/aarch64-linux-gnu/14/libstdc++.so:
 

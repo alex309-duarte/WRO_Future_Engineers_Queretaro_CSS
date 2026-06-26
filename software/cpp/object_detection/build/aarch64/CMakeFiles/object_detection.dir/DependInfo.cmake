@@ -8,6 +8,7 @@ set(CMAKE_DEPENDS_LANGUAGES
 
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
+  "/home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/object_detection/Oradar_S2L.cpp" "CMakeFiles/object_detection.dir/Oradar_S2L.cpp.o" "gcc" "CMakeFiles/object_detection.dir/Oradar_S2L.cpp.o.d"
   "/home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/object_detection/RPLidar_S2L.cpp" "CMakeFiles/object_detection.dir/RPLidar_S2L.cpp.o" "gcc" "CMakeFiles/object_detection.dir/RPLidar_S2L.cpp.o.d"
   "/home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/common/hailo_infer.cpp" "CMakeFiles/object_detection.dir/home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/common/hailo_infer.cpp.o" "gcc" "CMakeFiles/object_detection.dir/home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/common/hailo_infer.cpp.o.d"
   "/home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/common/resources_manager.cpp" "CMakeFiles/object_detection.dir/home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/common/resources_manager.cpp.o" "gcc" "CMakeFiles/object_detection.dir/home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/common/resources_manager.cpp.o.d"

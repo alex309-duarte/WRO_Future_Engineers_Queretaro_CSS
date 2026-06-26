@@ -72,10 +72,24 @@ include CMakeFiles/object_detection.dir/flags.make
 CMakeFiles/object_detection.dir/codegen:
 .PHONY : CMakeFiles/object_detection.dir/codegen
 
+CMakeFiles/object_detection.dir/Oradar_S2L.cpp.o: CMakeFiles/object_detection.dir/flags.make
+CMakeFiles/object_detection.dir/Oradar_S2L.cpp.o: /home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/object_detection/Oradar_S2L.cpp
+CMakeFiles/object_detection.dir/Oradar_S2L.cpp.o: CMakeFiles/object_detection.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/object_detection/build/aarch64/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/object_detection.dir/Oradar_S2L.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/object_detection.dir/Oradar_S2L.cpp.o -MF CMakeFiles/object_detection.dir/Oradar_S2L.cpp.o.d -o CMakeFiles/object_detection.dir/Oradar_S2L.cpp.o -c /home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/object_detection/Oradar_S2L.cpp
+
+CMakeFiles/object_detection.dir/Oradar_S2L.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/object_detection.dir/Oradar_S2L.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/object_detection/Oradar_S2L.cpp > CMakeFiles/object_detection.dir/Oradar_S2L.cpp.i
+
+CMakeFiles/object_detection.dir/Oradar_S2L.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/object_detection.dir/Oradar_S2L.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/object_detection/Oradar_S2L.cpp -o CMakeFiles/object_detection.dir/Oradar_S2L.cpp.s
+
 CMakeFiles/object_detection.dir/RPLidar_S2L.cpp.o: CMakeFiles/object_detection.dir/flags.make
 CMakeFiles/object_detection.dir/RPLidar_S2L.cpp.o: /home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/object_detection/RPLidar_S2L.cpp
 CMakeFiles/object_detection.dir/RPLidar_S2L.cpp.o: CMakeFiles/object_detection.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/object_detection/build/aarch64/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/object_detection.dir/RPLidar_S2L.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/object_detection/build/aarch64/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/object_detection.dir/RPLidar_S2L.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/object_detection.dir/RPLidar_S2L.cpp.o -MF CMakeFiles/object_detection.dir/RPLidar_S2L.cpp.o.d -o CMakeFiles/object_detection.dir/RPLidar_S2L.cpp.o -c /home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/object_detection/RPLidar_S2L.cpp
 
 CMakeFiles/object_detection.dir/RPLidar_S2L.cpp.i: cmake_force
@@ -89,7 +103,7 @@ CMakeFiles/object_detection.dir/RPLidar_S2L.cpp.s: cmake_force
 CMakeFiles/object_detection.dir/object_detection.cpp.o: CMakeFiles/object_detection.dir/flags.make
 CMakeFiles/object_detection.dir/object_detection.cpp.o: /home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/object_detection/object_detection.cpp
 CMakeFiles/object_detection.dir/object_detection.cpp.o: CMakeFiles/object_detection.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/object_detection/build/aarch64/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/object_detection.dir/object_detection.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/object_detection/build/aarch64/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/object_detection.dir/object_detection.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/object_detection.dir/object_detection.cpp.o -MF CMakeFiles/object_detection.dir/object_detection.cpp.o.d -o CMakeFiles/object_detection.dir/object_detection.cpp.o -c /home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/object_detection/object_detection.cpp
 
 CMakeFiles/object_detection.dir/object_detection.cpp.i: cmake_force
@@ -103,7 +117,7 @@ CMakeFiles/object_detection.dir/object_detection.cpp.s: cmake_force
 CMakeFiles/object_detection.dir/rasp_gpio.cpp.o: CMakeFiles/object_detection.dir/flags.make
 CMakeFiles/object_detection.dir/rasp_gpio.cpp.o: /home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/object_detection/rasp_gpio.cpp
 CMakeFiles/object_detection.dir/rasp_gpio.cpp.o: CMakeFiles/object_detection.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/object_detection/build/aarch64/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/object_detection.dir/rasp_gpio.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/object_detection/build/aarch64/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/object_detection.dir/rasp_gpio.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/object_detection.dir/rasp_gpio.cpp.o -MF CMakeFiles/object_detection.dir/rasp_gpio.cpp.o.d -o CMakeFiles/object_detection.dir/rasp_gpio.cpp.o -c /home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/object_detection/rasp_gpio.cpp
 
 CMakeFiles/object_detection.dir/rasp_gpio.cpp.i: cmake_force
@@ -117,7 +131,7 @@ CMakeFiles/object_detection.dir/rasp_gpio.cpp.s: cmake_force
 CMakeFiles/object_detection.dir/spike.cpp.o: CMakeFiles/object_detection.dir/flags.make
 CMakeFiles/object_detection.dir/spike.cpp.o: /home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/object_detection/spike.cpp
 CMakeFiles/object_detection.dir/spike.cpp.o: CMakeFiles/object_detection.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/object_detection/build/aarch64/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/object_detection.dir/spike.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/object_detection/build/aarch64/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/object_detection.dir/spike.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/object_detection.dir/spike.cpp.o -MF CMakeFiles/object_detection.dir/spike.cpp.o.d -o CMakeFiles/object_detection.dir/spike.cpp.o -c /home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/object_detection/spike.cpp
 
 CMakeFiles/object_detection.dir/spike.cpp.i: cmake_force
@@ -131,7 +145,7 @@ CMakeFiles/object_detection.dir/spike.cpp.s: cmake_force
 CMakeFiles/object_detection.dir/utils/utils.cpp.o: CMakeFiles/object_detection.dir/flags.make
 CMakeFiles/object_detection.dir/utils/utils.cpp.o: /home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/object_detection/utils/utils.cpp
 CMakeFiles/object_detection.dir/utils/utils.cpp.o: CMakeFiles/object_detection.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/object_detection/build/aarch64/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/object_detection.dir/utils/utils.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/object_detection/build/aarch64/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object CMakeFiles/object_detection.dir/utils/utils.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/object_detection.dir/utils/utils.cpp.o -MF CMakeFiles/object_detection.dir/utils/utils.cpp.o.d -o CMakeFiles/object_detection.dir/utils/utils.cpp.o -c /home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/object_detection/utils/utils.cpp
 
 CMakeFiles/object_detection.dir/utils/utils.cpp.i: cmake_force
@@ -145,7 +159,7 @@ CMakeFiles/object_detection.dir/utils/utils.cpp.s: cmake_force
 CMakeFiles/object_detection.dir/home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/common/toolbox.cpp.o: CMakeFiles/object_detection.dir/flags.make
 CMakeFiles/object_detection.dir/home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/common/toolbox.cpp.o: /home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/common/toolbox.cpp
 CMakeFiles/object_detection.dir/home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/common/toolbox.cpp.o: CMakeFiles/object_detection.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/object_detection/build/aarch64/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object CMakeFiles/object_detection.dir/home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/common/toolbox.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/object_detection/build/aarch64/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building CXX object CMakeFiles/object_detection.dir/home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/common/toolbox.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/object_detection.dir/home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/common/toolbox.cpp.o -MF CMakeFiles/object_detection.dir/home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/common/toolbox.cpp.o.d -o CMakeFiles/object_detection.dir/home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/common/toolbox.cpp.o -c /home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/common/toolbox.cpp
 
 CMakeFiles/object_detection.dir/home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/common/toolbox.cpp.i: cmake_force
@@ -159,7 +173,7 @@ CMakeFiles/object_detection.dir/home/maker/WRO_Future_Engineers_Queretaro_CSS/so
 CMakeFiles/object_detection.dir/home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/common/hailo_infer.cpp.o: CMakeFiles/object_detection.dir/flags.make
 CMakeFiles/object_detection.dir/home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/common/hailo_infer.cpp.o: /home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/common/hailo_infer.cpp
 CMakeFiles/object_detection.dir/home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/common/hailo_infer.cpp.o: CMakeFiles/object_detection.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/object_detection/build/aarch64/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building CXX object CMakeFiles/object_detection.dir/home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/common/hailo_infer.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/object_detection/build/aarch64/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Building CXX object CMakeFiles/object_detection.dir/home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/common/hailo_infer.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/object_detection.dir/home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/common/hailo_infer.cpp.o -MF CMakeFiles/object_detection.dir/home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/common/hailo_infer.cpp.o.d -o CMakeFiles/object_detection.dir/home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/common/hailo_infer.cpp.o -c /home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/common/hailo_infer.cpp
 
 CMakeFiles/object_detection.dir/home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/common/hailo_infer.cpp.i: cmake_force
@@ -173,7 +187,7 @@ CMakeFiles/object_detection.dir/home/maker/WRO_Future_Engineers_Queretaro_CSS/so
 CMakeFiles/object_detection.dir/home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/common/resources_manager.cpp.o: CMakeFiles/object_detection.dir/flags.make
 CMakeFiles/object_detection.dir/home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/common/resources_manager.cpp.o: /home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/common/resources_manager.cpp
 CMakeFiles/object_detection.dir/home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/common/resources_manager.cpp.o: CMakeFiles/object_detection.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/object_detection/build/aarch64/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Building CXX object CMakeFiles/object_detection.dir/home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/common/resources_manager.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/object_detection/build/aarch64/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Building CXX object CMakeFiles/object_detection.dir/home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/common/resources_manager.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/object_detection.dir/home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/common/resources_manager.cpp.o -MF CMakeFiles/object_detection.dir/home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/common/resources_manager.cpp.o.d -o CMakeFiles/object_detection.dir/home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/common/resources_manager.cpp.o -c /home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/common/resources_manager.cpp
 
 CMakeFiles/object_detection.dir/home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/common/resources_manager.cpp.i: cmake_force
@@ -186,6 +200,7 @@ CMakeFiles/object_detection.dir/home/maker/WRO_Future_Engineers_Queretaro_CSS/so
 
 # Object files for target object_detection
 object_detection_OBJECTS = \
+"CMakeFiles/object_detection.dir/Oradar_S2L.cpp.o" \
 "CMakeFiles/object_detection.dir/RPLidar_S2L.cpp.o" \
 "CMakeFiles/object_detection.dir/object_detection.cpp.o" \
 "CMakeFiles/object_detection.dir/rasp_gpio.cpp.o" \
@@ -198,6 +213,7 @@ object_detection_OBJECTS = \
 # External object files for target object_detection
 object_detection_EXTERNAL_OBJECTS =
 
+object_detection: CMakeFiles/object_detection.dir/Oradar_S2L.cpp.o
 object_detection: CMakeFiles/object_detection.dir/RPLidar_S2L.cpp.o
 object_detection: CMakeFiles/object_detection.dir/object_detection.cpp.o
 object_detection: CMakeFiles/object_detection.dir/rasp_gpio.cpp.o
@@ -248,6 +264,7 @@ object_detection: /usr/lib/aarch64-linux-gnu/libopencv_xphoto.so.4.10.0
 object_detection: _deps/yaml-cpp/libyaml-cpp.a
 object_detection: _deps/curl/lib/libcurl.a
 object_detection: /home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/object_detection/rplidar_sdk/output/Linux/Release/libsl_lidar_sdk.a
+object_detection: liboradar_sdk.a
 object_detection: /usr/lib/aarch64-linux-gnu/libopencv_highgui.so.4.10.0
 object_detection: /usr/lib/aarch64-linux-gnu/libopencv_datasets.so.4.10.0
 object_detection: /usr/lib/aarch64-linux-gnu/libopencv_plot.so.4.10.0
@@ -271,7 +288,7 @@ object_detection: /usr/lib/aarch64-linux-gnu/libssl.so
 object_detection: /usr/lib/aarch64-linux-gnu/libcrypto.so
 object_detection: /usr/lib/aarch64-linux-gnu/libz.so
 object_detection: CMakeFiles/object_detection.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/object_detection/build/aarch64/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Linking CXX executable object_detection"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/object_detection/build/aarch64/CMakeFiles --progress-num=$(CMAKE_PROGRESS_10) "Linking CXX executable object_detection"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/object_detection.dir/link.txt --verbose=$(VERBOSE)
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --blue --bold "Copy resources_config.yaml next to the executable"
 	/usr/bin/cmake -E make_directory /home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/object_detection/build/aarch64/config

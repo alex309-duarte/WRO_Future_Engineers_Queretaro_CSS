@@ -473,9 +473,4 @@ CMakeFiles/object_detection.dir/object_detection.cpp.o: \
  /usr/include/aarch64-linux-gnu/sys/ttydefaults.h \
  /home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/object_detection/rasp_gpio.h \
  /usr/include/gpiod.h \
- /home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/object_detection/RPLidar_S2L.h \
- /home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/object_detection/rplidar_sdk/sdk/include/sl_lidar.h \
- /home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/object_detection/rplidar_sdk/sdk/include/sl_lidar_driver.h \
- /home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/object_detection/rplidar_sdk/sdk/include/sl_lidar_cmd.h \
- /home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/object_detection/rplidar_sdk/sdk/include/sl_lidar_protocol.h \
- /home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/object_detection/rplidar_sdk/sdk/include/sl_types.h
+ /home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/object_detection/Oradar_S2L.h

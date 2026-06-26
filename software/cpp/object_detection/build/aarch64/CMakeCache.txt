@@ -20,8 +20,8 @@ APXS:FILEPATH=APXS-NOTFOUND
 //Build curl executable
 BUILD_CURL_EXE:BOOL=OFF
 
-//Build libcurl examples
-BUILD_EXAMPLES:BOOL=ON
+//Build Example.
+BUILD_EXAMPLES:BOOL=OFF
 
 //Build libcurl man pages
 BUILD_LIBCURL_DOCS:BOOL=ON
@@ -29,7 +29,7 @@ BUILD_LIBCURL_DOCS:BOOL=ON
 //Build misc man pages (e.g. curl-config and mk-ca-bundle)
 BUILD_MISC_DOCS:BOOL=ON
 
-//Build shared libraries
+//Build shared libraries.
 BUILD_SHARED_LIBS:BOOL=OFF
 
 //Build curl executable with static libcurl
@@ -43,6 +43,12 @@ BUILD_TESTING:BOOL=ON
 
 //Path to a program.
 CADDY:FILEPATH=CADDY-NOTFOUND
+
+//Use ccache if available
+CCACHE:BOOL=ON
+
+//Path to a program.
+CCACHE_PROGRAM:FILEPATH=CCACHE_PROGRAM-NOTFOUND
 
 //Path to a program.
 CMAKE_ADDR2LINE:FILEPATH=/usr/bin/addr2line
@@ -632,6 +638,9 @@ ENABLE_THREADED_RESOLVER:BOOL=ON
 //Enable Unix domain sockets support
 ENABLE_UNIX_SOCKETS:BOOL=ON
 
+//Should the oradar_sdk package be exported for use by other software
+EXPORT_oradar_sdk:BOOL=OFF
+
 //Path to a program.
 GITCOMMAND:FILEPATH=/usr/bin/git
 
@@ -700,6 +709,24 @@ PKG_CONFIG_ARGN:STRING=
 PKG_CONFIG_EXECUTABLE:FILEPATH=/usr/bin/pkg-config
 
 //Path to a program.
+PYTHON_EXECUTABLE:FILEPATH=/usr/bin/python
+
+//Path to a file.
+PYTHON_INCLUDE_DIR:PATH=/usr/include/python3.13
+
+//Path to a library.
+PYTHON_LIBRARY:FILEPATH=/usr/lib/aarch64-linux-gnu/libpython3.13.so
+
+//Path to a library.
+PYTHON_LIBRARY_DEBUG:FILEPATH=PYTHON_LIBRARY_DEBUG-NOTFOUND
+
+//SDK required incs
+SDK_INCS:STRING=
+
+//SDK required libraries
+SDK_LIBS:STRING=pthread;rt
+
+//Path to a program.
 SFTPD:FILEPATH=/usr/lib/openssh/sftp-server
 
 //Name of the computer/site where compile is being run
@@ -707,6 +734,9 @@ SITE:STRING=maker
 
 //Path to a program.
 SSHD:FILEPATH=/usr/sbin/sshd
+
+//Path to a program.
+SWIG_EXECUTABLE:FILEPATH=SWIG_EXECUTABLE-NOTFOUND
 
 //Path to a program.
 TEST_NGHTTPX:FILEPATH=TEST_NGHTTPX-NOTFOUND
@@ -794,6 +824,18 @@ object_detection_IS_TOP_LEVEL:STATIC=ON
 
 //Value Computed by CMake
 object_detection_SOURCE_DIR:STATIC=/home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/object_detection
+
+//Value Computed by CMake
+oradar_sdk_BINARY_DIR:STATIC=/home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/object_detection/build/aarch64/_deps/oradar_sdk
+
+//Value Computed by CMake
+oradar_sdk_IS_TOP_LEVEL:STATIC=OFF
+
+//Dependencies for the target
+oradar_sdk_LIB_DEPENDS:STATIC=general;pthread;general;rt;
+
+//Value Computed by CMake
+oradar_sdk_SOURCE_DIR:STATIC=/home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/object_detection/oradar_sdk
 
 //Path to a library.
 pkgcfg_lib__OPENSSL_crypto:FILEPATH=/usr/lib/aarch64-linux-gnu/libcrypto.so
@@ -946,7 +988,7 @@ CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_NM
 CMAKE_NM-ADVANCED:INTERNAL=1
 //number of local generators
-CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=16
+CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=26
 //ADVANCED property for variable: CMAKE_OBJCOPY
 CMAKE_OBJCOPY-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_OBJDUMP
@@ -1133,12 +1175,18 @@ DANTED-ADVANCED:INTERNAL=1
 DART_TESTING_TIMEOUT-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: ENABLE_IPV6
 ENABLE_IPV6-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: EXPORT_oradar_sdk
+EXPORT_oradar_sdk-ADVANCED:INTERNAL=1
 //Details about finding OpenCV
 FIND_PACKAGE_MESSAGE_DETAILS_OpenCV:INTERNAL=[/usr][v4.10.0()]
 //Details about finding OpenSSL
 FIND_PACKAGE_MESSAGE_DETAILS_OpenSSL:INTERNAL=[/usr/lib/aarch64-linux-gnu/libcrypto.so][/usr/include][c ][v3.5.5()]
 //Details about finding Perl
 FIND_PACKAGE_MESSAGE_DETAILS_Perl:INTERNAL=[/usr/bin/perl][v5.40.1()]
+//Details about finding PythonInterp
+FIND_PACKAGE_MESSAGE_DETAILS_PythonInterp:INTERNAL=[/usr/bin/python][v3.13.5()]
+//Details about finding PythonLibs
+FIND_PACKAGE_MESSAGE_DETAILS_PythonLibs:INTERNAL=[/usr/lib/aarch64-linux-gnu/libpython3.13.so][/usr/include/python3.13][v3.13.5()]
 //Details about finding Threads
 FIND_PACKAGE_MESSAGE_DETAILS_Threads:INTERNAL=[TRUE][v()]
 //Details about finding ZLIB
@@ -1463,6 +1511,14 @@ PERL_EXECUTABLE-ADVANCED:INTERNAL=1
 PKG_CONFIG_ARGN-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: PKG_CONFIG_EXECUTABLE
 PKG_CONFIG_EXECUTABLE-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: PYTHON_EXECUTABLE
+PYTHON_EXECUTABLE-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: PYTHON_INCLUDE_DIR
+PYTHON_INCLUDE_DIR-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: PYTHON_LIBRARY
+PYTHON_LIBRARY-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: PYTHON_LIBRARY_DEBUG
+PYTHON_LIBRARY_DEBUG-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: SFTPD
 SFTPD-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: SITE
@@ -1495,6 +1551,8 @@ SIZEOF___INT64:INTERNAL=
 SSHD-ADVANCED:INTERNAL=1
 //curl test
 STDC_HEADERS:INTERNAL=1
+//ADVANCED property for variable: SWIG_EXECUTABLE
+SWIG_EXECUTABLE-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: TEST_NGHTTPX
 TEST_NGHTTPX-ADVANCED:INTERNAL=1
 //Test USE_UNIX_SOCKETS
@@ -1610,6 +1668,8 @@ _libssh2_libssh2_INCLUDEDIR:INTERNAL=
 _libssh2_libssh2_LIBDIR:INTERNAL=
 _libssh2_libssh2_PREFIX:INTERNAL=
 _libssh2_libssh2_VERSION:INTERNAL=
+//All cmake targets for which optimization can be suppressed
+all_posix_cmake_targets:INTERNAL=oradar_sdk
 //ADVANCED property for variable: pkgcfg_lib__OPENSSL_crypto
 pkgcfg_lib__OPENSSL_crypto-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: pkgcfg_lib__OPENSSL_ssl

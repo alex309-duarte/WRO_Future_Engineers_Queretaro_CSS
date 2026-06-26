@@ -59,11 +59,6 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("/home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/object_detection/build/aarch64/_deps/curl/docs/examples/cmake_install.cmake")
-endif()
-
-if(NOT CMAKE_INSTALL_LOCAL_ONLY)
-  # Include the install script for the subdirectory.
   include("/home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/object_detection/build/aarch64/_deps/curl/tests/cmake_install.cmake")
 endif()
 

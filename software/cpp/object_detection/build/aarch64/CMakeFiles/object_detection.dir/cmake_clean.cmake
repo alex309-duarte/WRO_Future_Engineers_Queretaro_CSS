@@ -1,5 +1,7 @@
 file(REMOVE_RECURSE
   "CMakeFiles/object_detection.dir/link.d"
+  "CMakeFiles/object_detection.dir/Oradar_S2L.cpp.o"
+  "CMakeFiles/object_detection.dir/Oradar_S2L.cpp.o.d"
   "CMakeFiles/object_detection.dir/RPLidar_S2L.cpp.o"
   "CMakeFiles/object_detection.dir/RPLidar_S2L.cpp.o.d"
   "CMakeFiles/object_detection.dir/home/maker/WRO_Future_Engineers_Queretaro_CSS/software/cpp/common/hailo_infer.cpp.o"
