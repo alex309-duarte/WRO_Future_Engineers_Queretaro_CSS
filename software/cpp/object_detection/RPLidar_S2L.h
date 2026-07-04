@@ -39,5 +39,6 @@ int RPLidar_S2L_Comparation(int arg1, int arg2, int arg3);
 void RPLidar_S2L_Close(void);
 void RPLidar_S2L_Set_Terminating(void);
 void RPLidar_S2L_Get_Buffer(float *buffer);
+unsigned long RPLidar_S2L_Get_Scan_Seq(void);
 
 #endif // _RPLIDAR_S2L_H

@@ -7,6 +7,8 @@
 enum direction{
     right = 1,
     left = -1,
+    front = 2,
+    behind = -2,
     invalid = 0
 };
 

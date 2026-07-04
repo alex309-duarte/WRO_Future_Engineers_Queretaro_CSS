@@ -13,28 +13,35 @@ sl_result  op_result;
 
 static volatile int terminating = 0;
 static volatile float lidar_shared_buffer[360]; // Your shared buffer
+static volatile unsigned long rplidar_scan_seq = 0; // incremented every time a new scan is written
 
 void RPLidar_S2L_Init_Lidar(void){
-    drv = *createLidarDriver();
-    if (!drv) {
-        fprintf(stderr, "insufficent memory, exit\n");
-        exit(-2);
-    }
     sl_lidar_response_device_info_t devinfo;
     bool connectSuccess = false;
-    _channel = (*createSerialPortChannel(opt_channel_param_first, 1000000));
-    if (SL_IS_OK((drv)->connect(_channel))) {
-        op_result = drv->getDeviceInfo(devinfo);
 
-        if (SL_IS_OK(op_result)) 
-        {
-	        connectSuccess = true;
-            printf("\nconnection successful \n");
+    // Retry until connected instead of falling through to setMotorSpeed() on a
+    // NULL/disconnected drv - that's what used to crash (delete drv without a prior
+    // disconnect(), then continuing to use the now-null/dangling drv afterwards).
+    while (terminating == 0 && !connectSuccess) {
+        drv = *createLidarDriver();
+        if (!drv) {
+            fprintf(stderr, "insufficent memory, exit\n");
+            exit(-2);
         }
-        else{
-            delete drv;
-			drv = NULL;
+        _channel = (*createSerialPortChannel(opt_channel_param_first, 1000000));
+        if (SL_IS_OK((drv)->connect(_channel))) {
+            op_result = drv->getDeviceInfo(devinfo);
+            if (SL_IS_OK(op_result)) {
+                connectSuccess = true;
+                printf("\nconnection successful \n");
+                break;
+            }
         }
+        printf("RPLidar connect failed, retrying...\n");
+        drv->disconnect();
+        delete drv;
+        drv = NULL;
+        usleep(1000000);
     }
 
     drv->setMotorSpeed(DEFAULT_MOTOR_SPEED);
@@ -95,6 +102,7 @@ void *RPLidar_S2L_Lidar_Writer_Thread(void *arg){
                     //printf("No measurements for angle %d\n", i);
                 }
             }
+            rplidar_scan_seq++;
             pthread_mutex_unlock(&buffer_mutex); // Unlock after writing
         }
     }
@@ -282,4 +290,8 @@ void RPLidar_S2L_Get_Buffer(float *buffer){
     for(int i = 0; i < 360; i++){
         buffer[i] = lidar_shared_buffer[i];
     }
+}
+
+unsigned long RPLidar_S2L_Get_Scan_Seq(void){
+    return rplidar_scan_seq;
 }

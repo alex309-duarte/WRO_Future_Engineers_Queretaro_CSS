@@ -185,9 +185,9 @@ void Spike_Initialize_Libraries(void){
     Spike_Send_Serial_Data("return 255\r");
     Spike_End_Funcion();
 
-    Spike_Send_Serial_Data("def turnz(direction,speed,degrees, tire_turn):\r");
+    Spike_Send_Serial_Data("def small_turn(direction,speed,degrees, tire_turn):\r");
     Spike_Send_Serial_Data("motor.run_to_relative_position(port.F, int((tire_turn)*(4.6)*(direction)), 550)\r");
-    Spike_Send_Serial_Data("while abs(degrees*10 + 2) < abs(motion_sensor.tilt_angles()[0]):\r");
+    Spike_Send_Serial_Data("while abs(degrees*10) < (direction)*motion_sensor.tilt_angles()[0]:\r");
     Spike_Send_Serial_Data("motor.set_duty_cycle(port.B, (100)*(speed))\r");
     Spike_Send_Serial_Data(remove);
     Spike_Send_Serial_Data("fc()\r");
@@ -343,7 +343,7 @@ void Spike_Turn_For_Degrees(int direction, int speed, float degrees, int tire_tu
     Spike_Hold_Motors();
 }
 
-void Spike_Turn_To_Zero(int direction, int speed, float degrees, int tire_turn){
+void Spike_Small_Turn(int direction, int speed, float degrees, int tire_turn){
 	char arguments[255];
 	char string_direction[10] = "";
 	char string_speed[10] = "";
@@ -356,7 +356,7 @@ void Spike_Turn_To_Zero(int direction, int speed, float degrees, int tire_turn){
     snprintf(string_tire_turn, sizeof(string_tire_turn), "%d", tire_turn);
 
 	const char * cocatenate_list[10];
-	cocatenate_list[0] = "turnz(";
+	cocatenate_list[0] = "small_turn(";
 	cocatenate_list[1] = (const char *)string_direction;
 	cocatenate_list[2] = ",";
 	cocatenate_list[3] = (const char *)string_speed;	

@@ -146,6 +146,13 @@ set(RPLIDAR_SDK_DIR "${CMAKE_CURRENT_SOURCE_DIR}/rplidar_sdk")
 set(RPLIDAR_LIB "${RPLIDAR_SDK_DIR}/output/Linux/Release/libsl_lidar_sdk.a")
 
 # ============================================================
+# Oradar SDK (MS200, standalone CMake build, no ROS required)
+# ============================================================
+set(ORADAR_SDK_DIR "${CMAKE_CURRENT_SOURCE_DIR}/oradar_sdk")
+set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+add_subdirectory("${ORADAR_SDK_DIR}" "${CMAKE_BINARY_DIR}/_deps/oradar_sdk")
+
+# ============================================================
 # Include dirs
 # ============================================================
 target_include_directories(${PROJECT_NAME} PRIVATE
@@ -155,6 +162,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/../common"
     "${RPLIDAR_SDK_DIR}/sdk/include"
     "${RPLIDAR_SDK_DIR}/sdk/src"
+    "${ORADAR_SDK_DIR}"
 )
 
 # ============================================================
@@ -184,6 +192,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     yaml-cpp
     CURL::libcurl
     ${RPLIDAR_LIB}
+    oradar_sdk
     gpiod
 )
 
