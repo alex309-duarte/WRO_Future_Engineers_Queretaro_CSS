@@ -1,1 +1,0 @@
-/usr/bin/cc -Wl,--dependency-file=CMakeFiles/curl-example-pop3-stat.dir/link.d "CMakeFiles/curl-example-pop3-stat.dir/pop3-stat.c.o" -o pop3-stat  ../../lib/libcurl.a /usr/lib/aarch64-linux-gnu/libssl.so /usr/lib/aarch64-linux-gnu/libcrypto.so /usr/lib/aarch64-linux-gnu/libz.so

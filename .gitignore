@@ -1,0 +1,5 @@
+# Ignore the folder named 'logs'
+# Git ignore sections
+#
+# =========================================================
+software/cpp/object_detection/build/aarch64/_deps/
