@@ -12,4 +12,15 @@ enum direction{
     invalid = 0
 };
 
+enum Color_traffic_light{
+    light_red = 2,
+    light_green = 1,
+    light_xparking = 3
+};
+
+enum Cube_number{
+    cube_first = 2000,
+    cube_second = 1250,
+
+};
 #endif // _COMMON_VAR_H

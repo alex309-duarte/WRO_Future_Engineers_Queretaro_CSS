@@ -17,15 +17,13 @@ struct traffic_lights_struct{
 
 static traffic_lights_struct traffic_lights;
 
+// Set from args.no_display in main() so postprocess_callback (which doesn't receive
+// CommandLineArgs) can skip opening the lidar visualization window too.
+static bool g_no_display = false;
+
 pthread_t writer;
 pthread_t Main_Actions;
 static volatile int terminating_main = 0;
-
-// Lidar angle indices (0-359) used by the most recent Slope() call, so the visualization
-// can highlight exactly which points fed the slope calculation. Shared between the
-// Obstacle_Challenge_Thread (writer, via Slope()) and the postprocess_callback (reader).
-static pthread_mutex_t slope_points_mutex = PTHREAD_MUTEX_INITIALIZER;
-static std::vector<int> slope_used_angles;
 
 // segment_id -> persistent color slot for the most recently detected walls, refreshed
 // every new lidar scan in postprocess_callback. Global so other code can inspect which
@@ -39,7 +37,23 @@ float Slope(const direction side);
 float Distance_To_Wall(const direction side);
 void Print_Slope(const direction side);
 void Follow_Wall(const direction side);
+float calculte_angle_section_start_clockwise(Color_traffic_light traffic_light_color, int cube_number_per_section);
+float calculte_angle_section_start_counterclockwise(Color_traffic_light traffic_light_color, int cube_number_per_section);
 static float Fit_Line_Orientation(const std::vector<cv::Point2f> &pts, const std::vector<int> &indices);
+void avoid_cube_start_section(Color_traffic_light traffic_light_color, Cube_number cube_number_per_section);
+
+// Holds the window points and the chosen wall's indices into them, shared by Slope()
+// and Distance_To_Wall() so both report on exactly the same wall-selection result
+// instead of independently re-running (and potentially disagreeing on) the selection.
+// Defined up here (rather than next to Select_Wall's definition) so postprocess_callback
+// can call Select_Wall directly to draw each side's wall independently.
+struct WallSelection {
+    bool found = false;
+    std::vector<cv::Point2f> pts;
+    std::vector<int> chosen_indices;
+    std::vector<int> used_angles; // lidar angles (0-359) backing chosen_indices
+};
+static WallSelection Select_Wall(const direction side);
 
 int find_max_index(float arr[], int n) {
     if (n <= 0) return -1; // Handle empty array case
@@ -184,7 +198,7 @@ void postprocess_callback(
         last_lidar_seq = current_lidar_seq;
 
         const int canvas_size = 1080;
-        const float lidar_scale = 0.2f; // pixels per mm
+        const float lidar_scale = 0.15f; // pixels per mm
         const int grid_spacing_mm = 500;
         const cv::Point origin(canvas_size / 2, canvas_size / 2);
         cv::Mat lidar_canvas(canvas_size, canvas_size, CV_8UC3, cv::Scalar(255, 255, 255));
@@ -416,18 +430,48 @@ void postprocess_callback(
         };
         const cv::Scalar clutter_color(128, 128, 128); // inlier point not part of a top max_walls wall
 
-        // Snapshot which angles the most recent Slope() call actually used, to highlight them
-        bool slope_highlight[360] = {false};
-        {
-            pthread_mutex_lock(&slope_points_mutex);
-            for (int a : slope_used_angles) {
-                if (a >= 0 && a < 360) slope_highlight[a] = true;
-            }
-            pthread_mutex_unlock(&slope_points_mutex);
-        }
+        // Independently select and highlight the front, right, and left walls via
+        // Select_Wall(), regardless of whichever side Distance_To_Wall()/Slope() were
+        // last called with elsewhere in the robot logic - so the lidar frame always
+        // shows all three sides at once instead of just whichever one was queried.
+        struct SideHighlight { direction side; const char *label; cv::Scalar color; };
+        static const std::vector<SideHighlight> sides_to_highlight = {
+            { front, "front", cv::Scalar(0, 0, 255) },  // red
+            { right, "right", cv::Scalar(255, 0, 0) },  // blue
+            { left,  "left",  cv::Scalar(0, 200, 0) },  // green
+        };
 
-        std::vector<int> highlighted_indices;
-        cv::Scalar highlight_color = clutter_color;
+        bool highlight_mask[360] = {false};
+        cv::Scalar highlight_color_by_angle[360];
+
+        for (const auto &sh : sides_to_highlight) {
+            WallSelection sel = Select_Wall(sh.side);
+            if (!sel.found) continue;
+
+            for (int a : sel.used_angles) {
+                if (a >= 0 && a < 360) {
+                    highlight_mask[a] = true;
+                    highlight_color_by_angle[a] = sh.color;
+                }
+            }
+
+            // Perpendicular distance from the robot (origin) to this side's fitted wall
+            // line, not just the centroid's range, since the centroid can sit off to one
+            // side of the perpendicular foot.
+            cv::Point2f centroid(0, 0);
+            for (int idx : sel.chosen_indices) centroid += sel.pts[idx];
+            centroid *= (1.0f / (float)sel.chosen_indices.size());
+            float orientation_deg = Fit_Line_Orientation(sel.pts, sel.chosen_indices);
+            float orientation_rad = Oradar_S2L_Grados_A_Radianes(orientation_deg);
+            cv::Point2f dir(cos(orientation_rad), sin(orientation_rad));
+            float distance_mm = std::fabs(centroid.x * dir.y - centroid.y * dir.x);
+
+            cv::Point text_pos = origin + cv::Point((int)(centroid.x * lidar_scale) + 10,
+                                                      (int)(centroid.y * lidar_scale) - 10);
+            char dist_text[48];
+            snprintf(dist_text, sizeof(dist_text), "%s %.0fmm", sh.label, distance_mm);
+            cv::putText(lidar_canvas, dist_text, text_pos, cv::FONT_HERSHEY_SIMPLEX, 0.5, sh.color, 2);
+        }
 
         for (size_t i = 0; i < points_mm.size(); i++) {
             cv::Point p = origin + cv::Point((int)(points_mm[i].x * lidar_scale), (int)(points_mm[i].y * lidar_scale));
@@ -441,40 +485,20 @@ void postprocess_callback(
                 }
 
                 int wrapped_angle = (int)point_angle_deg[i];
-                bool used_for_slope = (wrapped_angle >= 0 && wrapped_angle < 360) && slope_highlight[wrapped_angle];
-                if (used_for_slope) {
-                    cv::circle(lidar_canvas, p, 3, color, -1);
+                bool highlighted = (wrapped_angle >= 0 && wrapped_angle < 360) && highlight_mask[wrapped_angle];
+                if (highlighted) {
+                    cv::Scalar hcolor = highlight_color_by_angle[wrapped_angle];
+                    cv::circle(lidar_canvas, p, 3, hcolor, -1);
                     cv::circle(lidar_canvas, p, 3, cv::Scalar(0, 0, 0), 1); // black outline so it stands out beyond just color
-                    if (highlighted_indices.empty()) highlight_color = color;
-                    highlighted_indices.push_back((int)i);
                 } else {
                     cv::circle(lidar_canvas, p, 0.5, color, -1);
                 }
             }
         }
 
-        // Distance from the robot (origin) to the highlighted wall: the perpendicular
-        // distance to the wall's fitted line, not just the centroid's range, since the
-        // centroid can sit off to one side of the perpendicular foot.
-        if (!highlighted_indices.empty()) {
-            cv::Point2f sum(0, 0);
-            for (int idx : highlighted_indices) sum += points_mm[idx];
-            cv::Point2f centroid = sum * (1.0f / highlighted_indices.size());
-            float orientation_deg = Fit_Line_Orientation(points_mm, highlighted_indices);
-            float orientation_rad = Oradar_S2L_Grados_A_Radianes(orientation_deg);
-            cv::Point2f dir(cos(orientation_rad), sin(orientation_rad));
-            float highlighted_wall_distance_mm = std::fabs(centroid.x * dir.y - centroid.y * dir.x);
-
-            //printf("[Highlighted wall] distance=%.0fmm\n", highlighted_wall_distance_mm);
-
-            cv::Point text_pos = origin + cv::Point((int)(centroid.x * lidar_scale) + 10,
-                                                      (int)(centroid.y * lidar_scale) - 10);
-            char dist_text[32];
-            snprintf(dist_text, sizeof(dist_text), "%.0fmm", highlighted_wall_distance_mm);
-            cv::putText(lidar_canvas, dist_text, text_pos, cv::FONT_HERSHEY_SIMPLEX, 0.5, highlight_color, 2);
+        if (!g_no_display) {
+            cv::imshow("Lidar Coordinates", lidar_canvas);
         }
-
-        cv::imshow("Lidar Coordinates", lidar_canvas);
     }
     int index = 0;
     for (const auto &named_bbox : bboxes){
@@ -521,6 +545,7 @@ int main(int argc, char** argv)
 
         CommandLineArgs args = parse_command_line_arguments(argc, argv);
         post_parse_args(APP_NAME, args, argc, argv);
+        g_no_display = args.no_display;
         HailoInfer model(args.net, args.batch_size);
 
         // Load visualization config params
@@ -611,18 +636,19 @@ void *Obstacle_Challenge_Thread(void *arg){
     printf("dsitancia izquierda : %f\n", distancia_izquierda);
     printf("dsitancia frente : %f\n", distancia_frente);
 
-    
-    while(1){
-        float distancia_frente = Distance_To_Wall(front);
-        printf("distancia frente : %f\n", distancia_frente);
-        usleep(100000);
-    }
-
+    Spike_Reset_Gyro(0);
     Rasp_Gpio_Wait_For_Button();
     usleep(200000); //wiating for reset gyro
     Spike_Reset_Gyro(0);
     Spike_Center_Vehicle_Short();
+
+    float slope = Slope(front);
+    Spike_Reset_Gyro(slope);
     
+
+    avoid_cube_start_section((Color_traffic_light)traffic_lights.light_color, cube_first);
+    Spike_Center_Vehicle_Short();
+    avoid_cube_start_section((Color_traffic_light)traffic_lights.light_color, cube_second);
     
     /*if(distancia_derecha > 600){
         printf("Sentido horario\n");
@@ -730,22 +756,6 @@ static float Line_Fit_Residual_Mm(const std::vector<cv::Point2f> &pts, const std
 // result. The points themselves are no longer passed in - this fetches the current
 // lidar buffer and runs wall detection (gap + corner segmentation) over the requested
 // angular window itself, scoped to [middle_point - point, middle_point).
-// Publishes which lidar angles fed the most recent Slope() result, so the visualization
-// can highlight exactly those points. Empty means "nothing to highlight".
-static void Publish_Slope_Used_Angles(const std::vector<int> &angles) {
-    pthread_mutex_lock(&slope_points_mutex);
-    slope_used_angles = angles;
-    pthread_mutex_unlock(&slope_points_mutex);
-}
-
-// Holds the window points and the chosen wall's indices into them, shared by Slope()
-// and Distance_To_Wall() so both report on exactly the same wall-selection result
-// instead of independently re-running (and potentially disagreeing on) the selection.
-struct WallSelection {
-    bool found = false;
-    std::vector<cv::Point2f> pts;
-    std::vector<int> chosen_indices;
-};
 
 static WallSelection Select_Wall(const direction side) {
     WallSelection result;
@@ -764,7 +774,6 @@ static WallSelection Select_Wall(const direction side) {
         case behind: middle_point = 90;  break;
         default:
             printf("Pendiente: invalid side\n");
-            Publish_Slope_Used_Angles({});
             return result;
     }
     // The 4 directions are only 90deg apart (right=0, behind=90, left=180, front=270),
@@ -778,8 +787,12 @@ static WallSelection Select_Wall(const direction side) {
 
     // Points right at/near middle_point are excluded: that's often a corner or a seam
     // between two walls, and including it tends to pull in a small noisy cluster that
-    // can otherwise sneak past the wall-quality gate below.
-    const int middle_exclusion_deg = 3;
+    // can otherwise sneak past the wall-quality gate below. Kept small (not 0) so a real
+    // seam still gets a point dropped at the exact boundary; wider than this and a
+    // continuous flat wall gets visibly split in two for no benefit (confirmed via
+    // Lidar Coordinates_screenshot_41: at ~1650mm range a 3deg exclusion opened a
+    // ~200mm gap in an otherwise unbroken front wall).
+    const int middle_exclusion_deg = 1;
     int middle_point_wrapped = ((middle_point % 360) + 360) % 360;
 
     // Anything closer than min_range_mm is almost certainly the robot's own chassis/
@@ -827,7 +840,6 @@ static WallSelection Select_Wall(const direction side) {
 
     if (pts.size() < 2) {
         printf("Pendiente: not enough valid lidar points (%zu)\n", pts.size());
-        Publish_Slope_Used_Angles({});
         return result;
     }
 
@@ -866,7 +878,6 @@ static WallSelection Select_Wall(const direction side) {
 
     if (pts.size() < 2) {
         printf("Pendiente: not enough valid lidar points after outlier removal (%zu)\n", pts.size());
-        Publish_Slope_Used_Angles({});
         return result;
     }
 
@@ -894,8 +905,8 @@ static WallSelection Select_Wall(const direction side) {
     // Score each wall: it must be linear enough (residual below max_wall_residual_mm)
     // and have enough points to count as a real wall at all - a noisy, scattered
     // segment must never outrank a smaller but cleanly-fit one just by having a few
-    // more points. Among walls that qualify, prefer more points (a longer, more
-    // reliable read of the same surface), then the cleanest fit.
+    // more points. Among walls that qualify, prefer more physical extent (a longer,
+    // more reliable read of the same surface), then the cleanest fit.
     //
     // min_wall_points must be high enough that residual is actually meaningful: a 2-3
     // point segment is geometrically almost a perfect line no matter what (2 points
@@ -912,8 +923,8 @@ static WallSelection Select_Wall(const direction side) {
     // many points or how low a residual they happen to have.
     const float min_wall_extent_mm = 200.0f;
     struct SegmentScore {
-        size_t seg_idx; int count; float residual; bool qualifies;
-        cv::Point2f centroid; float orientation_deg;
+        size_t seg_idx; float residual; bool qualifies;
+        cv::Point2f centroid; float orientation_deg; float extent;
     };
     std::vector<SegmentScore> scores;
     for (size_t s = 0; s < wall_segments.size(); s++) {
@@ -927,21 +938,27 @@ static WallSelection Select_Wall(const direction side) {
         for (int idx : seg) centroid += pts[idx];
         centroid *= (1.0f / (float)seg.size());
         float orientation_deg = Fit_Line_Orientation(pts, seg);
-        scores.push_back({s, (int)seg.size(), residual, qualifies, centroid, orientation_deg});
+        scores.push_back({s, residual, qualifies, centroid, orientation_deg, extent});
     }
     std::sort(scores.begin(), scores.end(), [](const SegmentScore &a, const SegmentScore &b) {
         if (a.qualifies != b.qualifies) return a.qualifies; // qualifying walls always rank first
-        // Both qualifying or both not: prefer more points (a longer, more reliable
-        // read of the surface) first, and only use residual as a tiebreaker - never
-        // let residual alone override point count, since that's what let tiny
-        // fragments win purely by being trivially "clean".
-        if (a.count != b.count) return a.count > b.count;
+        // Both qualifying or both not: prefer more physical extent (a longer, more
+        // reliable read of the surface) first, and only use residual as a tiebreaker.
+        // Point count is deliberately NOT used here: within a fixed angular window, a
+        // nearby wall is sampled far more densely than a distant one purely because
+        // it's close (more lidar points per degree at short range), so raw count
+        // systematically favors whatever's nearest regardless of which one is actually
+        // the better/longer wall read. Confirmed via Select_Wall front-window debug
+        // logs: a ~600-700mm side wall consistently out-counted a genuine ~1700mm front
+        // wall (34 vs 22 points) despite the front wall's residual being 2-3x cleaner -
+        // extent correctly favors the front wall instead (it subtends a wider arc at
+        // range, so its mm-extent across the window is larger despite fewer points).
+        if (a.extent != b.extent) return a.extent > b.extent;
         return a.residual < b.residual;
     });
 
     if (scores.empty()) {
-        printf("Error: no wall candidates found.\n");
-        Publish_Slope_Used_Angles({});
+        //printf("Error: no wall candidates found.\n");
         return result;
     }
 
@@ -952,45 +969,77 @@ static WallSelection Select_Wall(const direction side) {
     // enough that an adjacent wall briefly outscores the one actually being followed,
     // which otherwise causes a visible flip mid-turn.
     struct WallTrackState { bool valid = false; cv::Point2f centroid; float orientation_deg = 0; };
+    // Guarded by wall_track_mutex: Select_Wall is now called both from the robot-control
+    // thread (Obstacle_Challenge_Thread) and independently from the lidar visualization
+    // in postprocess_callback (which queries front/right/left every scan regardless of
+    // what the control thread is doing), so this shared map needs real locking.
     static std::unordered_map<int, WallTrackState> wall_track_by_side;
+    static pthread_mutex_t wall_track_mutex = PTHREAD_MUTEX_INITIALIZER;
     const float wall_track_max_match_mm = 300.0f;
     const float wall_track_max_angle_diff_deg = 20.0f;
+    // A tracked match is only honored if it's still reasonably competitive with this
+    // frame's best-scoring candidate (scores[0], since scores is sorted best-first) -
+    // otherwise the tracker can never recover from a bad lock. E.g. if the window
+    // briefly sweeps across a nearby wall mid-turn and locks onto it, that near wall
+    // stays static and keeps re-matching itself every frame after (near-zero centroid
+    // drift, well within threshold), permanently hiding the real front wall even once
+    // it's back in full view with much more extent. Requiring the tracked candidate to
+    // hold at least this fraction of the top candidate's extent lets an obviously
+    // better wall pre-empt a stale lock instead of being ignored forever (confirmed via
+    // Lidar Coordinates_screenshot_42/43: "front" got stuck reporting the left wall after
+    // a 25deg turn-and-back, even though the true, longer front wall was still in-window).
+    const float wall_track_min_extent_ratio = 0.7f;
 
     size_t best_idx = 0; // default: the best-quality candidate this frame
-    auto track_it = wall_track_by_side.find((int)side);
-    if (track_it != wall_track_by_side.end() && track_it->second.valid) {
-        float best_match_dist = wall_track_max_match_mm;
-        bool found_match = false;
-        for (size_t i = 0; i < scores.size(); i++) {
-            if (!scores[i].qualifies) continue;
-            float dist = (float)cv::norm(scores[i].centroid - track_it->second.centroid);
-            float angle_diff = std::fabs(scores[i].orientation_deg - track_it->second.orientation_deg);
-            if (angle_diff > 90.0f) angle_diff = 180.0f - angle_diff;
-            if (dist < best_match_dist && angle_diff <= wall_track_max_angle_diff_deg) {
-                best_match_dist = dist;
-                best_idx = i;
-                found_match = true;
+    {
+        pthread_mutex_lock(&wall_track_mutex);
+        auto track_it = wall_track_by_side.find((int)side);
+        if (track_it != wall_track_by_side.end() && track_it->second.valid) {
+            float best_match_dist = wall_track_max_match_mm;
+            bool found_match = false;
+            for (size_t i = 0; i < scores.size(); i++) {
+                if (!scores[i].qualifies) continue;
+                float dist = (float)cv::norm(scores[i].centroid - track_it->second.centroid);
+                float angle_diff = std::fabs(scores[i].orientation_deg - track_it->second.orientation_deg);
+                if (angle_diff > 90.0f) angle_diff = 180.0f - angle_diff;
+                if (dist < best_match_dist && angle_diff <= wall_track_max_angle_diff_deg) {
+                    best_match_dist = dist;
+                    best_idx = i;
+                    found_match = true;
+                }
+            }
+            if (!found_match ||
+                scores[best_idx].extent < wall_track_min_extent_ratio * scores[0].extent) {
+                best_idx = 0; // stale/inferior lock - a clearly better wall is available, re-acquire fresh
             }
         }
-        if (!found_match) best_idx = 0; // tracked wall left the window - re-acquire fresh
+        pthread_mutex_unlock(&wall_track_mutex);
     }
 
     // Only merge the chosen wall with another candidate if they're actually consistent
-    // with being the same flat surface (just split by a sensor dropout). If their
-    // orientations differ too much, that gap is a real corner between two different
-    // walls, and averaging their points together would fit a meaningless line through
-    // neither wall - so fall back to using just the chosen wall alone. The merge
-    // candidate is the top-quality scorer if the chosen wall isn't already that one
-    // (most likely the other half of the same dropout-split surface), otherwise the
-    // second-best scorer.
+    // with being the same flat surface (just split by a sensor dropout). Orientation
+    // alone isn't enough proof of that: two genuinely separate walls running parallel
+    // to each other (very common in a rectangular arena - e.g. a near side wall and a
+    // further, unrelated wall glimpsed at the edge of the same window) share an
+    // orientation but sit at very different perpendicular offsets. Two halves of one
+    // real dropout-split wall are collinear, not just parallel, so also require the
+    // merge candidate's centroid to sit close to the chosen wall's own fitted line -
+    // confirmed via Lidar Coordinates_screenshot_45: "right" merged a 470mm-range wall
+    // with a second, ~1900mm-range wall that only happened to share its orientation,
+    // and reported one meaningless blended distance for what were really two walls.
     const float max_merge_angle_diff_deg = 12.0f;
+    const float max_merge_perp_offset_mm = 150.0f;
     std::vector<int> chosen_indices = wall_segments[scores[best_idx].seg_idx];
     {
         size_t merge_idx = (best_idx == 0) ? 1 : 0;
         if (merge_idx < scores.size() && merge_idx != best_idx) {
             float orientation_diff = std::fabs(scores[best_idx].orientation_deg - scores[merge_idx].orientation_deg);
             if (orientation_diff > 90.0f) orientation_diff = 180.0f - orientation_diff;
-            if (orientation_diff <= max_merge_angle_diff_deg) {
+            float theta_rad = Oradar_S2L_Grados_A_Radianes(scores[best_idx].orientation_deg);
+            float nx = -sin(theta_rad), ny = cos(theta_rad); // unit normal to the chosen wall's line
+            cv::Point2f delta = scores[merge_idx].centroid - scores[best_idx].centroid;
+            float perp_offset_mm = std::fabs(delta.x * nx + delta.y * ny);
+            if (orientation_diff <= max_merge_angle_diff_deg && perp_offset_mm <= max_merge_perp_offset_mm) {
                 const auto &merge_seg = wall_segments[scores[merge_idx].seg_idx];
                 chosen_indices.insert(chosen_indices.end(), merge_seg.begin(), merge_seg.end());
             }
@@ -1000,16 +1049,20 @@ static WallSelection Select_Wall(const direction side) {
     std::vector<int> used_angles;
     used_angles.reserve(chosen_indices.size());
     for (int idx : chosen_indices) used_angles.push_back(pt_angle[idx]);
-    Publish_Slope_Used_Angles(used_angles);
 
     cv::Point2f final_centroid(0, 0);
     for (int idx : chosen_indices) final_centroid += pts[idx];
     final_centroid *= (1.0f / (float)chosen_indices.size());
-    wall_track_by_side[(int)side] = WallTrackState{true, final_centroid, Fit_Line_Orientation(pts, chosen_indices)};
+    {
+        pthread_mutex_lock(&wall_track_mutex);
+        wall_track_by_side[(int)side] = WallTrackState{true, final_centroid, Fit_Line_Orientation(pts, chosen_indices)};
+        pthread_mutex_unlock(&wall_track_mutex);
+    }
 
     result.found = true;
     result.pts = std::move(pts);
     result.chosen_indices = std::move(chosen_indices);
+    result.used_angles = std::move(used_angles);
     return result;
 }
 
@@ -1058,6 +1111,88 @@ void Follow_Wall(const direction side){
     }
 }
 
+float calculte_angle_section_start_clockwise(Color_traffic_light traffic_light_color, Cube_number cube_number_per_section){
+    float angle = 0;
+    float angle_rad = 0;
+    float distanceToFrontWallmm = 0;
+    float diStanceToLeftWallmm = 0;
+
+    distanceToFrontWallmm = Distance_To_Wall(front);
+    diStanceToLeftWallmm = Distance_To_Wall(left);
+
+    //printf(" co/ca = %f\n",((distanceToFrontWallmm - 2000)/(diStanceToLeftWallmm - 185)));
+    if(traffic_light_color == light_green){
+        angle_rad = atan(((distanceToFrontWallmm - cube_number_per_section)/(diStanceToLeftWallmm - 185)));
+    }else if(traffic_light_color == light_red){
+        angle_rad = atan(((distanceToFrontWallmm - cube_number_per_section)/(1000 - diStanceToLeftWallmm - 185)));
+    }else{
+        return 0;
+    }
+
+    angle = Oradar_S2L_Radianes_A_Grados(angle_rad);
+    printf("distancia frente: %f, distancia izquierda: %f, angle rad: %f, angle deg: %f\n", distanceToFrontWallmm, diStanceToLeftWallmm, angle_rad, angle);
+    return angle;
+}
+
+float calculte_angle_section_start_counterclockwise(Color_traffic_light traffic_light_color, Cube_number cube_number_per_section){
+    float angle = 0;
+    float angle_rad = 0;
+    float distanceToFrontWallmm = 0;
+    float diStanceToLeftWallmm = 0;
+
+    distanceToFrontWallmm = Distance_To_Wall(front);
+    diStanceToLeftWallmm = Distance_To_Wall(left);
+
+    //printf(" co/ca = %f\n",((distanceToFrontWallmm - 2000)/(diStanceToLeftWallmm - 185)));
+    if(traffic_light_color == light_green){
+        angle_rad = atan(((distanceToFrontWallmm - cube_number_per_section)/(1000 - diStanceToLeftWallmm - 185)));
+    }else if(traffic_light_color == light_red){
+        angle_rad = atan(((distanceToFrontWallmm - cube_number_per_section)/(diStanceToLeftWallmm - 185)));
+    }else{
+        return 0;
+    }
+
+    angle = Oradar_S2L_Radianes_A_Grados(angle_rad);
+    return angle;
+}
+
+void avoid_cube_start_section(Color_traffic_light traffic_light_color, Cube_number cube_number_per_section){
+    float angle_to_wall = 0;
+    direction direction_to_turn = invalid;
+
+    if(traffic_light_color == light_green){
+        angle_to_wall = calculte_angle_section_start_clockwise(traffic_light_color, cube_number_per_section);
+        direction_to_turn = left;
+    }else if(traffic_light_color == light_red){
+        angle_to_wall = calculte_angle_section_start_clockwise(traffic_light_color, cube_number_per_section);
+        direction_to_turn = right;
+    }
+    
+    Spike_Turn_For_Degrees(direction_to_turn, 60, 90 - angle_to_wall, 30);
+
+    float distanceToWall = 10000;
+    float distanceToWallfront = 10000;
+    //usleep(5000000);
+    Spike_Center_Vehicle_Short();
+    //usleep(5000000);
+    while((distanceToWall > 250) && (distanceToWallfront > 250)){
+        distanceToWall = Distance_To_Wall(direction_to_turn);
+        distanceToWallfront = Distance_To_Wall(front);
+        if(direction_to_turn == left)
+        {
+            Spike_Follow_Reference(60,0,90 - angle_to_wall);
+        }
+        else
+        {
+            Spike_Follow_Reference(60,90 - angle_to_wall,0);
+        }
+        usleep(1000);
+    }
+    Spike_Coast_Motors();
+    /* direction times -1 to reverse the turn direction when turning back after avoiding the cube */
+    Spike_Small_Turn((direction_to_turn * (-1)),60,0,90 - angle_to_wall);
+    Spike_Coast_Motors();
+}
 
 void signal_handler(int signum){
     printf("\nCtrl+C detceted\n");
