@@ -1,0 +1,68 @@
+[
+{
+  "directory": "/home/maker/WRO_Hailo10H_Compatible/software/ondevice/oradar_sdk/build",
+  "command": "/usr/bin/c++  -I/home/maker/WRO_Hailo10H_Compatible/software/ondevice/oradar_sdk/. -I/home/maker/WRO_Hailo10H_Compatible/software/ondevice/oradar_sdk/core -I/home/maker/WRO_Hailo10H_Compatible/software/ondevice/oradar_sdk/src -I/home/maker/WRO_Hailo10H_Compatible/software/ondevice/oradar_sdk -I/home/maker/WRO_Hailo10H_Compatible/software/ondevice/oradar_sdk/build  -std=c++11 -fPIC -o CMakeFiles/oradar_sdk.dir/core/base/timer.cpp.o -c /home/maker/WRO_Hailo10H_Compatible/software/ondevice/oradar_sdk/core/base/timer.cpp",
+  "file": "/home/maker/WRO_Hailo10H_Compatible/software/ondevice/oradar_sdk/core/base/timer.cpp",
+  "output": "CMakeFiles/oradar_sdk.dir/core/base/timer.cpp.o"
+},
+{
+  "directory": "/home/maker/WRO_Hailo10H_Compatible/software/ondevice/oradar_sdk/build",
+  "command": "/usr/bin/c++  -I/home/maker/WRO_Hailo10H_Compatible/software/ondevice/oradar_sdk/. -I/home/maker/WRO_Hailo10H_Compatible/software/ondevice/oradar_sdk/core -I/home/maker/WRO_Hailo10H_Compatible/software/ondevice/oradar_sdk/src -I/home/maker/WRO_Hailo10H_Compatible/software/ondevice/oradar_sdk -I/home/maker/WRO_Hailo10H_Compatible/software/ondevice/oradar_sdk/build  -std=c++11 -fPIC -o CMakeFiles/oradar_sdk.dir/core/network/ActiveSocket.cpp.o -c /home/maker/WRO_Hailo10H_Compatible/software/ondevice/oradar_sdk/core/network/ActiveSocket.cpp",
+  "file": "/home/maker/WRO_Hailo10H_Compatible/software/ondevice/oradar_sdk/core/network/ActiveSocket.cpp",
+  "output": "CMakeFiles/oradar_sdk.dir/core/network/ActiveSocket.cpp.o"
+},
+{
+  "directory": "/home/maker/WRO_Hailo10H_Compatible/software/ondevice/oradar_sdk/build",
+  "command": "/usr/bin/c++  -I/home/maker/WRO_Hailo10H_Compatible/software/ondevice/oradar_sdk/. -I/home/maker/WRO_Hailo10H_Compatible/software/ondevice/oradar_sdk/core -I/home/maker/WRO_Hailo10H_Compatible/software/ondevice/oradar_sdk/src -I/home/maker/WRO_Hailo10H_Compatible/software/ondevice/oradar_sdk -I/home/maker/WRO_Hailo10H_Compatible/software/ondevice/oradar_sdk/build  -std=c++11 -fPIC -o CMakeFiles/oradar_sdk.dir/core/network/PassiveSocket.cpp.o -c /home/maker/WRO_Hailo10H_Compatible/software/ondevice/oradar_sdk/core/network/PassiveSocket.cpp",
+  "file": "/home/maker/WRO_Hailo10H_Compatible/software/ondevice/oradar_sdk/core/network/PassiveSocket.cpp",
+  "output": "CMakeFiles/oradar_sdk.dir/core/network/PassiveSocket.cpp.o"
+},
+{
+  "directory": "/home/maker/WRO_Hailo10H_Compatible/software/ondevice/oradar_sdk/build",
+  "command": "/usr/bin/c++  -I/home/maker/WRO_Hailo10H_Compatible/software/ondevice/oradar_sdk/. -I/home/maker/WRO_Hailo10H_Compatible/software/ondevice/oradar_sdk/core -I/home/maker/WRO_Hailo10H_Compatible/software/ondevice/oradar_sdk/src -I/home/maker/WRO_Hailo10H_Compatible/software/ondevice/oradar_sdk -I/home/maker/WRO_Hailo10H_Compatible/software/ondevice/oradar_sdk/build  -std=c++11 -fPIC -o CMakeFiles/oradar_sdk.dir/core/network/SimpleSocket.cpp.o -c /home/maker/WRO_Hailo10H_Compatible/software/ondevice/oradar_sdk/core/network/SimpleSocket.cpp",
+  "file": "/home/maker/WRO_Hailo10H_Compatible/software/ondevice/oradar_sdk/core/network/SimpleSocket.cpp",
+  "output": "CMakeFiles/oradar_sdk.dir/core/network/SimpleSocket.cpp.o"
+},
+{
+  "directory": "/home/maker/WRO_Hailo10H_Compatible/software/ondevice/oradar_sdk/build",
+  "command": "/usr/bin/c++  -I/home/maker/WRO_Hailo10H_Compatible/software/ondevice/oradar_sdk/. -I/home/maker/WRO_Hailo10H_Compatible/software/ondevice/oradar_sdk/core -I/home/maker/WRO_Hailo10H_Compatible/software/ondevice/oradar_sdk/src -I/home/maker/WRO_Hailo10H_Compatible/software/ondevice/oradar_sdk -I/home/maker/WRO_Hailo10H_Compatible/software/ondevice/oradar_sdk/build  -std=c++11 -fPIC -o CMakeFiles/oradar_sdk.dir/core/serial/serial.cpp.o -c /home/maker/WRO_Hailo10H_Compatible/software/ondevice/oradar_sdk/core/serial/serial.cpp",
+  "file": "/home/maker/WRO_Hailo10H_Compatible/software/ondevice/oradar_sdk/core/serial/serial.cpp",
+  "output": "CMakeFiles/oradar_sdk.dir/core/serial/serial.cpp.o"
+},
+{
+  "directory": "/home/maker/WRO_Hailo10H_Compatible/software/ondevice/oradar_sdk/build",
+  "command": "/usr/bin/cc  -I/home/maker/WRO_Hailo10H_Compatible/software/ondevice/oradar_sdk/. -I/home/maker/WRO_Hailo10H_Compatible/software/ondevice/oradar_sdk/core -I/home/maker/WRO_Hailo10H_Compatible/software/ondevice/oradar_sdk/src -I/home/maker/WRO_Hailo10H_Compatible/software/ondevice/oradar_sdk -I/home/maker/WRO_Hailo10H_Compatible/software/ondevice/oradar_sdk/build -fPIC -o CMakeFiles/oradar_sdk.dir/core/serial/impl/unix/lock.c.o -c /home/maker/WRO_Hailo10H_Compatible/software/ondevice/oradar_sdk/core/serial/impl/unix/lock.c",
+  "file": "/home/maker/WRO_Hailo10H_Compatible/software/ondevice/oradar_sdk/core/serial/impl/unix/lock.c",
+  "output": "CMakeFiles/oradar_sdk.dir/core/serial/impl/unix/lock.c.o"
+},
+{
+  "directory": "/home/maker/WRO_Hailo10H_Compatible/software/ondevice/oradar_sdk/build",
+  "command": "/usr/bin/c++  -I/home/maker/WRO_Hailo10H_Compatible/software/ondevice/oradar_sdk/. -I/home/maker/WRO_Hailo10H_Compatible/software/ondevice/oradar_sdk/core -I/home/maker/WRO_Hailo10H_Compatible/software/ondevice/oradar_sdk/src -I/home/maker/WRO_Hailo10H_Compatible/software/ondevice/oradar_sdk -I/home/maker/WRO_Hailo10H_Compatible/software/ondevice/oradar_sdk/build  -std=c++11 -fPIC -o CMakeFiles/oradar_sdk.dir/core/serial/impl/unix/list_ports_linux.cpp.o -c /home/maker/WRO_Hailo10H_Compatible/software/ondevice/oradar_sdk/core/serial/impl/unix/list_ports_linux.cpp",
+  "file": "/home/maker/WRO_Hailo10H_Compatible/software/ondevice/oradar_sdk/core/serial/impl/unix/list_ports_linux.cpp",
+  "output": "CMakeFiles/oradar_sdk.dir/core/serial/impl/unix/list_ports_linux.cpp.o"
+},
+{
+  "directory": "/home/maker/WRO_Hailo10H_Compatible/software/ondevice/oradar_sdk/build",
+  "command": "/usr/bin/c++  -I/home/maker/WRO_Hailo10H_Compatible/software/ondevice/oradar_sdk/. -I/home/maker/WRO_Hailo10H_Compatible/software/ondevice/oradar_sdk/core -I/home/maker/WRO_Hailo10H_Compatible/software/ondevice/oradar_sdk/src -I/home/maker/WRO_Hailo10H_Compatible/software/ondevice/oradar_sdk -I/home/maker/WRO_Hailo10H_Compatible/software/ondevice/oradar_sdk/build  -std=c++11 -fPIC -o CMakeFiles/oradar_sdk.dir/core/serial/impl/unix/unix_serial.cpp.o -c /home/maker/WRO_Hailo10H_Compatible/software/ondevice/oradar_sdk/core/serial/impl/unix/unix_serial.cpp",
+  "file": "/home/maker/WRO_Hailo10H_Compatible/software/ondevice/oradar_sdk/core/serial/impl/unix/unix_serial.cpp",
+  "output": "CMakeFiles/oradar_sdk.dir/core/serial/impl/unix/unix_serial.cpp.o"
+},
+{
+  "directory": "/home/maker/WRO_Hailo10H_Compatible/software/ondevice/oradar_sdk/build",
+  "command": "/usr/bin/c++  -I/home/maker/WRO_Hailo10H_Compatible/software/ondevice/oradar_sdk/. -I/home/maker/WRO_Hailo10H_Compatible/software/ondevice/oradar_sdk/core -I/home/maker/WRO_Hailo10H_Compatible/software/ondevice/oradar_sdk/src -I/home/maker/WRO_Hailo10H_Compatible/software/ondevice/oradar_sdk -I/home/maker/WRO_Hailo10H_Compatible/software/ondevice/oradar_sdk/build  -std=c++11 -fPIC -o CMakeFiles/oradar_sdk.dir/src/ord_lidar_c_api_driver.cpp.o -c /home/maker/WRO_Hailo10H_Compatible/software/ondevice/oradar_sdk/src/ord_lidar_c_api_driver.cpp",
+  "file": "/home/maker/WRO_Hailo10H_Compatible/software/ondevice/oradar_sdk/src/ord_lidar_c_api_driver.cpp",
+  "output": "CMakeFiles/oradar_sdk.dir/src/ord_lidar_c_api_driver.cpp.o"
+},
+{
+  "directory": "/home/maker/WRO_Hailo10H_Compatible/software/ondevice/oradar_sdk/build",
+  "command": "/usr/bin/c++  -I/home/maker/WRO_Hailo10H_Compatible/software/ondevice/oradar_sdk/. -I/home/maker/WRO_Hailo10H_Compatible/software/ondevice/oradar_sdk/core -I/home/maker/WRO_Hailo10H_Compatible/software/ondevice/oradar_sdk/src -I/home/maker/WRO_Hailo10H_Compatible/software/ondevice/oradar_sdk -I/home/maker/WRO_Hailo10H_Compatible/software/ondevice/oradar_sdk/build  -std=c++11 -fPIC -o CMakeFiles/oradar_sdk.dir/src/ord_lidar_driver.cpp.o -c /home/maker/WRO_Hailo10H_Compatible/software/ondevice/oradar_sdk/src/ord_lidar_driver.cpp",
+  "file": "/home/maker/WRO_Hailo10H_Compatible/software/ondevice/oradar_sdk/src/ord_lidar_driver.cpp",
+  "output": "CMakeFiles/oradar_sdk.dir/src/ord_lidar_driver.cpp.o"
+},
+{
+  "directory": "/home/maker/WRO_Hailo10H_Compatible/software/ondevice/oradar_sdk/build",
+  "command": "/usr/bin/c++  -I/home/maker/WRO_Hailo10H_Compatible/software/ondevice/oradar_sdk/. -I/home/maker/WRO_Hailo10H_Compatible/software/ondevice/oradar_sdk/core -I/home/maker/WRO_Hailo10H_Compatible/software/ondevice/oradar_sdk/src -I/home/maker/WRO_Hailo10H_Compatible/software/ondevice/oradar_sdk -I/home/maker/WRO_Hailo10H_Compatible/software/ondevice/oradar_sdk/build  -std=c++11 -fPIC -o CMakeFiles/oradar_sdk.dir/src/filters/FullScanFilter.cpp.o -c /home/maker/WRO_Hailo10H_Compatible/software/ondevice/oradar_sdk/src/filters/FullScanFilter.cpp",
+  "file": "/home/maker/WRO_Hailo10H_Compatible/software/ondevice/oradar_sdk/src/filters/FullScanFilter.cpp",
+  "output": "CMakeFiles/oradar_sdk.dir/src/filters/FullScanFilter.cpp.o"
+}
+]
