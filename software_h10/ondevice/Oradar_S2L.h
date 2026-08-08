@@ -24,17 +24,19 @@
 
 void Oradar_S2L_Init_Lidar(void);
 void *Oradar_S2L_Lidar_Writer_Thread(void *arg);
-float Oradar_S2L_Radianes_A_Grados(float radianes);
-float Oradar_S2L_Grados_A_Radianes(float grados);
-direction Oradar_S2L_Avanzar_Deteccion_Sentido_Lidar(int vel, int referencia);
-void Oradar_S2L_Avanzar_Deteccion_Vacio_Izquierdo_Lidar(int vel, int referencia);
-void Oradar_S2L_Avanzar_Deteccion_Vacio_Derecho_Lidar(int vel, int referencia);
-int Oradar_S2L_Avanzar_Dos_Puntos_Izquierda(int vel, int grados, int referencia);
-int Oradar_S2L_Avanzar_Dos_Puntos_Derecha(int vel, int grados, int referencia);
-void Oradar_S2L_Avanzar_Hasta_La_Distancia(int vel, int referencia, int distancia_objetivo);
+float Oradar_S2L_Radians_To_Degrees(float radians);
+float Oradar_S2L_Degrees_To_Radians(float degrees);
+direction Oradar_S2L_Advance_And_Detect_Side(int speed, int reference);
+void Oradar_S2L_Advance_Until_Left_Gap(int speed, int reference);
+void Oradar_S2L_Advance_Until_Right_Gap(int speed, int reference);
+int Oradar_S2L_Advance_And_Measure_Left_Slope(int speed, int degrees, int reference);
+int Oradar_S2L_Advance_And_Measure_Right_Slope(int speed, int degrees, int reference);
+void Oradar_S2L_Advance_Until_Distance(int speed, int reference, int target_distance);
 int Oradar_S2L_Correction_For_Triangles_Right(int degree);
 int Oradar_S2L_Correction_For_Triangles_Left(int degree);
-int Oradar_S2L_Comparation(int arg1, int arg2, int arg3);
+int Oradar_S2L_Reconcile_Readings(int reading_a, int reading_b, int reading_c);
+int Oradar_S2L_Slope(const int point, const int middle_point);
+int Oradar_S2L_Average(int arg_1, int arg_2);
 void Oradar_S2L_Close(void);
 void Oradar_S2L_Set_Terminating(void);
 void Oradar_S2L_Get_Buffer(float *buffer);

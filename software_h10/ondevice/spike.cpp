@@ -194,7 +194,7 @@ void Spike_Initialize_Libraries(void){
     Spike_Send_Serial_Data("error = 0\r");
     Spike_Send_Serial_Data("motor.reset_relative_position(port.E,0)\r");
     Spike_Send_Serial_Data("while abs(degrees) > abs(motor.relative_position(port.E)):\r");
-    Spike_Send_Serial_Data("error = pd(motion_sensor.tilt_angles()[0],((10)*(reference)),speed,0.4,10,error)\r");
+    Spike_Send_Serial_Data("error = pd(motion_sensor.tilt_angles()[0],((10)*(reference)),speed,0.2,300000,error)\r");
     Spike_Send_Serial_Data(remove);
     Spike_Send_Serial_Data("fc()\r");
     Spike_Send_Serial_Data("return 255\r");
