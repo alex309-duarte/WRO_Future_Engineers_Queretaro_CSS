@@ -37,6 +37,7 @@ int RPLidar_S2L_Correction_For_Triangles_Right(int degree);
 int RPLidar_S2L_Correction_For_Triangles_Left(int degree);
 int RPLidar_S2L_Reconcile_Readings(int reading_a, int reading_b, int reading_c);
 int RPLidar_S2L_Slope(const int point, const int middle_point);
+int RPLidar_S2L_Slope2(const int point, const int middle_point);
 int RPLidar_S2L_Average(int arg_1, int arg_2);
 void RPLidar_S2L_Close(void);
 void RPLidar_S2L_Set_Terminating(void);

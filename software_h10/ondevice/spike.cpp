@@ -163,7 +163,7 @@ void Spike_Initialize_Libraries(void){
     Spike_Send_Serial_Data("def pd(s1,s2,vel,kp,kd,ea):\r");
     Spike_Send_Serial_Data("error=s1-s2\r");
     Spike_Send_Serial_Data("et= (kp*error) + (kd*(error-ea))\r");
-    Spike_Send_Serial_Data("motor.run_to_absolute_position(port.A, int(et*4.35), 600, direction = motor.SHORTEST_PATH, stop = motor.HOLD, acceleration = 10000)\r");
+    Spike_Send_Serial_Data("motor.run_to_absolute_position(port.A, int(et*4.29), 600, direction = motor.SHORTEST_PATH, stop = motor.HOLD, acceleration = 10000)\r");
     Spike_Send_Serial_Data("motor.set_duty_cycle(port.E, (100)*(vel))\r");
     Spike_Send_Serial_Data("return error\r");
     Spike_End_Funcion();

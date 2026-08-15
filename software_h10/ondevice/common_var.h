@@ -17,8 +17,10 @@ enum direction{
 enum LidarSide{
     FRONT = 0,
     RIGHT = 90,
+    FRONT_RIGHT = 75,
     BACK = 180,
-    LEFT = 270
+    LEFT = 270,
+    FRONT_LEFT = 285
 };
 
 #endif // _COMMON_VAR_H

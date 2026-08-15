@@ -31,7 +31,6 @@ int main(){
     int angulo_correccion = 0;
     int angulo_correccion_t = 0;
     int angulo_correccion_t2 = 0;
-    int angulo = 0;
 
     signal(SIGINT, signal_handler); /* Set interrupt for ctrl+C */
     LIDAR_FN(Init_Lidar)();
@@ -44,14 +43,14 @@ int main(){
     Spike_Interpreter();
     Spike_Initialize_Libraries();
     Rasp_Gpio_Wait_For_Button();
-    printf("hola4\n");
     Spike_Reset_Gyro(0);
     usleep(200000); //wiating for reset gyro
+    Spike_Center_Vehicle_Short();
 
     LIDAR_FN(Get_Buffer)(&lidar_shared_buffer[0]);
     distancia_frente = lidar_shared_buffer[270];
     distancia_derecha = lidar_shared_buffer[0];
-    distancia_izquierda = lidar_shared_buffer[18|0];
+    distancia_izquierda = lidar_shared_buffer[180];
 
     printf("dsitancia derecha : %f\n", distancia_derecha);
     printf("dsitancia izquierda : %f\n", distancia_izquierda);
@@ -66,16 +65,22 @@ int main(){
     usleep(200000);
     
     Spike_Advance_For_Degrees(80, 2000, 0);*/
+
+
+    
+    //LIDAR_FN(Advance_And_Detect_Side)(60, 0);
+    //Spike_Advance_For_Degrees(80, 1500, 0);
+    /*while(1){
+        angulo_correccion_t = LIDAR_FN(Slope2)(21,RIGHT);
+    }
     Spike_Advance_For_Degrees(80, 500, 0);
-    angulo_correccion_t = LIDAR_FN(Slope)(21,RIGHT);
-    Spike_Advance_For_Degrees(80, 500, 0);
-    angulo_correccion_t2 = LIDAR_FN(Slope)(21,RIGHT);
+    angulo_correccion_t2 = LIDAR_FN(Slope)(21,LEFT);
     angulo_correccion = LIDAR_FN(Average)(angulo_correccion_t,angulo_correccion_t2);
     Spike_Reset_Gyro(angulo_correccion);
     usleep(200000);
-    Spike_Advance_For_Degrees(80, 700, 0);
+    Spike_Advance_For_Degrees(80, 700, 0);*/
 
-    /*if((distancia_derecha > 700) || (distancia_izquierda > 700)){
+    if((distancia_derecha > 700) || (distancia_izquierda > 700)){
 
         printf("caso afuera\n");
 
@@ -83,26 +88,25 @@ int main(){
         printf("sentido %d :\n", sentido);
 
         if(sentido == right){
-            Spike_Turn_For_Degrees(der, 100, 88);
+            Spike_Turn_For_Degrees(der, 100, 80);
             Spike_Center_Vehicle_Short();
-            Spike_Advance_For_Degrees(80, 1142, -90);
-            angulo_correccion_t = LIDAR_FN(Correction_For_Triangles_Left)(12);
-            angulo_correccion = LIDAR_FN(Advance_And_Measure_Left_Slope)(80, 357, -90);
-            angulo_correccion_t2 = LIDAR_FN(Correction_For_Triangles_Left)(12);
-            angulo = LIDAR_FN(Reconcile_Readings)(angulo_correccion_t, angulo_correccion, angulo_correccion_t2);
-            Spike_Reset_Gyro(angulo);
+            Spike_Advance_For_Degrees(80, 1350, -90);
+            angulo_correccion_t = LIDAR_FN(Slope)(21,LEFT);
+            Spike_Advance_For_Degrees(80, 1000, -90);
+            angulo_correccion_t2 = LIDAR_FN(Slope)(21,LEFT);
+            angulo_correccion = LIDAR_FN(Average)(angulo_correccion_t,angulo_correccion_t2);
+            Spike_Reset_Gyro(angulo_correccion);
             usleep(200000);
             while (v < 11){
             LIDAR_FN(Advance_Until_Right_Gap)(80, 0);
-            Spike_Turn_For_Degrees(der, 100, 88);
+            Spike_Turn_For_Degrees(der, 100, 80);
             Spike_Center_Vehicle_Short();
-            Spike_Advance_For_Degrees(80, 428, -90);
-            angulo_correccion_t = LIDAR_FN(Correction_For_Triangles_Left)(12);
-            angulo_correccion = LIDAR_FN(Advance_And_Measure_Left_Slope)(80, 357, -90);
-            angulo_correccion_t2 = LIDAR_FN(Correction_For_Triangles_Left)(12);
-            angulo = LIDAR_FN(Reconcile_Readings)(angulo_correccion_t, angulo_correccion, angulo_correccion_t2);
-            Spike_Reset_Gyro(angulo);
-            printf("v : %d, angulo : %d \n", v, angulo);
+            Spike_Advance_For_Degrees(80, 300, -90);
+            angulo_correccion_t = LIDAR_FN(Slope)(21,LEFT);
+            Spike_Advance_For_Degrees(80, 700, -90);
+            angulo_correccion_t2 = LIDAR_FN(Slope)(21,LEFT);
+            angulo_correccion = LIDAR_FN(Average)(angulo_correccion_t,angulo_correccion_t2);
+            Spike_Reset_Gyro(angulo_correccion);
             usleep(200000);
             v = v + 1;
             }
@@ -110,26 +114,25 @@ int main(){
         }
         else if (sentido == left)
         {
-            Spike_Turn_For_Degrees(izq, 100, 88);
+            Spike_Turn_For_Degrees(izq, 100, 80);
             Spike_Center_Vehicle_Short();
-            Spike_Advance_For_Degrees(80, 1142, 90);
-            angulo_correccion_t = LIDAR_FN(Correction_For_Triangles_Right)(12);
-            angulo_correccion = LIDAR_FN(Advance_And_Measure_Right_Slope)(80, 357, 90);
-            angulo_correccion_t2 = LIDAR_FN(Correction_For_Triangles_Right)(12);
-            angulo = LIDAR_FN(Reconcile_Readings)(angulo_correccion_t, angulo_correccion, angulo_correccion_t2);
-            Spike_Reset_Gyro(angulo);
+            Spike_Advance_For_Degrees(80, 1350, 90);
+            angulo_correccion_t = LIDAR_FN(Slope)(21,RIGHT);
+            Spike_Advance_For_Degrees(80, 1000, 90);
+            angulo_correccion_t2 = LIDAR_FN(Slope)(21,RIGHT);
+            angulo_correccion = LIDAR_FN(Average)(angulo_correccion_t,angulo_correccion_t2);
+            Spike_Reset_Gyro(angulo_correccion);
             usleep(200000);
             while (v < 11){
             LIDAR_FN(Advance_Until_Left_Gap)(80, 0);
-            Spike_Turn_For_Degrees(izq, 100, 88);
+            Spike_Turn_For_Degrees(izq, 100, 80);
             Spike_Center_Vehicle_Short();
-            Spike_Advance_For_Degrees(80, 428, 90);
-            angulo_correccion_t = LIDAR_FN(Correction_For_Triangles_Right)(12);
-            angulo_correccion = LIDAR_FN(Advance_And_Measure_Right_Slope)(80, 357, 90);
-            angulo_correccion_t2 = LIDAR_FN(Correction_For_Triangles_Right)(12);
-            angulo = LIDAR_FN(Reconcile_Readings)(angulo_correccion_t, angulo_correccion, angulo_correccion_t2);
-            Spike_Reset_Gyro(angulo);
-            printf("v : %d, angulo : %d \n", v, angulo);
+            Spike_Advance_For_Degrees(80, 300, 90);
+            angulo_correccion_t = LIDAR_FN(Slope)(21,RIGHT);
+            Spike_Advance_For_Degrees(80, 700, 90);
+            angulo_correccion_t2 = LIDAR_FN(Slope)(21,RIGHT);
+            angulo_correccion = LIDAR_FN(Average)(angulo_correccion_t,angulo_correccion_t2);
+            Spike_Reset_Gyro(angulo_correccion);
             usleep(200000);
             v = v + 1;
             }
@@ -145,26 +148,25 @@ int main(){
         printf("sentido : %d \n", sentido);
 
         if(sentido == right){
-            Spike_Turn_For_Degrees(der, 100, 88);
+            Spike_Turn_For_Degrees(der, 100, 80);
             Spike_Center_Vehicle_Short();
-            Spike_Advance_For_Degrees(80, 428, -90);
-            angulo_correccion_t = LIDAR_FN(Correction_For_Triangles_Left)(12);
-            angulo_correccion = LIDAR_FN(Advance_And_Measure_Left_Slope)(80, 357, -90);
-            angulo_correccion_t2 = LIDAR_FN(Correction_For_Triangles_Left)(12);
-            angulo = LIDAR_FN(Reconcile_Readings)(angulo_correccion_t, angulo_correccion, angulo_correccion_t2);
-            Spike_Reset_Gyro(angulo);
+            Spike_Advance_For_Degrees(80, 300, -90);
+            angulo_correccion_t = LIDAR_FN(Slope)(21,LEFT);
+            Spike_Advance_For_Degrees(80, 1000, -90);
+            angulo_correccion_t2 = LIDAR_FN(Slope)(21,LEFT);
+            angulo_correccion = LIDAR_FN(Average)(angulo_correccion_t,angulo_correccion_t2);
+            Spike_Reset_Gyro(angulo_correccion);
             usleep(200000);
             while (v < 11){
             LIDAR_FN(Advance_Until_Right_Gap)(80, 0);
-            Spike_Turn_For_Degrees(der, 100, 88);
+            Spike_Turn_For_Degrees(der, 100, 80);
             Spike_Center_Vehicle_Short();
-            Spike_Advance_For_Degrees(80, 428, -90);
-            angulo_correccion_t = LIDAR_FN(Correction_For_Triangles_Left)(12);
-            angulo_correccion = LIDAR_FN(Advance_And_Measure_Left_Slope)(80, 357, -90);
-            angulo_correccion_t2 = LIDAR_FN(Correction_For_Triangles_Left)(12);
-            angulo = LIDAR_FN(Reconcile_Readings)(angulo_correccion_t, angulo_correccion, angulo_correccion_t2);
-            Spike_Reset_Gyro(angulo);
-            printf("v : %d, angulo : %d \n", v, angulo);
+            Spike_Advance_For_Degrees(80, 300, -90);
+            angulo_correccion_t = LIDAR_FN(Slope)(21,LEFT);
+            Spike_Advance_For_Degrees(80, 700, -90);
+            angulo_correccion_t2 = LIDAR_FN(Slope)(21,LEFT);
+            angulo_correccion = LIDAR_FN(Average)(angulo_correccion_t,angulo_correccion_t2);
+            Spike_Reset_Gyro(angulo_correccion);
             usleep(200000);
             v = v + 1;
             }
@@ -172,26 +174,25 @@ int main(){
         }
         else if (sentido == left)
         {
-            Spike_Turn_For_Degrees(izq, 100, 88);
+            Spike_Turn_For_Degrees(izq, 100, 80);
             Spike_Center_Vehicle_Short();
-            Spike_Advance_For_Degrees(80, 428, 90);
-            angulo_correccion_t = LIDAR_FN(Correction_For_Triangles_Right)(12);
-            angulo_correccion = LIDAR_FN(Advance_And_Measure_Right_Slope)(80, 357, 90);
-            angulo_correccion_t2 = LIDAR_FN(Correction_For_Triangles_Right)(12);
-            angulo = LIDAR_FN(Reconcile_Readings)(angulo_correccion_t, angulo_correccion, angulo_correccion_t2);
-            Spike_Reset_Gyro(angulo);
+            Spike_Advance_For_Degrees(80, 300, 90);
+            angulo_correccion_t = LIDAR_FN(Slope)(21,RIGHT);
+            Spike_Advance_For_Degrees(80, 1000, 90);
+            angulo_correccion_t2 = LIDAR_FN(Slope)(21,RIGHT);
+            angulo_correccion = LIDAR_FN(Average)(angulo_correccion_t,angulo_correccion_t2);
+            Spike_Reset_Gyro(angulo_correccion);
             usleep(200000);
             while (v < 11){
             LIDAR_FN(Advance_Until_Left_Gap)(80, 0);
-            Spike_Turn_For_Degrees(izq, 100, 88);
+            Spike_Turn_For_Degrees(izq, 100, 80);
             Spike_Center_Vehicle_Short();
-            Spike_Advance_For_Degrees(80, 428, 90);
-            angulo_correccion_t = LIDAR_FN(Correction_For_Triangles_Right)(12);
-            angulo_correccion = LIDAR_FN(Advance_And_Measure_Right_Slope)(80, 357, 90);
-            angulo_correccion_t2 = LIDAR_FN(Correction_For_Triangles_Right)(12);
-            angulo = LIDAR_FN(Reconcile_Readings)(angulo_correccion_t, angulo_correccion, angulo_correccion_t2);
-            Spike_Reset_Gyro(angulo);
-            printf("v : %d, angulo : %d \n", v, angulo);
+            Spike_Advance_For_Degrees(80, 300, 90);
+            angulo_correccion_t = LIDAR_FN(Slope)(21,RIGHT);
+            Spike_Advance_For_Degrees(80, 700, 90);
+            angulo_correccion_t2 = LIDAR_FN(Slope)(21,RIGHT);
+            angulo_correccion = LIDAR_FN(Average)(angulo_correccion_t,angulo_correccion_t2);
+            Spike_Reset_Gyro(angulo_correccion);
             usleep(200000);
             v = v + 1;
             }
@@ -200,7 +201,7 @@ int main(){
     
     printf("ultima funcion\n");
     LIDAR_FN(Advance_Until_Distance)(80, 0, 1400);
-    */
+    
     Rasp_Gpio_Clean();
     Spike_Coast_Motors();
     Spike_Close_Serial();

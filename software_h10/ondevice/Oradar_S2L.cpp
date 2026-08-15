@@ -86,6 +86,7 @@ direction Oradar_S2L_Advance_And_Detect_Side(int speed, int reference){
     float front_distance;
     float right_distance;
     float left_distance;
+    float back_distance;
 
     front_distance = oradar_shared_buffer[RP_TO_ORADAR_IDX(FRONT)];
     right_distance = oradar_shared_buffer[RP_TO_ORADAR_IDX(RIGHT)];
@@ -96,11 +97,13 @@ direction Oradar_S2L_Advance_And_Detect_Side(int speed, int reference){
         front_distance = oradar_shared_buffer[RP_TO_ORADAR_IDX(FRONT)];
         right_distance = oradar_shared_buffer[RP_TO_ORADAR_IDX(RIGHT)];
         left_distance = oradar_shared_buffer[RP_TO_ORADAR_IDX(LEFT)];
+        back_distance = oradar_shared_buffer[RP_TO_ORADAR_IDX(BACK)];
         Spike_Forward(speed,reference);
         usleep(1000);
         printf("dsitancia derecha : %f\n", right_distance);
         printf("dsitancia izquierda : %f\n", left_distance);
         printf("dsitancia frente : %f\n", front_distance);
+        printf("dsitancia atras : %f\n", back_distance);
     }
 
     if(right_distance > 1350){
@@ -268,8 +271,47 @@ int Oradar_S2L_Slope(const int point, const int middle_point){
 
 }
 
+int Oradar_S2L_Slope2(const int point, const int middle_point){
+    float x_point[point] = {0};
+    float y_point[point] = {0};
+    float dis[point] = {0};
+    int angle[point] = {0};
+
+    for(int i = 0; i < point; i++){
+        dis[i] = oradar_shared_buffer[RP_TO_ORADAR_IDX(middle_point - point + i)];
+        angle[i] = middle_point - point  +i;
+    }
+
+    for(int i = 0; i < point; i++) {
+        x_point[i] = (dis[i] * cos(Oradar_S2L_Degrees_To_Radians(angle[i])));
+        y_point[i] = (dis[i] * sin(Oradar_S2L_Degrees_To_Radians(angle[i])));
+    }
+
+    double mean_x = 0, mean_y = 0;
+    for(int i = 0; i < point; i++){
+        mean_x += x_point[i];
+        mean_y += y_point[i];
+    }
+    mean_x /= point;
+    mean_y /= point;
+
+    double sxx = 0, syy = 0, sxy = 0;
+    for(int i = 0; i < point; i++){
+        double dx = x_point[i] - mean_x;
+        double dy = y_point[i] - mean_y;
+        sxx += dx * dx;
+        syy += dy * dy;
+        sxy += dx * dy;
+    }
+
+    int p = (10)*(Oradar_S2L_Radians_To_Degrees(0.5 * atan2(2.0 * sxy, sxx - syy)));
+    printf("pendiente2 : %d\n",p);
+    return (p);
+}
+
 int Oradar_S2L_Average(int arg_1, int arg_2){
     int average = (arg_1 + arg_2)/2;
+    printf("correcion: %d\n",average);
     return average;
 }
 
