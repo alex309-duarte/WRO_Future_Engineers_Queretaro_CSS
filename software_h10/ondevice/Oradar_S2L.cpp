@@ -100,10 +100,10 @@ direction Oradar_S2L_Advance_And_Detect_Side(int speed, int reference){
         back_distance = oradar_shared_buffer[RP_TO_ORADAR_IDX(BACK)];
         Spike_Forward(speed,reference);
         usleep(1000);
-        printf("dsitancia derecha : %f\n", right_distance);
-        printf("dsitancia izquierda : %f\n", left_distance);
-        printf("dsitancia frente : %f\n", front_distance);
-        printf("dsitancia atras : %f\n", back_distance);
+        //printf("dsitancia derecha : %f\n", right_distance);
+        //printf("dsitancia izquierda : %f\n", left_distance);
+        //printf("dsitancia frente : %f\n", front_distance);
+        //printf("dsitancia atras : %f\n", back_distance);
     }
 
     if(right_distance > 1350){
@@ -191,9 +191,11 @@ void Oradar_S2L_Advance_Until_Distance(int speed, int reference, int target_dist
     while((oradar_terminating == 0) && (front_distance > target_distance)){
         front_distance = oradar_shared_buffer[RP_TO_ORADAR_IDX(FRONT)];
         Spike_Forward(speed,reference);
-        printf("dsitancia frente : %f\n", front_distance);
+        //printf("dsitancia frente : %f\n", front_distance);
         usleep(1000);
     }
+
+    Spike_Hold_Motors();
 }
 
 int Oradar_S2L_Correction_For_Triangles_Left(int degree){
@@ -328,7 +330,9 @@ void Oradar_S2L_Set_Terminating(void){
 }
 
 void Oradar_S2L_Get_Buffer(float *buffer){
-    *buffer = oradar_shared_buffer[FRONT];
+    for(int i = 0; i < 360; i++){
+        buffer[i] = oradar_shared_buffer[i];
+    }
 }
 
 unsigned long Oradar_S2L_Get_Scan_Seq(void){

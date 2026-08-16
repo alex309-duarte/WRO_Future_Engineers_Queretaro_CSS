@@ -27,6 +27,7 @@ int main(){
     float distancia_frente;
     float distancia_derecha;
     float distancia_izquierda;
+    direction sentido;
     int v = 0;
     int angulo_correccion = 0;
     int angulo_correccion_t = 0;
@@ -71,20 +72,20 @@ int main(){
     //LIDAR_FN(Advance_And_Detect_Side)(60, 0);
     //Spike_Advance_For_Degrees(80, 1500, 0);
     /*while(1){
-        angulo_correccion_t = LIDAR_FN(Slope2)(21,RIGHT);
-    }
-    Spike_Advance_For_Degrees(80, 500, 0);
-    angulo_correccion_t2 = LIDAR_FN(Slope)(21,LEFT);
-    angulo_correccion = LIDAR_FN(Average)(angulo_correccion_t,angulo_correccion_t2);
-    Spike_Reset_Gyro(angulo_correccion);
-    usleep(200000);
-    Spike_Advance_For_Degrees(80, 700, 0);*/
+        angulo_correccion_t = LIDAR_FN(Slope2)(21,LEFT);
+    }*/
+    //Spike_Advance_For_Degrees(80, 500, 0);
+    //angulo_correccion_t2 = LIDAR_FN(Slope)(21,LEFT);
+    //angulo_correccion = LIDAR_FN(Average)(angulo_correccion_t,angulo_correccion_t2);
+    //Spike_Reset_Gyro(angulo_correccion);
+    //usleep(200000);
+    //Spike_Advance_For_Degrees(80, 700, 0);
 
-    if((distancia_derecha > 700) || (distancia_izquierda > 700)){
+    if((distancia_derecha > 800) || (distancia_izquierda > 800)){
 
         printf("caso afuera\n");
 
-        direction sentido = LIDAR_FN(Advance_And_Detect_Side)(60, 0);
+        sentido = LIDAR_FN(Advance_And_Detect_Side)(60, 0);
         printf("sentido %d :\n", sentido);
 
         if(sentido == right){
@@ -97,7 +98,7 @@ int main(){
             angulo_correccion = LIDAR_FN(Average)(angulo_correccion_t,angulo_correccion_t2);
             Spike_Reset_Gyro(angulo_correccion);
             usleep(200000);
-            while (v < 11){
+            while (v < 10){
             LIDAR_FN(Advance_Until_Right_Gap)(80, 0);
             Spike_Turn_For_Degrees(der, 100, 80);
             Spike_Center_Vehicle_Short();
@@ -123,7 +124,7 @@ int main(){
             angulo_correccion = LIDAR_FN(Average)(angulo_correccion_t,angulo_correccion_t2);
             Spike_Reset_Gyro(angulo_correccion);
             usleep(200000);
-            while (v < 11){
+            while (v < 10){
             LIDAR_FN(Advance_Until_Left_Gap)(80, 0);
             Spike_Turn_For_Degrees(izq, 100, 80);
             Spike_Center_Vehicle_Short();
@@ -144,7 +145,7 @@ int main(){
 
         printf("caso adentro\n");
 
-        direction sentido = LIDAR_FN(Advance_And_Detect_Side)(60, 0);
+        sentido = LIDAR_FN(Advance_And_Detect_Side)(60, 0);
         printf("sentido : %d \n", sentido);
 
         if(sentido == right){
@@ -157,7 +158,7 @@ int main(){
             angulo_correccion = LIDAR_FN(Average)(angulo_correccion_t,angulo_correccion_t2);
             Spike_Reset_Gyro(angulo_correccion);
             usleep(200000);
-            while (v < 11){
+            while (v < 10){
             LIDAR_FN(Advance_Until_Right_Gap)(80, 0);
             Spike_Turn_For_Degrees(der, 100, 80);
             Spike_Center_Vehicle_Short();
@@ -183,7 +184,7 @@ int main(){
             angulo_correccion = LIDAR_FN(Average)(angulo_correccion_t,angulo_correccion_t2);
             Spike_Reset_Gyro(angulo_correccion);
             usleep(200000);
-            while (v < 11){
+            while (v < 10){
             LIDAR_FN(Advance_Until_Left_Gap)(80, 0);
             Spike_Turn_For_Degrees(izq, 100, 80);
             Spike_Center_Vehicle_Short();
@@ -198,9 +199,61 @@ int main(){
             }
         }
     } 
+
+    if (sentido == right){
+        if(distancia_izquierda < 400){
+            LIDAR_FN(Advance_Until_Distance)(80, 0, 550);
+            printf("1");
+        }   
+        else if((distancia_izquierda > 400) && (distancia_izquierda < 600)){
+            LIDAR_FN(Advance_Until_Distance)(80, 0, 750);
+            printf("2");
+        }  
+        else if (distancia_izquierda > 600){
+            LIDAR_FN(Advance_Until_Distance)(80, 0, 1050);
+            printf("2");
+        }
+
+        Spike_Turn_For_Degrees(der, 100, 80);
+        Spike_Center_Vehicle_Short();
+        Spike_Advance_For_Degrees(80, 300, -90);
+
+        if(distancia_frente < 1500){
+            LIDAR_FN(Advance_Until_Distance)(80, -90, 1400);
+            printf("1.1");
+        }
+        else if(distancia_frente > 1500){
+            LIDAR_FN(Advance_Until_Distance)(80, -90, 1750);
+            printf("1.2");
+        }
+    }
+
+    else if (sentido == left){
+        if(distancia_derecha < 400){
+            LIDAR_FN(Advance_Until_Distance)(80, 0, 550);
+        }   
+        else if((distancia_derecha > 400) && (distancia_derecha < 600)){
+            LIDAR_FN(Advance_Until_Distance)(80, 0, 750);
+        }  
+        else if (distancia_derecha > 600){
+            LIDAR_FN(Advance_Until_Distance)(80, 0, 1050);
+        }
+
+        Spike_Turn_For_Degrees(izq, 100, 80);
+        Spike_Center_Vehicle_Short();
+        Spike_Advance_For_Degrees(80, 300, 90);
+
+        if(distancia_frente < 1500){
+            LIDAR_FN(Advance_Until_Distance)(80, 90, 1400);
+        }
+        else if(distancia_frente > 1500){
+            LIDAR_FN(Advance_Until_Distance)(80, 90, 1750);
+        }
+
+    }
     
     printf("ultima funcion\n");
-    LIDAR_FN(Advance_Until_Distance)(80, 0, 1400);
+    //LIDAR_FN(Advance_Until_Distance)(80, 0, 1400);
     
     Rasp_Gpio_Clean();
     Spike_Coast_Motors();

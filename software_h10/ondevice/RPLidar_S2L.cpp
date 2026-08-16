@@ -213,7 +213,7 @@ void RPLidar_S2L_Advance_Until_Distance(int speed, int reference, int target_dis
     while((rplidar_terminating == 0) && (front_distance > target_distance)){
         front_distance = rplidar_shared_buffer[FRONT];
         Spike_Forward(speed,reference);
-        printf("dsitancia frente : %f\n", front_distance);
+        //printf("dsitancia frente : %f\n", front_distance);
         usleep(1000);
     }
 }
@@ -351,5 +351,7 @@ void RPLidar_S2L_Set_Terminating(void){
 }
 
 void RPLidar_S2L_Get_Buffer(float *buffer){
-    *buffer = rplidar_shared_buffer[FRONT];
+    for(int i = 0; i < 360; i++){
+        buffer[i] = rplidar_shared_buffer[i];
+    }
 }
