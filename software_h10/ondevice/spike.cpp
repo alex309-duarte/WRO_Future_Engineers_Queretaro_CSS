@@ -106,7 +106,7 @@ void Spike_Interpreter(void){
     Spike_Send_Serial_Data("\r");
 }
 
-void Spike_End_Funcion(void){
+void Spike_End_Function(void){
     Spike_Send_Serial_Data("\r");
     Spike_Send_Serial_Data("\r");
     Spike_Send_Serial_Data("\r"); 
@@ -132,33 +132,33 @@ void Spike_Initialize_Libraries(void){
     Spike_Send_Serial_Data("def Hold():\r"); // motores en hold
     Spike_Send_Serial_Data("motor.stop(port.A, stop = motor.HOLD)\r");
     Spike_Send_Serial_Data("motor.stop(port.E, stop = motor.HOLD)\r");
-    Spike_End_Funcion();
+    Spike_End_Function();
 
     Spike_Send_Serial_Data("def fc():\r"); // motores libres
     Spike_Send_Serial_Data("motor.stop(port.A, stop = motor.COAST)\r");
     Spike_Send_Serial_Data("motor.stop(port.E, stop = motor.COAST)\r");
-    Spike_End_Funcion();
+    Spike_End_Function();
 
     Spike_Send_Serial_Data("async def cv_especial():\r");
     Spike_Send_Serial_Data("await motor.run_to_absolute_position(port.A, 0, 550,\r");
     Spike_Send_Serial_Data("direction = motor.LONGEST_PATH, stop = motor.HOLD, acceleration = 1000, deceleration = 1000)\r");
-    Spike_End_Funcion();
+    Spike_End_Function();
 
     Spike_Send_Serial_Data("def cv():\r"); // centrar vehiculo
     Spike_Send_Serial_Data("runloop.run(cv_especial())\r");
     Spike_Send_Serial_Data("return 255\r");
-    Spike_End_Funcion();
+    Spike_End_Function();
 
     Spike_Send_Serial_Data("async def cvc_especial():\r"); //cntrar vehiculo parte corta
     Spike_Send_Serial_Data("await motor.run_to_absolute_position(port.A, 0, 550,\r");
     Spike_Send_Serial_Data("direction = motor.SHORTEST_PATH, stop = motor.HOLD, acceleration = 1000, deceleration = 1000)\r");
     Spike_Send_Serial_Data("return 255\r");
-    Spike_End_Funcion();
+    Spike_End_Function();
 
     Spike_Send_Serial_Data("def cvc():\r"); 
     Spike_Send_Serial_Data("runloop.run(cvc_especial())\r");
     Spike_Send_Serial_Data("return 255\r");
-    Spike_End_Funcion();
+    Spike_End_Function();
 
     Spike_Send_Serial_Data("def pd(s1,s2,vel,kp,kd,ea):\r");
     Spike_Send_Serial_Data("error=s1-s2\r");
@@ -166,15 +166,15 @@ void Spike_Initialize_Libraries(void){
     Spike_Send_Serial_Data("motor.run_to_absolute_position(port.A, int(et*4.29), 600, direction = motor.SHORTEST_PATH, stop = motor.HOLD, acceleration = 10000)\r");
     Spike_Send_Serial_Data("motor.set_duty_cycle(port.E, (100)*(vel))\r");
     Spike_Send_Serial_Data("return error\r");
-    Spike_End_Funcion();
+    Spike_End_Function();
 
     Spike_Send_Serial_Data("def rg(degrees):\r");
     Spike_Send_Serial_Data("motion_sensor.reset_yaw(degrees)\r");
-    Spike_End_Funcion();
+    Spike_End_Function();
 
     Spike_Send_Serial_Data("def pg():\r");
     Spike_Send_Serial_Data("return motion_sensor.tilt_angles()[0]\r");
-    Spike_End_Funcion();
+    Spike_End_Function();
 
     Spike_Send_Serial_Data("def turn(direction,speed,degrees):\r");
     Spike_Send_Serial_Data("motor.run_to_relative_position(port.A, 179*(direction), 550)\r");
@@ -183,12 +183,12 @@ void Spike_Initialize_Libraries(void){
     Spike_Send_Serial_Data(remove);
     Spike_Send_Serial_Data("fc()\r");
     Spike_Send_Serial_Data("return 255\r");
-    Spike_End_Funcion();
+    Spike_End_Function();
 
     Spike_Send_Serial_Data("def da(speed, reference):\r");
     Spike_Send_Serial_Data("global error\r");
-    Spike_Send_Serial_Data("error = pd(motion_sensor.tilt_angles()[0],((10)*(reference)),speed,0.3,1,error)\r");
-    Spike_End_Funcion();
+    Spike_Send_Serial_Data("error = pd(motion_sensor.tilt_angles()[0],((10)*(reference)),speed,0.2,500000,error)\r");
+    Spike_End_Function();
 
     Spike_Send_Serial_Data("def ag(speed,degrees,reference):\r");
     Spike_Send_Serial_Data("error = 0\r");
@@ -198,7 +198,7 @@ void Spike_Initialize_Libraries(void){
     Spike_Send_Serial_Data(remove);
     Spike_Send_Serial_Data("fc()\r");
     Spike_Send_Serial_Data("return 255\r");
-    Spike_End_Funcion();
+    Spike_End_Function();
 }
 
 

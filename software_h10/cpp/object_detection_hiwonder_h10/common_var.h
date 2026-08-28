@@ -4,7 +4,7 @@
 #include <pthread.h>
 #include <signal.h>
 
-inline int terminating_main = 0;
+inline volatile sig_atomic_t terminating_main = 0;
 
 enum direction{
     right = 1,

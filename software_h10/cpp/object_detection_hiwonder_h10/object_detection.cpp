@@ -3,11 +3,13 @@
 #include "utils.hpp"
 
 #include "spike.h"
+#include "hiwonder_runtime.h"
 #include "rasp_gpio.h"
 #include "Oradar_S2L.h"
 #include "common_var.h"
 
 #include <cstdlib>
+#include <stdexcept>
 #include <string>
 
 struct traffic_lights_struct{
@@ -26,6 +28,7 @@ static bool g_no_display = false;
 
 pthread_t writer;
 pthread_t Main_Actions;
+static bool g_main_actions_started = false;
 
 
 // segment_id -> persistent color slot for the most recently detected walls, refreshed
@@ -35,6 +38,7 @@ std::unordered_map<int, int> wall_rank;
 
 void signal_handler(int signum);
 void *Obstacle_Challenge_Thread(void *arg);
+static void *Obstacle_Challenge_Impl(void *arg);
 void Follow_cubes(int vel, float referencia_2, float area);
 float Slope(const direction side);
 float Distance_To_Wall(const direction side);
@@ -135,7 +139,7 @@ constexpr size_t MAX_QUEUE_SIZE = 60;
 
 std::shared_ptr<BoundedTSQueue<std::pair<std::vector<cv::Mat>, std::vector<cv::Mat>>>> preprocessed_batch_queue =
     std::make_shared<BoundedTSQueue<std::pair<std::vector<cv::Mat>, std::vector<cv::Mat>>>>(MAX_QUEUE_SIZE);
- 
+
 std::shared_ptr<BoundedTSQueue<InferenceResult>> results_queue =
     std::make_shared<BoundedTSQueue<InferenceResult>>(MAX_QUEUE_SIZE);
 
@@ -518,33 +522,53 @@ void postprocess_callback(
     int max_index = find_max_index(traffic_light_area, 10);
     if (bboxes.size() > 0){
         const auto named_bbox = bboxes.at(max_index); // Assuming only one bbox for traffic light detection
-        
+
         traffic_lights.middle_point_x = (named_bbox.bbox.x_min + named_bbox.bbox.x_max) / 2.0;
         traffic_lights.middle_point_y = (named_bbox.bbox.y_min + named_bbox.bbox.y_max) / 2.0;
         traffic_lights.light_color = (int)named_bbox.class_id;
         traffic_lights.area = traffic_light_area[max_index];
         traffic_lights.confidence = named_bbox.bbox.score;
-        printf(" color = %d, area = %f, middle point = (%f, %f), confidence = %f", traffic_lights.light_color, traffic_lights.area, traffic_lights.middle_point_x, traffic_lights.middle_point_y, traffic_lights.confidence);
-        printf("\n");
+        //printf(" color = %d, area = %f, middle point = (%f, %f), confidence = %f", traffic_lights.light_color, traffic_lights.area, traffic_lights.middle_point_x, traffic_lights.middle_point_y, traffic_lights.confidence);
+        //printf("\n");
     }
 }
 
 
 int main(int argc, char** argv)
 {
-
     signal(SIGINT, signal_handler); /* Set interrupt for ctrl+C */
+    bool hiwonder_armed = false;
+    try {
+        hiwonder_armed = Hiwonder_Arm_Requested();
+    } catch (const std::exception &e) {
+        std::cerr << "ERROR de configuración Hiwonder: " << e.what() << "\n";
+        return HAILO_INVALID_ARGUMENT;
+    }
+
     Oradar_S2L_Init_Lidar();
     pthread_create(&writer, NULL, Oradar_S2L_Lidar_Writer_Thread, NULL);
 
-    Rasp_Gpio_Init();
-    Rasp_Gpio_Power_On_Spike();
+    if (Rasp_Gpio_Init() != 0) {
+        Oradar_S2L_Set_Terminating();
+        Oradar_S2L_Close();
+        return HAILO_INTERNAL_FAILURE;
+    }
 
-    Spike_Serial_Init();
-    Spike_Interpreter();
-    Spike_Initialize_Libraries();
-    pthread_create(&Main_Actions, NULL, Obstacle_Challenge_Thread, NULL);
-    
+    if (hiwonder_armed) {
+        try {
+            Hiwonder_Initialize_From_Environment();
+        } catch (const std::exception &e) {
+            std::cerr << "ERROR armando Hiwonder: " << e.what() << "\n";
+            Rasp_Gpio_Clean();
+            Oradar_S2L_Set_Terminating();
+            Oradar_S2L_Close();
+            return HAILO_INTERNAL_FAILURE;
+        }
+    } else {
+        std::cout << "MODO SEGURO: cámara y LiDAR activos; motores desarmados. "
+                     "Use HIWONDER_ARM=1 sólo después de calibrar.\n";
+    }
+
     try {
         const std::string APP_NAME = "object_detection";
         std::chrono::duration<double> inference_time;
@@ -564,7 +588,7 @@ int main(int argc, char** argv)
         const char *visualization_config_env = std::getenv("WRO_VISUALIZATION_CONFIG");
         const std::string visualization_config = visualization_config_env
             ? visualization_config_env
-            : "/home/maker/WRO_Hailo10H_Compatible/software/cpp/object_detection_original_h10/visualization_config.yaml";
+            : "./visualization_config.yaml";
         VisualizationParams vis_param = load_visualization_params(visualization_config);
         validate_visualization_params(vis_param, AppVisMode::object_detection);
 
@@ -617,27 +641,56 @@ int main(int argc, char** argv)
                                     results_queue,
                                     post_cb);
 
+        // La misión se inicia sólo cuando cámara, inferencia y postproceso ya
+        // están corriendo. El botón físico sigue siendo el disparador final.
+        if (hiwonder_armed) {
+            const int rc = pthread_create(&Main_Actions, NULL,
+                                          Obstacle_Challenge_Thread, NULL);
+            if (rc != 0) {
+                throw std::runtime_error("no se pudo crear el hilo de misión");
+            }
+            g_main_actions_started = true;
+        }
+
         hailo_status status = wait_and_check_threads(
             preprocess_thread,    "Preprocess",
             inference_thread,     "Inference",
             output_parser_thread, "Postprocess "
         );
         if (HAILO_SUCCESS != status) {
+            terminating_main = 1;
+            if (g_main_actions_started) pthread_join(Main_Actions, NULL);
+            Hiwonder_Shutdown();
+            Rasp_Gpio_Clean();
+            Oradar_S2L_Set_Terminating();
+            Oradar_S2L_Close();
             return status;
         }
-        
+
         auto t_end = Clock::now();
         print_inference_statistics(inference_time, args.net, static_cast<double>(frame_count), t_end - t_start);
 
+        terminating_main = 1;
+        if (g_main_actions_started) pthread_join(Main_Actions, NULL);
+        Hiwonder_Shutdown();
+        Rasp_Gpio_Clean();
+        Oradar_S2L_Set_Terminating();
+        Oradar_S2L_Close();
         return HAILO_SUCCESS;
     }
     catch (const std::exception &e) {
         std::cerr << "ERROR: " << e.what() << "\n";
+        terminating_main = 1;
+        if (g_main_actions_started) pthread_join(Main_Actions, NULL);
+        Hiwonder_Shutdown();
+        Rasp_Gpio_Clean();
+        Oradar_S2L_Set_Terminating();
+        Oradar_S2L_Close();
         return HAILO_INTERNAL_FAILURE;
     }
 }
 
-void *Obstacle_Challenge_Thread(void *arg){
+static void *Obstacle_Challenge_Impl(void *arg){
     float distancia_frente;
     float distancia_derecha;
     float distancia_izquierda;
@@ -645,9 +698,9 @@ void *Obstacle_Challenge_Thread(void *arg){
     Color_traffic_light cubo_temp;
 
     Oradar_S2L_Get_Buffer(&lidar_shared_buffer[0]);
-    distancia_frente = lidar_shared_buffer[90];
-    distancia_derecha = lidar_shared_buffer[0];
-    distancia_izquierda = lidar_shared_buffer[180];
+    distancia_frente = lidar_shared_buffer[0];
+    distancia_derecha = lidar_shared_buffer[270];
+    distancia_izquierda = lidar_shared_buffer[90];
 
     printf("dsitancia derecha : %f\n", distancia_derecha);
     printf("dsitancia izquierda : %f\n", distancia_izquierda);
@@ -655,6 +708,7 @@ void *Obstacle_Challenge_Thread(void *arg){
 
     Spike_Reset_Gyro(0);
     Rasp_Gpio_Wait_For_Button();
+    if (terminating_main != 0) return NULL;
     usleep(200000); //wiating for reset gyro
     Spike_Reset_Gyro(0);
     Spike_Center_Vehicle_Short();
@@ -664,32 +718,32 @@ void *Obstacle_Challenge_Thread(void *arg){
     //Oradar_S2L_Advance_Until_Distance(50,0,150,Hold);
 
 
-    //float slope = Slope(front);
-    //Spike_Reset_Gyro(slope);
-    
+    float slope = Slope(front);
+    Spike_Reset_Gyro(slope);
+
     cubo_temp = esquivar_cubos((Color_traffic_light)traffic_lights.light_color,CUBE_first, none);
     //printf("color de cubo: %d\n",cubo );
-    //esquivar_cubos((Color_traffic_light)traffic_lights.light_color,CUBE_second,cubo_temp );
+    esquivar_cubos((Color_traffic_light)traffic_lights.light_color,CUBE_second,cubo_temp );
     //avoid_cube_start_section((Color_traffic_light)traffic_lights.light_color, cube_first););
-    //alculte_angle_section_start_clockwise_chr((Color_traffic_light)traffic_lights.light_color,CUBE_first);
+    //calculte_angle_section_start_clockwise_chr((Color_traffic_light)traffic_lights.light_color,CUBE_first);
     //avoid_cube_start_section((Color_traffic_light)traffic_lights.light_color, cube_first);
     //usleep(200000); //wiating for reset gyro
     //Spike_Center_Vehicle_Short();
     //usleep(200000); //wiating for reset gyro
     //avoid_cube_start_section((Color_traffic_light)traffic_lights.light_color, cube_second);
-    
+
     /*if(distancia_derecha > 600){
         printf("Sentido horario\n");
-        Spike_Turn_For_Degrees(right, 60, 45, 40, true);
-        Spike_Center_Vehicle_Short();
+        Spike_Turn_For_Degrees(right, 60, 88, 40);
+
 
     }
 
     else if (distancia_izquierda > 600){
         printf("Sentido antihorario\n");
-        Spike_Turn_For_Degrees(left, 60, 45, 40, true);
-        Spike_Center_Vehicle_Short();
-    
+        Spike_Turn_For_Degrees(left, 60, 88, 40);
+
+
     }*/
 
 
@@ -710,11 +764,11 @@ void *Obstacle_Challenge_Thread(void *arg){
    usleep(2000000);
    Spike_Center_Vehicle_Short();
    usleep(2000000);
-   Follow_cubes(60, 0.5, 0.06);  
+   Follow_cubes(60, 0.5, 0.06);
    usleep(2000000);
    grados = Spike_Get_Gyro();
    usleep(2000000);
-   
+
    Spike_Turn_For_Degrees(right, 60, (grados*-1) + 30, 30);
    Spike_Center_Vehicle_Short();
    Spike_Advance_For_Degrees(60,30*abs(grados), -30);
@@ -722,9 +776,9 @@ void *Obstacle_Challenge_Thread(void *arg){
    Spike_Center_Vehicle_Short();*/
 
 
-   
 
-   
+
+
 
 
     while(terminating_main == 0){
@@ -734,20 +788,22 @@ void *Obstacle_Challenge_Thread(void *arg){
         usleep(1000);
     }
 
-    /* send Ctrl + C to stop subprocess in spike brick */
-    char control_c = '\003';
-    char msg[10] = "";
-    msg[0] = control_c;
-    msg[1] = '\r';
-    Spike_Send_Serial_Data(msg);
-    Spike_Send_Serial_Data("\r");
-
     Spike_Coast_Motors();
-    Oradar_S2L_Set_Terminating();
-    Rasp_Gpio_Clean();
-    Spike_Close_Serial();
-    Oradar_S2L_Close();
     return NULL;
+}
+
+void *Obstacle_Challenge_Thread(void *arg) {
+    try {
+        return Obstacle_Challenge_Impl(arg);
+    } catch (const std::exception &e) {
+        std::cerr << "ERROR en misión Hiwonder: " << e.what() << "\n";
+        terminating_main = 1;
+        try {
+            Spike_Coast_Motors();
+        } catch (...) {
+        }
+        return NULL;
+    }
 }
 
 void Follow_cubes(int vel, float referencia_2, float area){
@@ -1173,7 +1229,6 @@ float calculte_angle_section_start_clockwise(Color_traffic_light traffic_light_c
     float angle_rad = 0;
     float distanceToFrontWallmm = 0;
     float diStanceToLeftWallmm = 0;
-    float distanceToBackWallmm = 0;
 
     distanceToFrontWallmm = Distance_To_Wall(front);
     diStanceToLeftWallmm = Distance_To_Wall(left);
@@ -1205,12 +1260,11 @@ void calculte_angle_section_start_clockwise_chr(Color_traffic_light traffic_ligh
     diStanceToFrontWallmm = lidar_shared_buffer[270];
     distanceToBackWallmm = lidar_shared_buffer[90];
     diStanceToLeftWallmm = lidar_shared_buffer[180];
-    
-    printf("atras: %f\n", distanceToBackWallmm);
+
     if(cube_number_per_section == CUBE_first){
-        printf("primer cubo\n");
+        printf("primer cubo");
         side_1 = cube_number_per_section - distanceToBackWallmm;
-    
+
         if(traffic_light_color == light_green){
             printf("cubo verde\n");
             side_2 = diStanceToLeftWallmm - 185;
@@ -1225,7 +1279,7 @@ void calculte_angle_section_start_clockwise_chr(Color_traffic_light traffic_ligh
     else{
         printf("segundo cubo");
         side_1 = diStanceToFrontWallmm - cube_number_per_section;
-    
+
         if(traffic_light_color == light_green){
             printf("cubo verde\n");
             side_2 = diStanceToLeftWallmm - 185;
@@ -1239,7 +1293,7 @@ void calculte_angle_section_start_clockwise_chr(Color_traffic_light traffic_ligh
 
     *hypotenuse = sqrt( pow(side_1,2) + pow(side_2,2));
     *angle = 90 - Oradar_S2L_Radians_To_Degrees(angle_rad);
-    printf("distancia frente: %f, distancia atras: %f, distancia izquierda: %f, angle rad: %f\n", diStanceToFrontWallmm, distanceToBackWallmm, diStanceToLeftWallmm, angle_rad);
+    //printf("distancia frente: %f, distancia atras: %f, distancia izquierda: %f, angle rad: %f\n", diStanceToFrontWallmm, distanceToBackWallmm, diStanceToLeftWallmm, angle_rad);
 }
 
 float calculte_angle_section_start_counterclockwise(Color_traffic_light traffic_light_color, Cube_number cube_number_per_section){
@@ -1275,7 +1329,7 @@ void avoid_cube_start_section(Color_traffic_light traffic_light_color, Cube_numb
         angle_to_wall = calculte_angle_section_start_clockwise(traffic_light_color, cube_number_per_section);
         direction_to_turn = right;
     }
-    
+
     Spike_Turn_For_Degrees(direction_to_turn, 60, 90 - angle_to_wall, 30);
 
     float distanceToWall = 10000;
@@ -1305,11 +1359,11 @@ void avoid_cube_start_section(Color_traffic_light traffic_light_color, Cube_numb
 Color_traffic_light esquivar_cubos(Color_traffic_light traffic_light_color, Cube_number_chr cube_number_per_section, Color_traffic_light past_cube){
     float angle_to_wall = 0;
     float hypotenuse = 0;
-    Color_traffic_light cube = traffic_light_color;//traffic_lights.light_color
+    Color_traffic_light cube = traffic_light_color;
     direction direction_to_turn = invalid;
 
     if( past_cube == traffic_light_color ){
-        Oradar_S2L_Advance_Until_Distance(80, 0, 1000, Hold);
+        Oradar_S2L_Advance_Until_Distance(80, 0, 700, Hold);
     }
 
     else{

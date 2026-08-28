@@ -2,16 +2,11 @@
 #include <ord_lidar_driver.h>
 #include "spike.h"
 #include <cstdio>
-#include <cstdlib>
 #include <cmath>
+#include <unistd.h>
 #include <pthread.h>
 
 using namespace ordlidar;
-
-struct DistanceAccumulator{
-    float distance_sum;
-    int sample_count;
-};
 
 static OrdlidarDriver *oradar_device = nullptr;
 static pthread_mutex_t oradar_buffer_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -20,12 +15,12 @@ static volatile float oradar_shared_buffer[360] = {0};
 static volatile unsigned long oradar_scan_seq = 0; // incremented every time a new full scan is written
 
 // MS200 default: 230400 baud.
-static const char *serial_port_path = "/dev/ttyUSB0";
-static const int   serial_baudrate = 230400;
+static const char *opt_oradar_port = "/dev/ttyUSB0";
+static const int   opt_oradar_baudrate = 230400;
 
 void Oradar_S2L_Init_Lidar(void){
     oradar_device = new OrdlidarDriver(ORADAR_TYPE_SERIAL, ORADAR_MS200);
-    oradar_device->SetSerialPort(serial_port_path, serial_baudrate);
+    oradar_device->SetSerialPort(opt_oradar_port, opt_oradar_baudrate);
 
     while (oradar_terminating == 0 && !oradar_device->Connect()){
         printf("Oradar lidar connect failed, retrying...\n");
@@ -35,40 +30,41 @@ void Oradar_S2L_Init_Lidar(void){
 }
 
 void *Oradar_S2L_Lidar_Writer_Thread(void *arg){
-
     full_scan_data_st scan_data;
-    DistanceAccumulator average[360] = {0};
 
     while(oradar_terminating == 0){
-
         if(oradar_device->GrabFullScan(scan_data)){
-            for (int i = 0; i < 360; i++) {
-                average[i].sample_count = 0;
-                average[i].distance_sum = 0;
-            }
-            for (int pos = 0; pos < scan_data.vailtidy_point_num; ++pos) {
-                int angle_bucket = (int)scan_data.data[pos].angle;
-                if (angle_bucket >= 0 && angle_bucket < 360) {
-                    average[angle_bucket].distance_sum += scan_data.data[pos].distance;
-                    average[angle_bucket].sample_count += 1;
-                }
-            }
-
             pthread_mutex_lock(&oradar_buffer_mutex);
-            for (int i = 0; i < 360; i++) {
-                if(average[i].sample_count > 0){
-                    oradar_shared_buffer[i] = average[i].distance_sum/average[i].sample_count;
-                }
-                else{
-                    //printf("No measurements for angle %d\n", i);
+            for(int i = 0; i < scan_data.vailtidy_point_num; i++){
+                int angle = (int)scan_data.data[i].angle;
+                if(angle >= 0 && angle < 360){
+                    oradar_shared_buffer[angle] = scan_data.data[i].distance;
                 }
             }
             oradar_scan_seq++;
-            pthread_mutex_unlock(&oradar_buffer_mutex); // Unlock after writing
+            pthread_mutex_unlock(&oradar_buffer_mutex);
         }
         usleep(1000);
     }
     return NULL;
+}
+
+void Oradar_S2L_Get_Buffer(float *buffer){
+    for(int i = 0; i < 360; i++){
+        buffer[i] = oradar_shared_buffer[i];
+    }
+}
+
+void Oradar_S2L_Set_Terminating(void){
+    oradar_terminating = 1;
+}
+
+void Oradar_S2L_Close(void){
+    if(oradar_device){
+        oradar_device->Disconnect();
+        delete oradar_device;
+        oradar_device = nullptr;
+    }
 }
 
 float Oradar_S2L_Radians_To_Degrees(float radians){
@@ -81,29 +77,50 @@ float Oradar_S2L_Degrees_To_Radians(float degrees){
     return radians;
 }
 
+void Oradar_S2L_Advance_Until_Distance(int vel, int referencia, int distancia_objetivo, Brake_type brake){
+    float distancia_frente;
+
+    distancia_frente = oradar_shared_buffer[270];
+
+    while((terminating_main == 0) && (distancia_frente > distancia_objetivo)){
+        distancia_frente = oradar_shared_buffer[270];
+        Spike_Forward(vel,referencia);
+        usleep(1000);
+    }
+    if(brake == Coast)
+    {
+        Spike_Coast_Motors();
+    }
+    else if(brake == Hold)
+    {
+        Spike_Hold_Motors();
+    }
+    else{
+        /* No break applied */
+    }
+
+}
+
+unsigned long Oradar_S2L_Get_Scan_Seq(void){
+    return oradar_scan_seq;
+}
+
 direction Oradar_S2L_Advance_And_Detect_Side(int speed, int reference){
 
     float front_distance;
     float right_distance;
     float left_distance;
-    float back_distance;
 
     front_distance = oradar_shared_buffer[RP_TO_ORADAR_IDX(FRONT)];
     right_distance = oradar_shared_buffer[RP_TO_ORADAR_IDX(RIGHT)];
     left_distance = oradar_shared_buffer[RP_TO_ORADAR_IDX(LEFT)];
 
-
     while((oradar_terminating == 0) && (((right_distance < 1350) && (left_distance < 1350)) || (front_distance > 1100))){
         front_distance = oradar_shared_buffer[RP_TO_ORADAR_IDX(FRONT)];
         right_distance = oradar_shared_buffer[RP_TO_ORADAR_IDX(RIGHT)];
         left_distance = oradar_shared_buffer[RP_TO_ORADAR_IDX(LEFT)];
-        back_distance = oradar_shared_buffer[RP_TO_ORADAR_IDX(BACK)];
-        //Spike_Forward(speed,reference);
+        Spike_Forward(speed,reference);
         usleep(1000);
-        printf("dsitancia derecha : %f\n", right_distance);
-        printf("dsitancia izquierda : %f\n", left_distance);
-        printf("dsitancia frente : %f\n", front_distance);
-        printf("dsitancia atras : %f\n", back_distance);
     }
 
     if(right_distance > 1350){
@@ -132,8 +149,6 @@ void Oradar_S2L_Advance_Until_Left_Gap(int speed, int reference){
         left_distance = oradar_shared_buffer[RP_TO_ORADAR_IDX(LEFT)];
         Spike_Forward(speed,reference);
         usleep(1000);
-        //printf("dsitancia izquierda : %f\n", left_distance);
-        //printf("dsitancia frente : %f\n", front_distance);
     }
 
 }
@@ -150,8 +165,6 @@ void Oradar_S2L_Advance_Until_Right_Gap(int speed, int reference){
         front_distance = oradar_shared_buffer[RP_TO_ORADAR_IDX(FRONT)];
         right_distance = oradar_shared_buffer[RP_TO_ORADAR_IDX(RIGHT)];
         Spike_Forward(speed,reference);
-        //printf("dsitancia derecha : %f\n", right_distance);
-        //printf("dsitancia frente : %f\n", front_distance);
         usleep(1000);
     }
 
@@ -183,21 +196,6 @@ int Oradar_S2L_Advance_And_Measure_Right_Slope(int speed, int degrees, int refer
     return slope;
 }
 
-void Oradar_S2L_Advance_Until_Distance(int speed, int reference, int target_distance){
-    float front_distance;
-
-    front_distance = oradar_shared_buffer[RP_TO_ORADAR_IDX(FRONT)];
-
-    while((oradar_terminating == 0) && (front_distance > target_distance)){
-        front_distance = oradar_shared_buffer[RP_TO_ORADAR_IDX(FRONT)];
-        Spike_Forward(speed,reference);
-        //printf("dsitancia frente : %f\n", front_distance);
-        usleep(1000);
-    }
-
-    Spike_Hold_Motors();
-}
-
 int Oradar_S2L_Correction_For_Triangles_Left(int degree){
     float H = oradar_shared_buffer[RP_TO_ORADAR_IDX(LEFT + degree)];
     float CA = oradar_shared_buffer[RP_TO_ORADAR_IDX(LEFT)];
@@ -206,7 +204,6 @@ int Oradar_S2L_Correction_For_Triangles_Left(int degree){
     float correction_angle = (pow(CA,2) + pow(missing_side,2) - pow(H,2))/(2*CA*missing_side);
     float computed_angle = Oradar_S2L_Radians_To_Degrees(acos(correction_angle));
     float final_correction = 90 - computed_angle;
-    printf("H: %f, CA: %f, lado_faltante: %f, angulo_correcion: %f, comparacion: %f, correcion_final: %f\n", H, CA, missing_side, correction_angle, computed_angle, final_correction);
     return (int)(final_correction*10);
 
 }
@@ -219,7 +216,6 @@ int Oradar_S2L_Correction_For_Triangles_Right(int degree){
     float correction_angle = (pow(CA,2) + pow(missing_side,2) - pow(H,2))/(2*CA*missing_side);
     float computed_angle = Oradar_S2L_Radians_To_Degrees(acos(correction_angle));
     float final_correction = computed_angle - 90;
-    //printf("H: %f, CA: %f, lado_faltante: %f, angulo_correcion: %f, comparacion: %f, correcion_final: %f\n", H, CA, missing_side, correction_angle, computed_angle, final_correction);
     return (int)(final_correction*10);
 
 }
@@ -315,26 +311,4 @@ int Oradar_S2L_Average(int arg_1, int arg_2){
     int average = (arg_1 + arg_2)/2;
     printf("correcion: %d\n",average);
     return average;
-}
-
-void Oradar_S2L_Close(void){
-    if(oradar_device){
-        oradar_device->Disconnect();
-        delete oradar_device;
-        oradar_device = nullptr;
-    }
-}
-
-void Oradar_S2L_Set_Terminating(void){
-    oradar_terminating = 1;
-}
-
-void Oradar_S2L_Get_Buffer(float *buffer){
-    for(int i = 0; i < 360; i++){
-        buffer[i] = oradar_shared_buffer[i];
-    }
-}
-
-unsigned long Oradar_S2L_Get_Scan_Seq(void){
-    return oradar_scan_seq;
 }

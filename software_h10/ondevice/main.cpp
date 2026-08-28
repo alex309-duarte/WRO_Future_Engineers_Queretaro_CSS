@@ -56,30 +56,6 @@ int main(){
     printf("dsitancia derecha : %f\n", distancia_derecha);
     printf("dsitancia izquierda : %f\n", distancia_izquierda);
     printf("dsitancia frente : %f\n", distancia_frente);
-    
-    /*angulo_correccion_t = LIDAR_FN(Correction_For_Triangles_Left)(7);
-    angulo_correccion = LIDAR_FN(Advance_And_Measure_Left_Slope)(80, 357, 0);
-    angulo_correccion_t2 = LIDAR_FN(Correction_For_Triangles_Left)(12);
-    angulo = LIDAR_FN(Reconcile_Readings)(angulo_correccion_t, angulo_correccion, angulo_correccion_t2);
-    printf("angulo : %d\n", angulo);
-    Spike_Reset_Gyro(angulo);
-    usleep(200000);
-    
-    Spike_Advance_For_Degrees(80, 2000, 0);*/
-
-
-    
-    //LIDAR_FN(Advance_And_Detect_Side)(60, 0);
-    //Spike_Advance_For_Degrees(80, 1500, 0);
-    /*while(1){
-        angulo_correccion_t = LIDAR_FN(Slope2)(21,LEFT);
-    }*/
-    //Spike_Advance_For_Degrees(80, 500, 0);
-    //angulo_correccion_t2 = LIDAR_FN(Slope)(21,LEFT);
-    //angulo_correccion = LIDAR_FN(Average)(angulo_correccion_t,angulo_correccion_t2);
-    //Spike_Reset_Gyro(angulo_correccion);
-    //usleep(200000);
-    //Spike_Advance_For_Degrees(80, 700, 0);
 
     if((distancia_derecha > 800) || (distancia_izquierda > 800)){
 
@@ -252,8 +228,7 @@ int main(){
 
     }
     
-    printf("ultima funcion\n");
-    //LIDAR_FN(Advance_Until_Distance)(80, 0, 1400);
+    printf("acabe");
     
     Rasp_Gpio_Clean();
     Spike_Coast_Motors();

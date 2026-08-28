@@ -116,7 +116,7 @@ void Spike_Interpreter(void){
     Spike_Send_Serial_Data("\r");
 }
 
-void Spike_End_Funcion(void){
+void Spike_End_Function(void){
     Spike_Send_Serial_Data("\r");
     Spike_Send_Serial_Data("\r");
     Spike_Send_Serial_Data("\r"); 
@@ -142,90 +142,103 @@ void Spike_Initialize_Libraries(void){
     Spike_Send_Serial_Data("def Hold():\r"); // motores en hold
     Spike_Send_Serial_Data("motor.stop(port.A, stop = motor.HOLD)\r");
     Spike_Send_Serial_Data("motor.stop(port.E, stop = motor.HOLD)\r");
-    Spike_End_Funcion();
+    Spike_End_Function();
 
     Spike_Send_Serial_Data("def fc():\r"); // motores libres
     Spike_Send_Serial_Data("motor.stop(port.A, stop = motor.COAST)\r");
     Spike_Send_Serial_Data("motor.stop(port.E, stop = motor.COAST)\r");
-    Spike_End_Funcion();
+    Spike_End_Function();
 
     Spike_Send_Serial_Data("async def cv_especial():\r");
     Spike_Send_Serial_Data("await motor.run_to_absolute_position(port.A, 0, 550,\r");
     Spike_Send_Serial_Data("direction = motor.LONGEST_PATH, stop = motor.HOLD, acceleration = 1000, deceleration = 1000)\r");
-    Spike_End_Funcion();
+    Spike_End_Function();
 
     Spike_Send_Serial_Data("def cv():\r"); // centrar vehiculo
     Spike_Send_Serial_Data("runloop.run(cv_especial())\r");
     Spike_Send_Serial_Data("return 255\r");
-    Spike_End_Funcion();
+    Spike_End_Function();
 
     Spike_Send_Serial_Data("async def cvc_especial():\r"); //cntrar vehiculo parte corta
     Spike_Send_Serial_Data("await motor.run_to_absolute_position(port.A, 0, 550,\r");
     Spike_Send_Serial_Data("direction = motor.SHORTEST_PATH, stop = motor.HOLD, acceleration = 1000, deceleration = 1000)\r");
     Spike_Send_Serial_Data("return 255\r");
-    Spike_End_Funcion();
+    Spike_End_Function();
 
     Spike_Send_Serial_Data("def cvc():\r"); 
     Spike_Send_Serial_Data("runloop.run(cvc_especial())\r");
     Spike_Send_Serial_Data("return 255\r");
-    Spike_End_Funcion();
+    Spike_End_Function();
 
     Spike_Send_Serial_Data("def pd(s1,s2,vel,kp,kd,ea):\r");
     Spike_Send_Serial_Data("error=s1-s2\r");
     Spike_Send_Serial_Data("et= (kp*error) + (kd*(error-ea))\r");
-    Spike_Send_Serial_Data("motor.run_to_absolute_position(port.A, int(et*4.35), 600, direction = motor.SHORTEST_PATH, stop = motor.HOLD, acceleration = 10000)\r");
+    Spike_Send_Serial_Data("motor.run_to_absolute_position(port.A, int(et*4.29), 600, direction = motor.SHORTEST_PATH, stop = motor.HOLD, acceleration = 10000)\r");
     Spike_Send_Serial_Data("motor.set_duty_cycle(port.E, (100)*(vel))\r");
     Spike_Send_Serial_Data("return error\r");
-    Spike_End_Funcion();
+    Spike_End_Function();
 
     Spike_Send_Serial_Data("def rg(degrees):\r");
     Spike_Send_Serial_Data("motion_sensor.reset_yaw(degrees)\r");
-    Spike_End_Funcion();
+    Spike_End_Function();
 
     Spike_Send_Serial_Data("def pg():\r");
     Spike_Send_Serial_Data("return motion_sensor.tilt_angles()[0]\r");
-    Spike_End_Funcion();
+    Spike_End_Function();
 
     Spike_Send_Serial_Data("def turn(direction,speed,degrees, tire_turn):\r");
-    Spike_Send_Serial_Data("motor.run_to_relative_position(port.A, int((tire_turn)*(4.35)*(direction)), 550)\r");
+    Spike_Send_Serial_Data("motor.run_to_relative_position(port.A, int((tire_turn)*(4.29)*(direction)), 550)\r");
     Spike_Send_Serial_Data("while abs(degrees*10) > abs(motion_sensor.tilt_angles()[0]):\r");
     Spike_Send_Serial_Data("motor.set_duty_cycle(port.E, (100)*(speed))\r");
     Spike_Send_Serial_Data(remove);
     Spike_Send_Serial_Data("fc()\r");
     Spike_Send_Serial_Data("return 255\r");
-    Spike_End_Funcion();
+    Spike_End_Function();
+
+    Spike_Send_Serial_Data("async def turn_wait(direction,speed,degrees, tire_turn):\r");
+    Spike_Send_Serial_Data("await motor.run_to_relative_position(port.A, int((tire_turn)*(4.29)*(direction)), 550)\r");
+    Spike_Send_Serial_Data("while abs(degrees*10) > abs(motion_sensor.tilt_angles()[0]):\r");
+    Spike_Send_Serial_Data("motor.set_duty_cycle(port.E, (100)*(speed))\r");
+    Spike_Send_Serial_Data(remove);
+    Spike_Send_Serial_Data("fc()\r");
+    Spike_End_Function();
+
+    Spike_Send_Serial_Data("def turn_special(direction,speed,degrees, tire_turn):\r");
+    Spike_Send_Serial_Data("runloop.run(turn_wait(direction,speed,degrees, tire_turn))\r");
+    Spike_Send_Serial_Data("return 255\r");
+    Spike_End_Function();
 
     Spike_Send_Serial_Data("def small_turn(direction,speed,degrees, tire_turn):\r");
-    Spike_Send_Serial_Data("motor.run_to_relative_position(port.A, int((tire_turn)*(4.35)*(direction)), 550)\r");
+    Spike_Send_Serial_Data("motor.run_to_relative_position(port.A, int((tire_turn)*(4.29)*(direction)), 550)\r");
     Spike_Send_Serial_Data("while abs(degrees*10) < (direction)*motion_sensor.tilt_angles()[0]:\r");
     Spike_Send_Serial_Data("motor.set_duty_cycle(port.E, (100)*(speed))\r");
     Spike_Send_Serial_Data(remove);
     Spike_Send_Serial_Data("fc()\r");
     Spike_Send_Serial_Data("return 255\r");
-    Spike_End_Funcion();
+    Spike_End_Function();
 
     //kp y kd para el forward
     Spike_Send_Serial_Data("def da(speed, reference):\r");
     Spike_Send_Serial_Data("global error\r");
-    Spike_Send_Serial_Data("error = pd(motion_sensor.tilt_angles()[0],((10)*(reference)),speed,0.3,1,error)\r");
-    Spike_End_Funcion();
+    Spike_Send_Serial_Data("error = pd(motion_sensor.tilt_angles()[0],((10)*(reference)),speed,0.2,500000,error)\r");
+    Spike_End_Function();
 
     //kp y kd para seguir los cubos por la camara
     Spike_Send_Serial_Data("def apd(speed, reference_1, reference_2):\r");
     Spike_Send_Serial_Data("global error\r"); /* para seguir pared 60 y kd 100 */
-    Spike_Send_Serial_Data("error = pd(reference_1 ,reference_2,speed,150,500,error)\r");
-    Spike_End_Funcion();
+    Spike_Send_Serial_Data("error = pd(reference_1 ,reference_2,speed,150,100,error)\r");
+    Spike_End_Function();
 
     //kp y kd para avanzar por grados
     Spike_Send_Serial_Data("def ag(speed,degrees,reference):\r");
     Spike_Send_Serial_Data("error = 0\r");
     Spike_Send_Serial_Data("motor.reset_relative_position(port.E,0)\r");
     Spike_Send_Serial_Data("while abs(degrees) > abs(motor.relative_position(port.E)):\r");
-    Spike_Send_Serial_Data("error = pd(motion_sensor.tilt_angles()[0],((10)*(reference)),speed,0.4,10,error)\r");
+    Spike_Send_Serial_Data("error = pd(motion_sensor.tilt_angles()[0],((10)*(reference)),speed,0.2,300000,error)\r");
     Spike_Send_Serial_Data(remove);
     Spike_Send_Serial_Data("fc()\r");
     Spike_Send_Serial_Data("return 255\r");
-    Spike_End_Funcion();
+    Spike_End_Function();
 }
 
 
@@ -312,7 +325,7 @@ float Spike_Get_Gyro(void){
     return (atof(return_value))/10;
 }
 
-void Spike_Turn_For_Degrees(int direction, int speed, float degrees, int tire_turn){
+void Spike_Turn_For_Degrees(int direction, int speed, float degrees, int tire_turn, bool await){
 	char arguments[255];
 	char string_direction[10] = "";
 	char string_speed[10] = "";
@@ -325,7 +338,12 @@ void Spike_Turn_For_Degrees(int direction, int speed, float degrees, int tire_tu
     snprintf(string_tire_turn, sizeof(string_tire_turn), "%d", tire_turn);
 
 	const char * cocatenate_list[10];
-	cocatenate_list[0] = "turn(";
+    if(await == false){
+        cocatenate_list[0] = "turn(";
+    }
+    else{
+        cocatenate_list[0] = "turn_special(";
+    }
 	cocatenate_list[1] = (const char *)string_direction;
 	cocatenate_list[2] = ",";
 	cocatenate_list[3] = (const char *)string_speed;	
@@ -432,6 +450,45 @@ void Spike_Advance_For_Degrees(int speed, int degrees, int reference){
         }
     }
     Spike_Coast_Motors();
+}
+
+void Spike_Advance_For_distance(int speed, int distance, int reference){
+    int degrees = (int)((1.4)*((distance*360)/(196.035)));
+	char arguments[255];
+	char string_speed[10] = "";
+	char string_degrees[10] = "";
+    char string_reference[10] = "";
+
+	snprintf(string_speed, sizeof(string_speed), "%d", speed);
+	snprintf(string_degrees, sizeof(string_degrees), "%d", degrees);
+	snprintf(string_reference, sizeof(string_reference), "%d", reference);
+
+	const char * cocatenate_list[10];
+	cocatenate_list[0] = "ag(";
+	cocatenate_list[1] = (const char *)string_speed;	
+	cocatenate_list[2] = ",";
+	cocatenate_list[3] = (const char *)string_degrees;
+    cocatenate_list[4] = ",";
+    cocatenate_list[5] = (const char *)string_reference;	
+	cocatenate_list[6] = ")\r";
+		
+	Spike_Concatenate(7,cocatenate_list, arguments);
+
+	Spike_Send_Serial_Data(arguments);
+
+    const char * return_value = Spike_Read_Serial_Data();
+    if (strcmp(return_value, "") == 0){
+        return_value = "0";
+    }
+    while (atoi(return_value) != 255){
+        usleep(1000);
+        return_value = Spike_Read_Serial_Data();
+        usleep(1000);
+        if(strcmp(return_value, "") == 0){
+            return_value = "0";
+        }
+    }
+    Spike_Hold_Motors();
 }
 
 void Spike_Forward(int speed, int reference){
