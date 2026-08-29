@@ -13,7 +13,7 @@
 struct traffic_lights_struct{
     float  middle_point_x;
     float  middle_point_y;
-    int light_color; /* red = 2,  green = 1, xparking = 3 */
+    Color_traffic_light light_color; /* red = 2,  green = 1, xparking = 3 */
     float area;
     float confidence;
 };
@@ -45,8 +45,12 @@ float calculte_angle_section_start_counterclockwise(Color_traffic_light traffic_
 static float Fit_Line_Orientation(const std::vector<cv::Point2f> &pts, const std::vector<int> &indices);
 void avoid_cube_start_section(Color_traffic_light traffic_light_color, Cube_number cube_number_per_section);
 
-Color_traffic_light esquivar_cubos(Color_traffic_light traffic_light_color, Cube_number_chr cube_number_per_section, Color_traffic_light past_cube);
+Color_traffic_light esquivar_cubos_1(void);
+Color_traffic_light esquivar_cubos_2( Color_traffic_light past_cube);
 void calculte_angle_section_start_clockwise_chr(Color_traffic_light traffic_light_color, Cube_number_chr cube_number_per_section, float *angle, float *hypotenuse);
+Color_traffic_light Corner_Case(Color_traffic_light past_cube, bool *middle_cube);
+Color_traffic_light esquivar_cubos_middle(void);
+Color_traffic_light Desicion(Color_traffic_light past_cube, bool middle_cube);
 
 // Holds the window points and the chosen wall's indices into them, shared by Slope()
 // and Distance_To_Wall() so both report on exactly the same wall-selection result
@@ -516,16 +520,20 @@ void postprocess_callback(
         index++;
     }
     int max_index = find_max_index(traffic_light_area, 10);
+    traffic_lights.light_color = none;
     if (bboxes.size() > 0){
         const auto named_bbox = bboxes.at(max_index); // Assuming only one bbox for traffic light detection
         
         traffic_lights.middle_point_x = (named_bbox.bbox.x_min + named_bbox.bbox.x_max) / 2.0;
         traffic_lights.middle_point_y = (named_bbox.bbox.y_min + named_bbox.bbox.y_max) / 2.0;
-        traffic_lights.light_color = (int)named_bbox.class_id;
+        traffic_lights.light_color = (Color_traffic_light)named_bbox.class_id;
         traffic_lights.area = traffic_light_area[max_index];
         traffic_lights.confidence = named_bbox.bbox.score;
-        printf(" color = %d, area = %f, middle point = (%f, %f), confidence = %f", traffic_lights.light_color, traffic_lights.area, traffic_lights.middle_point_x, traffic_lights.middle_point_y, traffic_lights.confidence);
-        printf("\n");
+        //printf(" color = %d, area = %f, middle point = (%f, %f), confidence = %f", traffic_lights.light_color, traffic_lights.area, traffic_lights.middle_point_x, traffic_lights.middle_point_y, traffic_lights.confidence);
+        //printf("\n");
+    }
+    else{
+        //printf("color: %d\n",traffic_lights.light_color);
     }
 }
 
@@ -643,6 +651,7 @@ void *Obstacle_Challenge_Thread(void *arg){
     float distancia_izquierda;
     float lidar_shared_buffer[360]; // Your shared buffer
     Color_traffic_light cubo_temp;
+    bool is_middle_case = false;
 
     Oradar_S2L_Get_Buffer(&lidar_shared_buffer[0]);
     distancia_frente = lidar_shared_buffer[90];
@@ -656,8 +665,10 @@ void *Obstacle_Challenge_Thread(void *arg){
     Spike_Reset_Gyro(0);
     Rasp_Gpio_Wait_For_Button();
     usleep(200000); //wiating for reset gyro
+    float slope = Slope(front);
     Spike_Reset_Gyro(0);
     Spike_Center_Vehicle_Short();
+
     //float slope = Slope(front);
     //printf("pendiente: %f\n", slope);
     //Spike_Reset_Gyro(slope);
@@ -666,8 +677,30 @@ void *Obstacle_Challenge_Thread(void *arg){
 
     //float slope = Slope(front);
     //Spike_Reset_Gyro(slope);
-    
-    cubo_temp = esquivar_cubos((Color_traffic_light)traffic_lights.light_color,CUBE_first, none);
+    /*Corner_Case(light_red, &is_middle_case);
+    float slope = Slope(front);
+    Spike_Reset_Gyro(slope);
+    usleep(200000);
+    if(is_middle_case == true){
+        esquivar_cubos_middle();
+    }
+    else{
+        printf("no cubo del medio\n");
+    }*/
+    cubo_temp = esquivar_cubos_1();
+    cubo_temp = esquivar_cubos_2(cubo_temp);
+    cubo_temp = Corner_Case(cubo_temp, &is_middle_case);
+    cubo_temp = Desicion(cubo_temp, is_middle_case);
+    cubo_temp = Corner_Case(cubo_temp, &is_middle_case);
+    cubo_temp = Desicion(cubo_temp, is_middle_case);
+    cubo_temp = Corner_Case(cubo_temp, &is_middle_case);
+    cubo_temp = Desicion(cubo_temp, is_middle_case);
+
+    slope = Slope(front);
+    Spike_Reset_Gyro(slope);
+    usleep(200000);
+    cubo_temp = esquivar_cubos_1();
+    esquivar_cubos_2(cubo_temp);
     //printf("color de cubo: %d\n",cubo );
     //esquivar_cubos((Color_traffic_light)traffic_lights.light_color,CUBE_second,cubo_temp );
     //avoid_cube_start_section((Color_traffic_light)traffic_lights.light_color, cube_first););
@@ -1206,7 +1239,8 @@ void calculte_angle_section_start_clockwise_chr(Color_traffic_light traffic_ligh
     distanceToBackWallmm = lidar_shared_buffer[90];
     diStanceToLeftWallmm = lidar_shared_buffer[180];
     
-    printf("atras: %f\n", distanceToBackWallmm);
+    //printf("atras: %f\n", distanceToBackWallmm);
+
     if(cube_number_per_section == CUBE_first){
         printf("primer cubo\n");
         side_1 = cube_number_per_section - distanceToBackWallmm;
@@ -1222,9 +1256,24 @@ void calculte_angle_section_start_clockwise_chr(Color_traffic_light traffic_ligh
         }
     }
 
-    else{
+    else if(cube_number_per_section == CUBE_second){
         printf("segundo cubo");
         side_1 = diStanceToFrontWallmm - cube_number_per_section;
+    
+        if(traffic_light_color == light_green){
+            printf("cubo verde\n");
+            side_2 = diStanceToLeftWallmm - 305;
+            angle_rad = atan(((side_1)/(side_2)));
+        }else if(traffic_light_color == light_red){
+            printf("cubo rojo\n");
+            side_2 = 1000 - diStanceToLeftWallmm - 305;
+            angle_rad = atan(((side_1)/(side_2)));
+        }
+    }
+
+    else{
+        printf("cubo del medio\n");
+        side_1 = cube_number_per_section - distanceToBackWallmm;
     
         if(traffic_light_color == light_green){
             printf("cubo verde\n");
@@ -1302,34 +1351,184 @@ void avoid_cube_start_section(Color_traffic_light traffic_light_color, Cube_numb
     Spike_Coast_Motors();
 }
 
-Color_traffic_light esquivar_cubos(Color_traffic_light traffic_light_color, Cube_number_chr cube_number_per_section, Color_traffic_light past_cube){
+Color_traffic_light esquivar_cubos_1(void){
     float angle_to_wall = 0;
     float hypotenuse = 0;
-    Color_traffic_light cube = traffic_light_color;//traffic_lights.light_color
+    Color_traffic_light cube = traffic_lights.light_color;
     direction direction_to_turn = invalid;
 
-    if( past_cube == traffic_light_color ){
-        Oradar_S2L_Advance_Until_Distance(80, 0, 1000, Hold);
+    if(cube == light_green){
+        calculte_angle_section_start_clockwise_chr(cube, CUBE_first, &angle_to_wall, &hypotenuse);
+        direction_to_turn = left;
+    }else if(cube == light_red){
+        calculte_angle_section_start_clockwise_chr(cube, CUBE_first, &angle_to_wall, &hypotenuse);
+        direction_to_turn = right;
     }
-
-    else{
-
-        if(traffic_light_color == light_green){
-            calculte_angle_section_start_clockwise_chr(traffic_light_color, cube_number_per_section, &angle_to_wall, &hypotenuse);
-            direction_to_turn = left;
-        }else if(traffic_light_color == light_red){
-            calculte_angle_section_start_clockwise_chr(traffic_light_color, cube_number_per_section, &angle_to_wall, &hypotenuse);
-            direction_to_turn = right;
-        }
-        printf("angulo: %f, hipotenusa: %f\n",angle_to_wall, hypotenuse);
-        Spike_Turn_For_Degrees(direction_to_turn, 60, angle_to_wall, 30);
-        Spike_Center_Vehicle_Short();
-        Spike_Advance_For_distance(80, (int)hypotenuse - 400, (angle_to_wall*direction_to_turn*-1));
-        Spike_Small_Turn((direction_to_turn * -1), 60, 0, 30);
-        Spike_Center_Vehicle_Short();
-        Spike_Coast_Motors();
-    }
+    //printf("angulo: %f, hipotenusa: %f\n",angle_to_wall, hypotenuse);
+    Spike_Turn_For_Degrees(direction_to_turn, 60, angle_to_wall, 30);
+    Spike_Center_Vehicle_Short();
+    Spike_Advance_For_distance(80, (int)hypotenuse - 400, (angle_to_wall*direction_to_turn*-1));
+    Spike_Small_Turn((direction_to_turn * -1), 60, 0, 30);
+    Spike_Center_Vehicle_Short();
+    Spike_Coast_Motors();
+    
     return cube;
+}
+
+Color_traffic_light esquivar_cubos_2( Color_traffic_light past_cube){
+    float angle_to_wall = 0;
+    float hypotenuse = 0;
+    Color_traffic_light cube = traffic_lights.light_color;
+    float middle_point_x = traffic_lights.middle_point_x;
+    direction direction_to_turn = invalid;
+    bool is_cube_present = false;
+
+    if(past_cube == light_red){
+        if((middle_point_x < 0.5) && (cube != none) && ( cube != light_xparking)){
+            is_cube_present = true;
+            if( past_cube == cube ){
+                Oradar_S2L_Advance_Until_Distance(80, 0, 1000, Hold);
+                printf("cubos iguales\n");
+            }else{
+
+                if(cube == light_green){
+                    calculte_angle_section_start_clockwise_chr(cube, CUBE_second, &angle_to_wall, &hypotenuse);
+                    direction_to_turn = left;
+                }else if(cube == light_red){
+                    calculte_angle_section_start_clockwise_chr(cube, CUBE_second, &angle_to_wall, &hypotenuse);
+                    direction_to_turn = right;
+                }
+                printf("angulo: %f, hipotenusa: %f\n",angle_to_wall, hypotenuse);
+                Spike_Turn_For_Degrees(direction_to_turn, 60, angle_to_wall, 30);
+                Spike_Center_Vehicle_Short();
+                Spike_Advance_For_distance(80, (int)hypotenuse - 400, (angle_to_wall*direction_to_turn*-1));
+                Spike_Small_Turn((direction_to_turn * -1), 60, 0, 30);
+                Spike_Center_Vehicle_Short();
+                Spike_Coast_Motors();
+            }
+            
+        }
+        else{
+            Oradar_S2L_Advance_Until_Distance(80, 0, 1000, Hold);
+            printf("no second cube\n");
+        }
+    }
+
+    else if(past_cube == light_green){
+        if((middle_point_x < 0.83) && ( cube != none) && ( cube != light_xparking)){
+            is_cube_present = true;
+            if( past_cube == cube ){
+                Oradar_S2L_Advance_Until_Distance(80, 0, 1000, Hold);
+                printf("cubos iguales\n");
+            }else{
+
+                if(cube == light_green){
+                    calculte_angle_section_start_clockwise_chr(cube, CUBE_second, &angle_to_wall, &hypotenuse);
+                    direction_to_turn = left;
+                }else if(cube == light_red){
+                    calculte_angle_section_start_clockwise_chr(cube, CUBE_second, &angle_to_wall, &hypotenuse);
+                    direction_to_turn = right;
+                }
+                printf("angulo: %f, hipotenusa: %f\n",angle_to_wall, hypotenuse);
+                Spike_Turn_For_Degrees(direction_to_turn, 60, angle_to_wall, 30);
+                Spike_Center_Vehicle_Short();
+                Spike_Advance_For_distance(80, (int)hypotenuse - 400, (angle_to_wall*direction_to_turn*-1));
+                Spike_Small_Turn((direction_to_turn * -1), 60, 0, 30);
+                Spike_Center_Vehicle_Short();
+                Spike_Coast_Motors();
+            }
+        }
+        else{
+            Oradar_S2L_Advance_Until_Distance(80, 0, 1000, Hold);
+            printf("no second cube\n");
+        }
+    }
+
+    if(is_cube_present == true){
+        return cube;
+    }
+    else{
+        return past_cube;
+    }
+}
+
+Color_traffic_light Corner_Case(Color_traffic_light past_cube, bool *middle_cube){
+    Oradar_S2L_Advance_Until_Distance(80, 0, 1100, Hold);
+    Color_traffic_light cube = traffic_lights.light_color;
+
+    if(cube == light_green){
+        printf("verde en la esquina\n");
+       Oradar_S2L_Advance_Until_Distance(80, 0, 400, Hold); 
+
+    }
+    else if(cube == light_red){
+        printf("rojo en la esquina\n");
+        Oradar_S2L_Advance_Until_Distance(80, 0, 990, Hold);
+    }
+    else{
+        printf("nada en la esquina\n");
+        Oradar_S2L_Advance_Until_Distance(80, 0, 650, Hold);
+        if(past_cube == light_green){
+            *middle_cube = false;
+        }
+        else{
+            *middle_cube = true;
+        }
+    }
+
+    Spike_Turn_For_Degrees(right, 60, 86, 40,true);
+    Spike_Center_Vehicle_Short();
+    Spike_Coast_Motors();
+
+    return cube;
+}
+
+Color_traffic_light esquivar_cubos_middle(void){
+    float angle_to_wall = 0;
+    float hypotenuse = 0;
+    Color_traffic_light cube = traffic_lights.light_color;
+    direction direction_to_turn = invalid; 
+
+    if(cube == light_green){
+        calculte_angle_section_start_clockwise_chr(cube, CUBE_middle, &angle_to_wall, &hypotenuse);
+        direction_to_turn = left;
+    }
+    
+    else if(cube == light_red){
+        calculte_angle_section_start_clockwise_chr(cube, CUBE_middle, &angle_to_wall, &hypotenuse);
+        direction_to_turn = right;
+    }
+
+    printf("angulo: %f, hipotenusa: %f\n",angle_to_wall, hypotenuse);
+    Spike_Turn_For_Degrees(direction_to_turn, 60, angle_to_wall, 30);
+    Spike_Center_Vehicle_Short();
+    Spike_Advance_For_distance(80, (int)hypotenuse - 420, (angle_to_wall*direction_to_turn*-1));
+    Spike_Small_Turn((direction_to_turn * -1), 60, 0, 30);
+    Spike_Center_Vehicle_Short();
+    Spike_Coast_Motors();
+
+    return cube;
+}
+
+Color_traffic_light Desicion(Color_traffic_light past_cube, bool middle_cube){
+    Color_traffic_light cubo_temp;
+    float slope = Slope(front);
+    Spike_Reset_Gyro(slope);
+    usleep(200000);
+    if(past_cube == none){
+        if (middle_cube == true){
+            cubo_temp = esquivar_cubos_middle();
+        }
+        else{
+            cubo_temp = esquivar_cubos_1();
+            cubo_temp = esquivar_cubos_2(cubo_temp);
+        }
+    }
+    else{
+        cubo_temp = esquivar_cubos_2(past_cube);
+    }
+
+    return cubo_temp;
 }
 
 void signal_handler(int signum){
