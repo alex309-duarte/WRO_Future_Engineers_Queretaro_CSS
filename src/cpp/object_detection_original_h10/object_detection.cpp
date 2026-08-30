@@ -687,6 +687,7 @@ void *Obstacle_Challenge_Thread(void *arg){
     else{
         printf("no cubo del medio\n");
     }*/
+
     cubo_temp = esquivar_cubos_1();
     cubo_temp = esquivar_cubos_2(cubo_temp);
     cubo_temp = Corner_Case(cubo_temp, &is_middle_case);
@@ -696,11 +697,11 @@ void *Obstacle_Challenge_Thread(void *arg){
     cubo_temp = Corner_Case(cubo_temp, &is_middle_case);
     cubo_temp = Desicion(cubo_temp, is_middle_case);
 
-    slope = Slope(front);
+    /*slope = Slope(front);
     Spike_Reset_Gyro(slope);
     usleep(200000);
     cubo_temp = esquivar_cubos_1();
-    esquivar_cubos_2(cubo_temp);
+    esquivar_cubos_2(cubo_temp);*/
     //printf("color de cubo: %d\n",cubo );
     //esquivar_cubos((Color_traffic_light)traffic_lights.light_color,CUBE_second,cubo_temp );
     //avoid_cube_start_section((Color_traffic_light)traffic_lights.light_color, cube_first););
@@ -1512,7 +1513,12 @@ Color_traffic_light esquivar_cubos_middle(void){
 
 Color_traffic_light Desicion(Color_traffic_light past_cube, bool middle_cube){
     Color_traffic_light cubo_temp;
-    float slope = Slope(front);
+    float slope = Slope(left);
+    if(slope > 0){
+        slope = slope - 90;
+    }else{
+        slope = slope + 90;
+    }
     Spike_Reset_Gyro(slope);
     usleep(200000);
     if(past_cube == none){
