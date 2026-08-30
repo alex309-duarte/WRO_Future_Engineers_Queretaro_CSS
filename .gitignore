@@ -5,3 +5,5 @@
 software/cpp/object_detection/build/aarch64/_deps/
 software_h10/cpp/object_detection_original_h10/build/h10_original/_deps/
 *.dir
+
+/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/object_detection_original_h10/build/h10_original/nul
