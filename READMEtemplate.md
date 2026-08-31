@@ -1,5 +1,6 @@
 # CSS - WRO Future Engineers Querétaro
 
+![WRO Vehicle Visualizer](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS/blob/9ae6e040aea5171d325f9223b2bc81c13cfbfc0a/v-photos/vehicle.gif?raw=true)
 
 
 This repository contains the engineering documentation for **CSS**'s autonomous vehicle for the **WRO Future Engineers**, 2026 season.
