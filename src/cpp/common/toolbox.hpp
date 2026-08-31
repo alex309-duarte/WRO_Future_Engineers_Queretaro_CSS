@@ -38,6 +38,13 @@
 extern std::vector<cv::Scalar> COLORS;
 using Clock = std::chrono::steady_clock;
 
+// Generic, opt-in stop flag for the streaming/output loop in run_post_process().
+// Defaults to false and is otherwise untouched here, so apps that never set it
+// keep today's behavior; an app's own signal_handler can set it (alongside any
+// app-specific termination flag it already has) to make Ctrl+C flush/close the
+// output video cleanly instead of killing the process mid-write.
+extern volatile bool g_stop_requested;
+
 namespace hailo_utils {
 
     namespace fs = std::filesystem;

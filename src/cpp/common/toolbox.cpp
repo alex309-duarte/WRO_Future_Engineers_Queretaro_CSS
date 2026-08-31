@@ -1,6 +1,8 @@
 #include "toolbox.hpp"
 #include "hailo_infer.hpp"
 #include "resources_manager.hpp"
+
+volatile bool g_stop_requested = false;
 #include <chrono>
 #include <thread>
 #include <filesystem>
@@ -949,7 +951,7 @@ hailo_status run_post_process(
     };
 
     // Consume results until queue is closed or user quits.
-    while (results_queue->pop(output_item)) {
+    while (!g_stop_requested && results_queue->pop(output_item)) {
 
         if (input_type.is_camera)
             frame_count++;

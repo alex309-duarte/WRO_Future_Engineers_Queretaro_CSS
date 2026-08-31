@@ -695,6 +695,17 @@ void *Obstacle_Challenge_Thread(void *arg){
     cubo_temp = Corner_Case(cubo_temp, &is_middle_case);
     cubo_temp = Desicion(cubo_temp, is_middle_case);
     cubo_temp = Corner_Case(cubo_temp, &is_middle_case);
+    cubo_temp = Desicion(cubo_temp, is_middle_case);cubo_temp = Corner_Case(cubo_temp, &is_middle_case);
+    cubo_temp = Desicion(cubo_temp, is_middle_case);
+    cubo_temp = Corner_Case(cubo_temp, &is_middle_case);
+    cubo_temp = Desicion(cubo_temp, is_middle_case);
+    cubo_temp = Corner_Case(cubo_temp, &is_middle_case);
+    cubo_temp = Desicion(cubo_temp, is_middle_case);
+    cubo_temp = Corner_Case(cubo_temp, &is_middle_case);
+    cubo_temp = Desicion(cubo_temp, is_middle_case);
+    cubo_temp = Corner_Case(cubo_temp, &is_middle_case);
+    cubo_temp = Desicion(cubo_temp, is_middle_case);
+    cubo_temp = Corner_Case(cubo_temp, &is_middle_case);
     cubo_temp = Desicion(cubo_temp, is_middle_case);
 
     /*slope = Slope(front);
@@ -1540,5 +1551,6 @@ Color_traffic_light Desicion(Color_traffic_light past_cube, bool middle_cube){
 void signal_handler(int signum){
     printf("\nCtrl+C detceted\n");
     terminating_main = 1;
+    g_stop_requested = true; // let run_post_process() finish releasing the video writer cleanly
     signal(SIGINT, SIG_DFL);
 }
