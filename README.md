@@ -93,14 +93,14 @@ More info: [WRO Official Site](https://wro-association.org/) | [Future Engineers
 
 <table style="width:100%">
 <tr>
-<td align="center"><img src="v-photos/top.jpg" width="220" style="transform: rotate(90deg);"><br>Top</td>
-<td align="center"><img src="v-photos/front.jpg" width="400"><br>Front</td>
-<td align="center"><img src="v-photos/left.jpg" width="400"><br>Left</td>
+<td align="center"><img src="v-photos/Top.JPG" width="220" style="transform: rotate(90deg);"><br>Top</td>
+<td align="center"><img src="v-photos/Front.JPG" width="400"><br>Front</td>
+<td align="center"><img src="v-photos/Left.JPG" width="400"><br>Left</td>
 </tr>
 <tr>
-<td align="center"><img src="v-photos/bottom.jpg" width="400" ><br>Bottom</td>
-<td align="center"><img src="v-photos/back.jpg" width="400"><br>Back</td>
-<td align="center"><img src="v-photos/right.jpg" width="400"><br>Right</td>
+<td align="center"><img src="v-photos/Bottom.JPG" width="400" ><br>Bottom</td>
+<td align="center"><img src="v-photos/Back.JPG" width="400"><br>Back</td>
+<td align="center"><img src="v-photos/Right.JPG" width="400"><br>Right</td>
 </tr>
 </table>
 
