@@ -1,24 +1,15 @@
 # CSS - WRO Future Engineers Querétaro
 
-![WRO Vehicle Visualizer](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS/blob/9ae6e040aea5171d325f9223b2bc81c13cfbfc0a/v-photos/vehicle.gif?raw=true)
-
-
 This repository contains the engineering documentation for **CSS**'s autonomous vehicle for the **WRO Future Engineers**, 2026 season.
-
-## Run this command to run obstacle challenge with no display
-sudo /home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/object_detection_original_h10/build/h10_original/object_detection   --net /home/maker/WRO_Future_Engineers_Queretaro_CSS/src/HailoModels/roboflow_yolov8n_wro_h10.hef   --input rpi --no-display
-
-## Run this command to run obstacle challenge with display
-sudo /home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/object_detection_original_h10/build/h10_original/object_detection   --net /home/maker/WRO_Future_Engineers_Queretaro_CSS/src/HailoModels/roboflow_yolov8n_wro_h10.hef   --input rpi
 
 ## Table of Contents
 
 1. [Our Team](#our-team)
 2. [Challenge Overview](#challenge-overview)
 3. [Our Robot](#our-robot)
-    - [Sensors](#sensors)
-    - [Mobility and Chassis](#mobility-and-chassis)
-    - [Electronics](#electronics)
+    - 4. [Sensors](#sensors)
+    - 5. [Mobility and Chassis](#mobility-and-chassis)
+    - 6. [Electronics](#electronics)
 7. [Software](#software)
 8. [Obstacle Management](#obstacle-management)
 9. [Construction Guide](#construction-guide)
@@ -30,67 +21,90 @@ sudo /home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/object_detection_ori
 ---
 
 ## 1. Our Team <a name="our-team"></a>
+<mark>Add team picture</mark>
 
-<div align="center">
-<img src="t-photos/t-photo.jpg" width="500">
-<!-- Official team photo -->
-</div>
+### Team members
 
-### [Your name]
-**Age:** [ ]
-**Role:** [e.g. Captain, Software, Electronics, Mechanics]
+### Christian Gael Centeno Velez
+**Age:** 17\
+**Role:** Captain. Software, electronics and mechanical design
 
-[1-2 lines about your background/experience in robotics or the project]
-
-> "[Personal quote or philosophy about the project, optional]"
-
----
-
-### [Teammate's name]
-**Age:** [ ]
-**Role:** [ ]
-
-[Brief description]
+<mark>Brief description</mark>
 
 > "[Optional quote]"
 
-*(Repeat this block for each team member)*
+### Sebastián Esquivel Mondragón
+**Age:** 18\
+**Role:** Documentation, electronics and mechanical design
+
+Currently pursuing a Bachelor of Science in Mechatronics Engineering at ITESM.\
+Previous experience in several WRO editions, both in Future Engineers and RoboMission.\
+<mark>Continue brief description</mark>
+
+> "[Optional quote]"
+
+---
+
+### Coaches
+
+### Manuel Alejandro Cardoso Duarte
+**Age:** <mark>Age</mark>\
+**Role:** Coach
+
+<mark>Brief description</mark>
+
+> "[Optional quote]"
+
+### José de Jesús Santana Ramírez
+**Age:** <mark>Age</mark>\
+**Role:** Coach
+
+<mark>Brief description</mark>
+
+> "[Optional quote]"
 
 ---
 
 ## 2. Challenge Overview <a name="challenge-overview"></a>
 
-The **WRO Future Engineers** challenge requires teams to build a fully autonomous vehicle capable of:
+<img src="other\additionalPictures\DetailedGameField.png">
 
-- Navigating a track with randomized wall layouts
-- Detecting and avoiding colored obstacles (green/red blocks), passing on the correct side based on color
-- Performing a parallel parking maneuver
-- Completing the Open Challenge (obstacle-free laps) and the Obstacle Challenge (with obstacles)
+The **WRO Future Engineers** challenge requires teams to build a fully autonomous vehicle capable of completing both of the following challenges:
 
-More info: [WRO Official Site](https://wro-association.org/) | [Future Engineers Rules](https://wro-association.org/wp-content/uploads/WRO-2025-Future-Engineers-Self-Driving-Cars-General-Rules.pdf)
+### Open Challenge
+The vehicle must complete three laps on the track with random placements
+of the inside track walls.
 
-*(Check that the rules link points to the current 2026 version)*
+### Obstacle Challenge
+The vehicle must complete three laps on the track while detecting and avoiding randomly placed coloured obstacles (either green or red blocks), passing them on a specific side according to their colour, and then finish by performing a parallel parking maneuver.
+
+
+More info: [WRO Official Site](https://wro-association.org/) | [Future Engineers Rules](https://wro-association.org/wp-content/uploads/WRO-2026-Future-Engineers-Self-Driving-Cars-General-Rules.pdf)
 
 ---
 
-## 3. Our Robot <a name="our-robo"></a>
+## 3. Our Robot <a name="our-robot"></a>
 
-**Robot name:** [ ]
+**Robot name:** <mark>Name</mark>
+
+![WRO Vehicle Visualizer](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS/blob/9ae6e040aea5171d325f9223b2bc81c13cfbfc0a/v-photos/vehicle.gif?raw=true)
+
+<mark>Add fpv video</mark>
 
 <table style="width:100%">
 <tr>
-<td align="center"><img src="v-photos/front.jpg" width="200"><br>Front</td>
-<td align="center"><img src="v-photos/back.jpg" width="200"><br>Back</td>
-<td align="center"><img src="v-photos/left.jpg" width="200"><br>Left</td>
+<td align="center"><img src="v-photos/top.jpg" width="220" style="transform: rotate(90deg);"><br>Top</td>
+<td align="center"><img src="v-photos/front.jpg" width="400"><br>Front</td>
+<td align="center"><img src="v-photos/left.jpg" width="400"><br>Left</td>
 </tr>
 <tr>
-<td align="center"><img src="v-photos/right.jpg" width="200"><br>Right</td>
-<td align="center"><img src="v-photos/top.jpg" width="200"><br>Top</td>
-<td align="center"><img src="v-photos/bottom.jpg" width="200"><br>Bottom</td>
+<td align="center"><img src="v-photos/bottom.jpg" width="400" ><br>Bottom</td>
+<td align="center"><img src="v-photos/back.jpg" width="400"><br>Back</td>
+<td align="center"><img src="v-photos/right.jpg" width="400"><br>Right</td>
 </tr>
 </table>
 
-[Brief general description of the vehicle: dimensions, design philosophy, what sets it apart]
+<mark>Brief general description of the vehicle: dimensions, design philosophy, what sets it apart</mark>
 
 ---
 
@@ -260,8 +274,8 @@ sudo ./build/your_program --config config.yaml
 ## 12. Resources <a name="resources"></a>
 
 - [WRO Official Site](https://wro-association.org/)
-- [Future Engineers Rules](https://wro-association.org/)
-- [Team Repository]([your link here])
+- [Future Engineers Rules](https://wro-association.org/wp-content/uploads/WRO-2026-Future-Engineers-Self-Driving-Cars-General-Rules.pdf)
+- [Team Repository](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS)
 
 ---
 
@@ -274,4 +288,4 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 
 ---
 
-> *Document maintained by [Team Name] | Last updated: [month 2026]*
+> *Document maintained by CSS | Last updated: September 2026*

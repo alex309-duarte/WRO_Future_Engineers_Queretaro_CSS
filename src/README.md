@@ -258,3 +258,12 @@ in the Hailo AI Software Suite documentation.
 Copy the resulting `.hef` onto the Pi 5, into `src/HailoModels/` (or wherever
 `--net`/`resources_config.yaml` expects it), and pass its name/path to
 `--net` when running `object_detection` (part 3, step 9).
+
+# How to run
+
+
+### Run this command to run obstacle challenge with no display
+sudo /home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/object_detection_original_h10/build/h10_original/object_detection   --net /home/maker/WRO_Future_Engineers_Queretaro_CSS/src/HailoModels/roboflow_yolov8n_wro_h10.hef   --input rpi --no-display
+
+### Run this command to run obstacle challenge with display
+sudo /home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/object_detection_original_h10/build/h10_original/object_detection   --net /home/maker/WRO_Future_Engineers_Queretaro_CSS/src/HailoModels/roboflow_yolov8n_wro_h10.hef   --input rpi
