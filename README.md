@@ -93,7 +93,7 @@ More info: [WRO Official Site](https://wro-association.org/) | [Future Engineers
 
 <table style="width:100%">
 <tr>
-<td align="center"><img src="v-photos/Top.JPG" width="220" style="transform: rotate(90deg);"><br>Top</td>
+<td align="center"><img src="v-photos/Top.JPG" width="400"><br>Top</td>
 <td align="center"><img src="v-photos/Front.JPG" width="400"><br>Front</td>
 <td align="center"><img src="v-photos/Left.JPG" width="400"><br>Left</td>
 </tr>
