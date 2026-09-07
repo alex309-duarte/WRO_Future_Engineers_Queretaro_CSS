@@ -17,7 +17,7 @@ This repository contains the engineering documentation for **CSS**'s autonomous 
 6. [Bill of Materials (BOM)](#bom)
 7. [Repository Structure](#repository-structure)
 8. [Setup & Execution Instructions](#setup-instructions)
-9. [Driving Video](#driving-video)
+9. [Driving Videos](#driving-videos)
 10. [Resources & References](#resources)
 11. [License](#license)
 
@@ -52,7 +52,7 @@ This repository contains the engineering documentation for **CSS**'s autonomous 
 **Age:** 27\
 **Role:** Coach\
 <img src="t-photos\Alejandro.jpeg" width="150">
-> 📝 **TODO, Brief description:** Background (engineering/teaching/prior WRO experience). Per rule 3.3, keep the framing consistent with "guides, doesn't build or code."
+> MISSING **TODO, Brief description:** Background (engineering/teaching/prior WRO experience). Per rule 3.3, keep the framing consistent with "guides, doesn't build or code."
 ---
 
 #### José de Jesús Santana Ramírez, M.Sc.
@@ -445,44 +445,44 @@ Green/red pillar identification is handled by the camera + Hailo-10H YOLOv8n pip
 
 #### Sensor Fusion & Heading Estimation
 
-> 📝 **TODO:** Based on the current code, heading comes from the SPIKE Prime Hub's built-in gyro, read/reset via serial commands (`spike.cpp`), supplemented situationally by LiDAR wall-orientation data (`Slope()`, `Correction_For_Triangles_Left/Right`, `Advance_And_Measure_Left/Right_Slope`) to correct against the walls during specific maneuvers. This is **not** currently a formal fused estimate (no complementary filter or EKF combining both sources into one heading value), it's gyro-primary with LiDAR-based positional correction used where needed. If you want to claim "sensor fusion" here, either name/implement an actual fusion method, or reword this section to describe the current gyro + LiDAR-correction approach as-is.
+> MISSING **TODO:** Based on the current code, heading comes from the SPIKE Prime Hub's built-in gyro, read/reset via serial commands (`spike.cpp`), supplemented situationally by LiDAR wall-orientation data (`Slope()`, `Correction_For_Triangles_Left/Right`, `Advance_And_Measure_Left/Right_Slope`) to correct against the walls during specific maneuvers. This is **not** currently a formal fused estimate (no complementary filter or EKF combining both sources into one heading value), it's gyro-primary with LiDAR-based positional correction used where needed. If you want to claim "sensor fusion" here, either name/implement an actual fusion method, or reword this section to describe the current gyro + LiDAR-correction approach as-is.
 
 #### Trajectory Control & Closed-Loop Steering
 
 Steering uses a Proportional-Derivative (PD) controller (no integral term is documented): the P term reacts to the lateral position error relative to the tracked wall (from `Distance_To_Wall()`), and the D term anticipates the rate of change of that error to damp oscillations, allowing smooth trajectories through both the wall-following and obstacle-avoidance challenges.
 
-> 📝 **TODO (Criterion 3, top-score territory):** No specific Kp/Kd gain values are recorded in the current documentation, nor a tuning narrative. Fill in: the actual gain values used, what was tried first that didn't work (e.g. oscillation at a given gain, overshoot on corners), and what was changed to fix it.
+> MISSING **TODO (Criterion 3, top-score territory):** No specific Kp/Kd gain values are recorded in the current documentation, nor a tuning narrative. Fill in: the actual gain values used, what was tried first that didn't work (e.g. oscillation at a given gain, overshoot on corners), and what was changed to fix it.
 
 #### Avoidance & Navigation Logic
 
 * **Passing Rules:** Green → pass on left | Red → pass on right
 * Underlying logic: pillar color decisions are handled by `Desicion()`/`Corner_Case()`, and the actual avoidance maneuvers are implemented as `esquivar_cubos_1`/`esquivar_cubos_2`/`esquivar_cubos_middle` and `avoid_cube_start_section`, which use angle/hypotenuse geometry (`calculte_angle_section_start_clockwise[_chr]`, `calculte_angle_section_start_counterclockwise`) to aim the robot's approach at each detected pillar's position.
-* **Parallel Parking Maneuver:** 📝 **TODO**, not covered in the provided documentation. Needs: how the parking lot is detected (LiDAR gap detection? vision?) and how the maneuver itself is executed.
+* **Parallel Parking Maneuver:** MISSING **TODO**, not covered in the provided documentation. Needs: how the parking lot is detected (LiDAR gap detection? vision?) and how the maneuver itself is executed.
 
 #### State Machine & Safety Systems
 
 * **Robot States:** The code confirms an `Obstacle_Challenge_Thread` state machine exists, driving wall-following and pillar-avoidance decisions/maneuvers, but the provided files don't enumerate a full named state list.
-  > 📝 **TODO:** Confirm whether Startup → Normal navigation → Obstacle avoidance → Parking → Stopped matches the actual implemented states, or replace with the real list.
+  > MISSING **TODO:** Confirm whether Startup → Normal navigation → Obstacle avoidance → Parking → Stopped matches the actual implemented states, or replace with the real list.
 * **Safety Systems:** `rasp_gpio.cpp` implements a start button (`Rasp_Gpio_Wait_For_Button`) and a status LED, plus a relay that powers on the SPIKE hub at boot.
-  > 📝 **TODO:** No emergency-stop mechanism, sensor-failure handling, or automatic recovery behavior is documented, fill in if implemented, or note as a known gap.
+  > MISSING **TODO:** No emergency-stop mechanism, sensor-failure handling, or automatic recovery behavior is documented, fill in if implemented, or note as a known gap.
 
 ---
 
 ## 4. Engineering Process & Design Iterations <a id="engineering-process"></a>
 
-> 📝 **TODO, Engineering Journal Link:** add once available.
+> MISSING **TODO, Engineering Journal Link:** add once available.
 
 ### Prototype Evolution
-> 📝 **TODO (Criterion 4, Systems Thinking, the highest-value section in the whole rubric):** don't just list what changed, explain the problem you were solving, what you tried, what failed and why, and what evidence (tests, data) supported the final choice. This is the "we chose X instead of Y because…" reasoning the rubric explicitly rewards at level 6.
+> MISSING **TODO (Criterion 4, Systems Thinking, the highest-value section in the whole rubric):** don't just list what changed, explain the problem you were solving, what you tried, what failed and why, and what evidence (tests, data) supported the final choice. This is the "we chose X instead of Y because…" reasoning the rubric explicitly rewards at level 6.
 
-* **Prototype 1:** 📝 TODO, initial design, what you tested, what failed.
-* **Prototype 2 (Final):** 📝 TODO, specific improvements to chassis rigidity, weight balance, wiring, and *why* each was made.
+* **Prototype 1:** MISSING TODO, initial design, what you tested, what failed.
+* **Prototype 2 (Final):** MISSING TODO, specific improvements to chassis rigidity, weight balance, wiring, and *why* each was made.
 
 ### Key Challenges & Solutions
-> 📝 **TODO:** pick 2–3 real technical problems and document problem → investigation → solution. (The RPLiDAR SDK scaling-factor question you were debugging, `dist_mm_q6` vs. `dist_mm_q2`, is a strong candidate if you've resolved it: it's exactly the kind of concrete, verifiable technical decision this section should showcase.)
+> MISSING **TODO:** pick 2–3 real technical problems and document problem → investigation → solution. (The RPLiDAR SDK scaling-factor question you were debugging, `dist_mm_q6` vs. `dist_mm_q2`, is a strong candidate if you've resolved it: it's exactly the kind of concrete, verifiable technical decision this section should showcase.)
 
-* **Challenge:** 📝 TODO
-* **Solution:** 📝 TODO
+* **Challenge:** MISSING TODO
+* **Solution:** MISSING TODO
 
 ---
 
@@ -500,9 +500,9 @@ Steering uses a Proportional-Derivative (PD) controller (no integral term is doc
 *(Generic sequence is fine to keep, just confirm it matches your actual build order before finalizing.)*
 
 ### Tools Used
-* 📝 TODO, 3D printer model
-* 📝 TODO, soldering tools
-* 📝 TODO, other relevant tools
+* MISSING TODO, 3D printer model
+* MISSING TODO, soldering tools
+* MISSING TODO, other relevant tools
 
 ---
 
@@ -567,15 +567,19 @@ Steering uses a Proportional-Derivative (PD) controller (no integral term is doc
 
 ## 8. Setup & Execution Instructions <a name="setup-instructions"></a>
 
-> 📝 **TODO, highest-priority gap for Criterion 5 (Reproducibility).** Without this, no one, including judges, can verify your code runs. Write concrete step-by-step instructions: dependencies to install, how to build/compile, how to flash/run on the Raspberry Pi, and any calibration steps needed before first run.
+> MISSING **TODO, highest-priority gap for Criterion 5 (Reproducibility).** Without this, no one, including judges, can verify your code runs. Write concrete step-by-step instructions: dependencies to install, how to build/compile, how to flash/run on the Raspberry Pi, and any calibration steps needed before first run.
 
-## 9. Driving Video <a name="driving-video"></a>
+## 9. Driving Videos <a name="driving-videos"></a>
 
 ### Open Challenge
-https://www.youtube.com/shorts/gWYS8fVQXW0
+*(Click on preview to visit YouTube Video)*
+
+[![Final video of fixing issues in your code in VS Code](https://img.youtube.com/vi/gWYS8fVQXW0/maxresdefault.jpg)](https://www.youtube.com/shorts/gWYS8fVQXW0)
 
 ### Obstacle Challenge
-https://www.youtube.com/shorts/b2bn9Eo9FxU
+*(Click on preview to visit YouTube Video)*
+
+[![Final video of fixing issues in your code in VS Code](https://img.youtube.com/vi/b2bn9Eo9FxU/maxresdefault.jpg)](https://www.youtube.com/shorts/b2bn9Eo9FxU)
 
 ---
 
