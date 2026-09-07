@@ -14,7 +14,7 @@ This repository contains the engineering documentation for **CSS**'s autonomous 
    - [3.3 Obstacle Management & Control Strategy](#obstacle-management)
 4. [Engineering Process & Design Iterations](#engineering-process)
 5. [Construction Guide](#construction-guide)
-6. [Cost Report](#cost-report)
+6. [Bill of Materials (BOM)](#bom)
 7. [Repository Structure](#repository-structure)
 8. [Setup & Execution Instructions](#setup-instructions)
 9. [Driving Video](#driving-video)
@@ -124,8 +124,6 @@ More info: [WRO Official Site](https://wro-association.org/) | [Future Engineers
 
 </table>
 
-<img src="other\additionalMedia\Others\fpv.gif">
-
 > 📝 **TODO — Brief general description:** 3–5 sentences summarizing chassis type, drive layout, sensor suite, and what's distinctive about your approach. This is the "executive summary" before the detailed sections below.
 
 ### 3.1 Mobility Management <a id="mobility-management"></a>
@@ -139,12 +137,12 @@ More info: [WRO Official Site](https://wro-association.org/) | [Future Engineers
 
 #### Drivetrain
 
-The vehicle uses a single LEGO SPIKE Large Motor (Part 45602) driving the rear axle through a $20{:}28$ gear reduction ($R = 1.4$), turning LEGO $62.4 \times 20\text{S}$ rubber tires (Part 32019) ($r = 0.0312\text{ m}$). The motor and gear ratio were not assumed, they were sized against a full dynamic torque analysis targeting $a = 0.73\text{ m/s}^2$ over $t = 0.5\text{ s}$ to reach cruising speed.
+The vehicle uses a single LEGO SPIKE Large Angular Motor (Part 45602) driving the rear axle through a $20{:}28$ gear reduction ($R = 1.4$), turning LEGO $62.4 \times 20\text{S}$ rubber tires (Part 32019) ($r = 0.0312\text{ m}$). The motor and gear ratio were not assumed, they were sized against a full dynamic torque analysis targeting $a = 0.73\text{ m/s}^2$ over $t = 0.5\text{ s}$ to reach cruising speed.
 <table>
   <tr>
     <td align="center">
       <img src="other/additionalMedia/Others/45602_LEGO.jpg" width="200"><br>
-      <em>LEGO SPIKE Large Motor (45602)</em>
+      <em>LEGO SPIKE Large Angular Motor (45602)</em>
     </td>
     <td align="center">
       <img src="other/additionalMedia/Others/Tire.jpg" width="200"><br>
@@ -212,7 +210,7 @@ The vehicle uses a single LEGO SPIKE Large Motor (Part 45602) driving the rear a
 > T_{m,req} = T_m \cdot 1.25 = 0.02702\text{ N}\cdot\text{m} \cdot 1.25 = \mathbf{0.03377\text{ N}\cdot\text{m}} \quad (\approx 3.38\text{ Ncm})
 > $$
 >
-> **3. LEGO SPIKE Large Motor (45602) Analysis & Speed Derivation**
+> **3. LEGO SPIKE Large Angular Motor (45602) Analysis & Speed Derivation**
 >
 > **3.1 Motor Technical Specifications (9V)**
 >
@@ -303,6 +301,8 @@ The vehicle uses a single LEGO SPIKE Large Motor (Part 45602) driving the rear a
 
 ### 3.3 Obstacle Management & Control Strategy <a id="obstacle-management"></a>
 
+<img src="other\additionalMedia\Others\fpv.gif">
+
 #### System & Software Architecture
 > 📝 **TODO (Criterion 3 — Software Architecture):** Include an actual data-flow diagram (sensors → processing → decision → actuators), not just prose. Confirm language (C++) and platform (Raspberry Pi 5) — consistent with what's below, keep it that way.
 
@@ -364,21 +364,35 @@ The vehicle uses a single LEGO SPIKE Large Motor (Part 45602) driving the rear a
 
 ---
 
-## 6. Cost Report <a id="cost-report"></a>
+## 6. Bill of Materials (BOM) <a id="bom"></a>
 
-> 📝 **TODO:** not directly scored by the Appendix C rubric, but expected by the template and low-effort to complete — fill in real unit costs/quantities in MXN.
+| Component | Quantity | Unit Cost (MXN) | Total per Component (MXN) |
+| --- | --- | --- | --- |
+| [LEGO SPIKE Prime Large Angular Motor (Part 45602)](https://store.edacom.mx/products/spike-motor-angular-grande?pr_prod_strat=e5_desc&pr_rec_id=72c621cae&pr_rec_pid=7107742367844&pr_ref_pid=7253040758884&pr_seq=uniform) | 1 | $1,737.85 | $1,737.85 |
+| [LEGO SPIKE Prime Small Angular Motor (Part 45607)](https://store.edacom.mx/products/spike-motor-angular-pequeno) | 1 | $1,643.96 | $1,643.96 |
+| [LEGO Technic Large Hub (Part 45601)](https://www.toytag.com/en-us/products/lego-technic-45601-large-hub-for-spike-prime) | 1 | $10,775.82 | $10,775.82 |
+| [4-Pack: LEGO Tires 62.4 x 20 S (32019) & Rims (86652)](https://www.amazon.com.mx/LEGO-Tire-86652-32019-75999/dp/B01CODUYCE) | 1 | $2,079.07 | $2,079.07 |
+| [Geekworm X1203 5.1V 5A UPS Shield for Raspberry Pi 5 Series](https://geekworm.com/products/x1203) | 1 | $760.05 | $760.05 |
+| [Raspberry Pi 5 (16GB RAM)](https://www.330ohms.com/shop/raspberry-pi-raspberry-pi-5-2/rp-01113-raspberry-pi-5-16gb-1501) | 1 | $7,329.99 | $7,329.99 |
+| [Raspberry Pi Camera Module 3 Wide](https://www.330ohms.com/shop/raspberry-pi-raspberry-pi-zero-9/rp-00874-raspberry-pi-camara-3-wide-1326) | 1 | $949.99 | $949.99 |
+| [Grove Relay Module](https://www.geekfactory.mx/producto/relevador-grove/) | 1 | $48.00 | $48.00 |
+| [Grove Red LED Button Module](https://www.330ohms.com/shop/sd-20069-boton-con-led-rojo-grove-361) | 1 | $16.19 | $16.19 |
+| [Raspberry Pi AI HAT+ 40 TOPS (Hailo-10H)](https://www.330ohms.com/shop/raspberrypi-ai-hat2-40tops-1612) | 1 | $5,002.00 | $5,002.00 |
+| [Hiwonder STL-19P D500 LiDAR Sensor](https://www.hiwonder.com/products/stl-19p-d500-lidar?_pos=1&_sid=b3ffeebf7&_ss=r) | 1 | $1,688.83 | $1,688.83 |
+| [Panasonic NCR18650B 3400mAh 18650 Li-ion Battery](https://www.mercadolibre.com.mx/ncr18650b-bateria-panasonic-18650-3400mah/up/MLMU723197120#polycard_client=search-desktop&be_origin=backend&overlay_label=not_apply&search_layout=grid&position=10&type=product&tracking_id=464dd6eb-79c7-47da-8f85-c58e41ed7a4d&wid=MLM596134222&sid=search) | 4 | $219.90 | $879.60 |
+| **Total (MXN)** |  |  | **$32,911.35** |
 
-| Component | Qty | Unit Cost (MXN) | Total (MXN) |
-|---|---|---|---|
-| Raspberry Pi 5 | 1 | $\vert{}$ |
-| RPLiDAR S2L | 1 | $\vert{}$ |
-| IMU [model] | 1 | $\vert{}$ |
-| [Microcontroller] | 1 | $\vert{}$ |
-| [Motor] | 1 | $\vert{}$ |
-| [Steering servo] | 1 | $\vert{}$ |
-| [Battery] | 1 | $\vert{}$ |
-| [Chassis/3D printing] | - | $\vert{}$ |
-| **Total** | | | **$ ** |
+> **Disclaimer:** Conversion rate obtained from Google and applied when necessary: 1 United States Dollar equals 16.89 Mexican Peso (Sep 6, 8:28 PM UTC · From Morningstar). All prices were retrieved from the links on Sep 6, 2026.
+
+---
+
+### Conversion Notes
+
+* **LEGO Technic Large Hub (45601):** $638.00 USD × 16.89 MXN = **$10,775.82 MXN**
+* **Geekworm X1203 UPS Shield:** $45.00 USD × 16.89 MXN = **$760.05 MXN**
+* **Hiwonder STL-19P D500 LiDAR:** $99.99 USD × 16.89 MXN = **$1,688.83 MXN**
+* **Panasonic NCR18650B Batteries:** $219.90 MXN × 4 units = **$879.60 MXN**
+
 
 ---
 
