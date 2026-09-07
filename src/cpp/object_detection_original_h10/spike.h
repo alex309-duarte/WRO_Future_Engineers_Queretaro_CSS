@@ -30,7 +30,7 @@ void Spike_Advance_For_Degrees(int speed, int degrees, int reference);
 void Spike_Advance_For_distance(int speed, int distance, int reference);
 void Spike_Forward(int speed, int reference);
 void Spike_Follow_Reference(int speed, float reference_1, float reference_2);
-void Spike_Small_Turn(int direction, int speed, float degrees, int tire_turn);
+void Spike_Small_Turn(int direction, int speed, float degrees, int tire_turn, bool await = false);
 
 // Contenido del archivo de cabecera (prototipos, definiciones, etc.)
 

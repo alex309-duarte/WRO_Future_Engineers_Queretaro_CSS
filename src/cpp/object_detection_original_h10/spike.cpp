@@ -79,7 +79,7 @@ void Spike_Send_Serial_Data(const char* data){
 		}
 		i++;
 	}
-    //printf("menssage: %s\n", buffer_read);
+    //printf("menssage send to spike: %s\n", buffer_read);
 }
 
 char* Spike_Read_Serial_Data(void){
@@ -100,7 +100,7 @@ char* Spike_Read_Serial_Data(void){
 		i++;
 	}
 	char *cp = buffer_read;
-    // printf("%s",cp);
+    //printf("data read from spike: %s\n",cp);
 	return cp;
 }
 
@@ -214,6 +214,19 @@ void Spike_Initialize_Libraries(void){
     Spike_Send_Serial_Data("motor.set_duty_cycle(port.E, (100)*(speed))\r");
     Spike_Send_Serial_Data(remove);
     Spike_Send_Serial_Data("fc()\r");
+    Spike_Send_Serial_Data("return 255\r");
+    Spike_End_Function();
+
+    Spike_Send_Serial_Data("async def turns_wait(direction,speed,degrees, tire_turn):\r");
+    Spike_Send_Serial_Data("await motor.run_to_relative_position(port.A, int((tire_turn)*(4.29)*(direction)), 550)\r");
+    Spike_Send_Serial_Data("while abs(degrees*10) < (direction)*motion_sensor.tilt_angles()[0]:\r");
+    Spike_Send_Serial_Data("motor.set_duty_cycle(port.E, (100)*(speed))\r");
+    Spike_Send_Serial_Data(remove);
+    Spike_Send_Serial_Data("fc()\r");
+    Spike_End_Function();
+
+    Spike_Send_Serial_Data("def turns_special(direction,speed,degrees, tire_turn):\r");
+    Spike_Send_Serial_Data("runloop.run(turns_wait(direction,speed,degrees, tire_turn))\r");
     Spike_Send_Serial_Data("return 255\r");
     Spike_End_Function();
 
@@ -372,7 +385,7 @@ void Spike_Turn_For_Degrees(int direction, int speed, float degrees, int tire_tu
     Spike_Hold_Motors();
 }
 
-void Spike_Small_Turn(int direction, int speed, float degrees, int tire_turn){
+void Spike_Small_Turn(int direction, int speed, float degrees, int tire_turn,  bool await){
 	char arguments[255];
 	char string_direction[10] = "";
 	char string_speed[10] = "";
@@ -385,7 +398,12 @@ void Spike_Small_Turn(int direction, int speed, float degrees, int tire_turn){
     snprintf(string_tire_turn, sizeof(string_tire_turn), "%d", tire_turn);
 
 	const char * cocatenate_list[10];
-	cocatenate_list[0] = "small_turn(";
+    if(await == false){
+        cocatenate_list[0] = "small_turn(";
+    }
+    else{
+        cocatenate_list[0] = "turns_special(";
+    }
 	cocatenate_list[1] = (const char *)string_direction;
 	cocatenate_list[2] = ",";
 	cocatenate_list[3] = (const char *)string_speed;	

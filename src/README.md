@@ -258,3 +258,91 @@ in the Hailo AI Software Suite documentation.
 Copy the resulting `.hef` onto the Pi 5, into `src/HailoModels/` (or wherever
 `--net`/`resources_config.yaml` expects it), and pass its name/path to
 `--net` when running `object_detection` (part 3, step 9).
+
+## 5. Obstacle Challenge flow
+
+Two threads run at once (both started from `main()`): the Hailo camera
+pipeline keeps the global `traffic_lights` struct (color, x-position, area,
+confidence) updated in the background, while `Obstacle_Challenge_Thread`
+drives the robot and reads that struct whenever it needs to know what cube
+it's currently looking at. The diagrams below are the navigation thread.
+
+### 5.1 High-level states
+
+```mermaid
+stateDiagram-v2
+    [*] --> Booting
+    Booting --> WaitingForStart: lidar + GPIO + Spike + Hailo model ready
+    WaitingForStart --> InitialScan: start button pressed
+    InitialScan --> ClockwiseRun: right-side reading > 600mm
+    InitialScan --> CounterClockwiseStub: left-side reading > 600mm
+    ClockwiseRun --> ExitParkingLot: estacionamiento_clockwise()
+    ExitParkingLot --> CornerCycle
+    CornerCycle --> CornerCycle: x12 total -- 3 laps x 4 corners,\n4th corner of each lap runs with parking=true
+    CornerCycle --> Idle: 12 corners complete
+    CounterClockwiseStub --> Idle: single 45deg turn only
+    Idle --> Stopped: Ctrl+C
+    WaitingForStart --> Stopped: Ctrl+C
+    InitialScan --> Stopped: Ctrl+C
+    CornerCycle --> Stopped: Ctrl+C
+    Stopped --> [*]
+```
+
+> **CounterClockwiseStub is exactly that today** -- the `else if
+> (distancia_izquierda > 600)` branch in `Obstacle_Challenge_Thread` only
+> does one 45&deg; turn and falls straight through to `Idle`; the 12-corner
+> loop that the clockwise path has was never written for this direction.
+
+### 5.2 One corner cycle (repeats x12)
+
+`Corner_Case` and `Desicion` together are the unit that repeats 12 times.
+Drawn once here rather than 12 times over.
+
+```mermaid
+flowchart TD
+    A(["Corner_Case(past_cube, parking)"]) --> B["Advance to 1100mm from the front wall"]
+    B --> C["Read the cube color the camera<br/>currently sees: traffic_lights.light_color"]
+    C --> D{"cube color?"}
+    D -- green --> E["Advance to 600mm (parking)<br/>or 400mm (not parking)"]
+    D -- red --> F["Advance to 990mm"]
+    D -- none --> G["Advance to 650mm<br/>set is_middle_case from the PREVIOUS cube's color"]
+    E --> H["Turn 86&deg; right, center vehicle, coast"]
+    F --> H
+    G --> H
+    H --> I(["Desicion(cube, is_middle_case, parking)"])
+    I --> J["Sleep 1s, then Slope(left)<br/>reset gyro +/-90deg to square up to the side wall"]
+    J --> K{"was a cube already<br/>seen right at the corner?"}
+    K -- "no (color was none)" --> L{"is_middle_case?"}
+    L -- yes --> M["esquivar_cubos_middle(parking)<br/>one cube in the middle of the section"]
+    L -- no --> N["esquivar_cubos_1(parking)<br/>avoid the first cube"]
+    N --> O["esquivar_cubos_2(result, parking)<br/>look for + avoid a second cube"]
+    K -- yes --> O
+    M --> P(["result feeds the NEXT Corner_Case call as past_cube"])
+    O --> P
+```
+
+> `esquivar_cubos_1/2/middle` each call `calculte_angle_section_start_clockwise_chr`
+> to get an angle + distance to the cube, turn toward it (left for green,
+> right for red), advance alongside it, then small-turn back straight.
+> `esquivar_cubos_2` additionally short-circuits to a plain 1000mm advance
+> when no second cube is present or it's the same color as the first.
+
+> `Obstacle_Challenge_Thread` also calls `Slope(front)` once, right after
+> the initial button-press reset, but resets the gyro to a hardcoded `0`
+> right after rather than to that `slope` value -- the measurement is taken
+> but its result currently isn't used.
+
+### 5.3 Thresholds referenced above
+
+| Constant | Value | Where it acts |
+|---|---|---|
+| Direction-of-run split | `600 mm` | Right reading above this at start -> clockwise run; left reading above this -> the counter-clockwise stub. |
+| Corner approach | `1100 mm` | First advance in every `Corner_Case`, before reading the cube color. |
+| Green-cube advance | `600 mm` (parking) / `400 mm` (not) | Second advance in `Corner_Case` when the corner cube is green. |
+| Red-cube advance | `990 mm` | Second advance in `Corner_Case` when the corner cube is red. |
+| No-cube advance | `650 mm` | Second advance in `Corner_Case` when no cube is seen at the corner. |
+| Corner turn | `86 deg` right | Every `Corner_Case`, turning into the next section. |
+| Gyro realign | `Slope(left) +/- 90 deg` | Start of every `Desicion`, squares the robot to the side wall before looking for cubes. |
+| Corners per run | `12` (3 laps x 4) | 4th corner of each lap calls `Corner_Case`/`Desicion` with `parking=true`. |
+| Cube-1 clearance | `hypotenuse - 400` (normal) / `-100` (parking, red) | `esquivar_cubos_1`'s advance-past-cube distance. |
+| Cube-2 clearance | `hypotenuse - 400` (normal) / `-150` (parking, green-cube case) | `esquivar_cubos_2`'s advance-past-cube distance. |
