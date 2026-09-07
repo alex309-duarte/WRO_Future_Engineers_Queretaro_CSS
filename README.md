@@ -52,7 +52,8 @@ This repository contains the engineering documentation for **CSS**'s autonomous 
 **Age:** 27\
 **Role:** Coach\
 <img src="t-photos\Alejandro.jpeg" width="150">
-> MISSING **TODO, Brief description:** Background (engineering/teaching/prior WRO experience). Per rule 3.3, keep the framing consistent with "guides, doesn't build or code."
+> Bachelor of Technology from the Universidad Nacional Autónoma de México (UNAM), Centro de Física Aplicada y Tecnología Avanzada (CFATA), and currently works as an Embedded Software Engineer at KOSTAL Automotive Services Mexicana, developing AUTOSAR-based embedded software (C, CAN/LIN bus communication, memory stack integration) for automotive door control modules serving clients such as Stellantis, FORD, and Rivian. His background in robotics coaching spans since February 2018, guiding high school teams at the Facultad de Ingeniería, Universidad Autónoma de Querétaro (UAQ) through the World Robot Olympiad, including leading our team to the 2023 international final in Panama City and to a national podium finish in RoboMission. As coach, his role is to teach the underlying engineering and programming concepts (Python, C, embedded systems) and guide the team's problem-solving process, without building or programming the vehicle himself.For more information visit: [CV Alejandro](other\CV_Manuel_Alejandro_Cardoso_Duarte_2026-compressed.pdf)
+
 ---
 
 #### José de Jesús Santana Ramírez, M.Sc.
@@ -574,12 +575,12 @@ Steering uses a Proportional-Derivative (PD) controller (no integral term is doc
 ### Open Challenge
 *(Click on preview to visit YouTube Video)*
 
-[![Final video of fixing issues in your code in VS Code](https://img.youtube.com/vi/gWYS8fVQXW0/maxresdefault.jpg)](https://www.youtube.com/shorts/gWYS8fVQXW0)
+[![Open Challenge](https://img.youtube.com/vi/gWYS8fVQXW0/maxresdefault.jpg)](https://www.youtube.com/shorts/gWYS8fVQXW0)
 
 ### Obstacle Challenge
 *(Click on preview to visit YouTube Video)*
 
-[![Final video of fixing issues in your code in VS Code](https://img.youtube.com/vi/b2bn9Eo9FxU/maxresdefault.jpg)](https://www.youtube.com/shorts/b2bn9Eo9FxU)
+[![Obstacle Challenge](https://img.youtube.com/vi/b2bn9Eo9FxU/maxresdefault.jpg)](https://www.youtube.com/shorts/b2bn9Eo9FxU)
 
 ---
 
