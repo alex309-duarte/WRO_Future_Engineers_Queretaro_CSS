@@ -14,3 +14,4 @@ src/cpp/object_detection_original_h10/build/h10_original/_deps/
 
 #ignore all the .log files
 *.log  
+other/additionalMedia/Videos/fpv.mp4
