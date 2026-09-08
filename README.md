@@ -638,11 +638,11 @@ Both gain sets were obtained through trial-and-error tuning on the physical trac
 │   └── hardware/               # Electrical documentation & hardware files
 │       └── pcb/                # Prototype PCB schematics (not implemented yet)
 ├── src/                        # Main C++ autonomous driving software
-│   ├── config/                 # System configuration and YAML parameters
+│   ├── config/                 # System configuration and YAML parameters for Hailo HAT
 │   ├── cpp/                    # Obstacle Challenge & Vision, segmentation, and perception logic
 │   ├── HailoModels/            # Pre-compiled models for Hailo AI accelerator
 │   ├── ondevice/               # Open Challenge & Hardware SDKs (ORadar, RPLiDAR)
-│   └── tools/                  # Utility scripts and test binaries
+│   └── tools/                  # Utility scripts and test binaries used by Hailo HAT
 ├── t-photos/                   # Team photos (members & coaches)
 ├── v-photos/                   # 6-view vehicle photos
 │   └── Robot_More_Photos/      # High-resolution gallery & testing shots
