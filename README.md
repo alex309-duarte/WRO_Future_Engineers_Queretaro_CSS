@@ -652,9 +652,109 @@ Both gain sets were obtained through trial-and-error tuning on the physical trac
 
 ## 8. Setup & Execution Instructions <a name="setup-instructions"></a>
 
-> MISSING **TODO, highest-priority gap for Criterion 5 (Reproducibility).** Without this, no one, including judges, can verify your code runs. Write concrete step-by-step instructions: dependencies to install, how to build/compile, how to flash/run on the Raspberry Pi, and any calibration steps needed before first run.
+This repository builds **two separate programs**: `object_detection` (Obstacle Challenge — camera + Hailo-10H + LiDAR) and a second binary under `src/ondevice/` (Open Challenge — LiDAR + SPIKE hub only, no camera/Hailo). Steps 8.1–8.3 are shared setup; 8.4 and 8.5 cover each program's build/run.
+
+>*More detailed instructions in:*[`src\README.md`](src/README.md)
+
+### 8.1 Prerequisites (OS & hardware stack)
+
+1. **Flash the OS.** Raspberry Pi OS 64-bit (Bookworm or newer) on the Pi 5, via Raspberry Pi Imager. Enable SSH/serial as needed.
+2. **Install the Hailo-10H stack** (required for the Obstacle Challenge only). Follow Hailo's Raspberry Pi setup for the AI HAT/M.2 Hailo-10H accelerator: install the `hailo-all` (or Hailo-10H specific) apt packages / PCIe driver + firmware + `HailoRT` runtime + `hailortcli`, then reboot and confirm the device is detected:
+```bash
+   hailortcli fw-control identify
+```
+   The installed HailoRT version must match (or be compatible with) the Hailo Dataflow Compiler version used to produce the `.hef` files — for the Hailo-10H specifically, both must be **v5.x** (Hailo-8/8L use a different, incompatible v3.x/v4.x pairing). Mismatched versions are a common cause of a `.hef` that "compiles fine" but fails to load on the Pi.
+3. **Install build dependencies:**
+```bash
+   sudo apt update
+   sudo apt install -y build-essential cmake git libopencv-dev libgpiod-dev pkg-config
+```
+
+### 8.2 Clone the repository
+
+```bash
+git clone --recurse-submodules https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS.git
+# or, if already cloned:
+git submodule update --init --recursive
+```
+The `--recurse-submodules` step is required — `yaml-cpp` and `curl` under `src/cpp/external/` are vendored as submodules.
+
+### 8.3 Wire up the hardware
+
+- **SPIKE Prime hub:** USB cable, appears as `/dev/ttyACM0` at 115200 baud. 
+- **Orbbec Oradar MS200k LiDAR:** USB-serial, `/dev/ttyUSB0` at 230400 baud.
+- **GPIO** (BCM numbering): start button on GPIO4, status LED on GPIO3, SPIKE power relay on GPIO2.
+
+*To verify connection with SPIKE Prime HUB, run:*
+```bash
+   screen /dev/ttyACM0 115200
+```
+### 8.4 Build & run — Obstacle Challenge (`object_detection`)
+
+1. **Place the model.** Put a compiled `.hef` (see §8.6 to produce your own) under `src/HailoModels/`, or let `resources_manager` resolve/download it per `src/config/resources_config.yaml`.
+2. **Set the visualization config path.** `main()` falls back to a hardcoded path that won't exist on a fresh Pi, so export the real one first:
+```bash
+   export WRO_VISUALIZATION_CONFIG=/absolute/path/to/src/cpp/object_detection_original_h10/visualization_config.yaml
+```
+3. **Build:**
+```bash
+   cd src/cpp/object_detection_original_h10/build/h10_original
+   make
+```
+4. **Run** (competition mode, no display):
+```bash
+   sudo ./object_detection --net /path/to/roboflow_yolov8n_wro_h10.hef --input rpi --no-display
+```
+   **Run with display** (for debugging/calibration on-track):
+```bash
+   sudo ./object_detection --net /path/to/roboflow_yolov8n_wro_h10.hef --input rpi
+```
+
+### 8.5 Build & run — Open Challenge (`src/ondevice/`)
+
+This binary is built via its own `Makefile` (not CMake) and must be built with the Oradar driver explicitly selected — plain `make` defaults to last year's RPLidar S2L driver, which this year's hardware doesn't use:
+
+```bash
+cd src/ondevice
+make LIDAR=oradar
+make
+sudo ./my_lidar_app
+```
+
+### 8.6 Calibration steps before first run
+
+- **Gyro:** zeroed automatically at the start of every run (`Reset gyro to 0°`) — no manual calibration step needed here.
+- **LiDAR mount offset:** `ORADAR_ANGLE_OFFSET` is set to 270°, empirically confirmed for this chassis's LiDAR mounting orientation — only needs re-checking if the LiDAR's physical mounting angle changes.
+- **Ackermann steering angle:** fixed at 45.44° in hardware (§3.1) — no software calibration needed.
+
+### 8.7 (Optional) Producing your own `.hef` model from scratch
+
+Only needed if retraining the vision model rather than using the one already checked into `src/HailoModels/`.
+
+1. **Get the labeled dataset**:
+```bash
+   git clone https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS.git
+```
+> Dataset in [`other\dataset`](other/dataset)\
+> Training model and results in [`other\Training_model_and_results`](other/Training_model_and_results)
+
+2. **Train the YOLOv8n model** via Google Colab, using [Luxonis's training notebook](https://colab.research.google.com/github/luxonis/depthai-ml-training/blob/master/colab-notebooks/YoloV8_training.ipynb). This project's model was trained with `model=yolov8n.pt`, `epochs=100`, `batch=16`, `imgsz=320`.
+3. **Export to `.hef`** — on a laptop/desktop (not the Pi), the recommended one-command path via Ultralytics:
+```bash
+   pip install ultralytics
+   pip install /path/to/hailo_dataflow_compiler-<version>-<pyver>-linux_x86_64.whl
+```
+```python
+   from ultralytics import YOLO
+   model = YOLO("best.pt")
+   model.export(format="hailo", name="hailo10h", imgsz=320, data="data.yaml")
+```
+   Requires Hailo Dataflow Compiler **v5.x** (Hailo Developer Zone) for the Hailo-10H.
+4. **Deploy:** copy the resulting `.hef` onto the Pi, into `src/HailoModels/`, and pass it via `--net` in §8.4 step 4.
 
 ## 9. Driving Videos <a name="driving-videos"></a>
+
+[***Also on  `video\video.md`***](video/video.md)
 
 ### Open Challenge
 *(Click on preview to visit YouTube Video)*

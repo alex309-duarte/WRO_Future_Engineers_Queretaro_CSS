@@ -54,10 +54,8 @@ Follow Hailo's Raspberry Pi setup for the AI HAT/M.2 Hailo-10H accelerator: inst
    ```
 7. **Build.**
    ```bash
-   cd src/cpp/object_detection_original_h10
-   mkdir -p build/h10_original && cd build/h10_original
-   cmake -S ../.. -B .
-   cmake --build . -j"$(nproc)"
+   cd src/cpp/object_detection_original_h10/build/h10_original
+   make
    ```
 8. **Wire up the hardware:**
    - SPIKE Prime hub: USB cable, appears as `/dev/ttyACM0` (see `spike.cpp`).
@@ -88,14 +86,16 @@ There are two separate computers involved, and it's easy to mix them up:
 
 ### 3.1 Get the labeled dataset
 
-The images and annotations used to train the traffic-light/cube detector live
-in a separate repo:
+The images and annotations used to train the traffic-light/cube detector live:
 
+**Get the labeled dataset**:
 ```bash
-git clone https://github.com/alex309-duarte/WRO_FutureEngineers_Q.git
+   git clone https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS.git
 ```
+> Dataset in [`other\dataset`](other/dataset)\
+> Training model and results in [`other\Training_model_and_results`](other/Training_model_and_results)
 
-Inside it, `model_training/DataSet_labelStudio/` has:
+Inside it, `other\dataset` has:
 
 - `images/` -- the photos.
 - `labels/` -- one `.txt` file per image, in YOLO format (one line per object:
