@@ -32,3 +32,9 @@ For competition environments, quick maintenance is crucial. The mechanical desig
 * **CAD Software:** The 3D modeling and assembly were carried out using SolidWorks 2026, chosen due to the team's extensive experience with this software.
 * **CAD Libraries:** Platforms like GrabCAD were utilized to source 3D models for standard electronic components, including the Raspberry Pi and Grove modules.
 * **Manufacturer Documentation:** External components, such as the Oradar LiDAR, were integrated using official technical documentation and dimensions provided by the manufacturers.
+
+## Contents
+
+* **`Iterations/`**: Contains previous design iterations, early prototypes, and testing models used throughout the development process.
+* **`Final_assembly/`**: Contains the final 3D CAD assembly of the robot, representing the definitive competition model.
+* **`Stl/`**: Contains the `.stl` files of all the custom components that were physically 3D printed to build the robot.
