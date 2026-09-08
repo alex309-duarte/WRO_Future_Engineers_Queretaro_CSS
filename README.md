@@ -521,12 +521,12 @@ stateDiagram-v2
     Booting --> WaitingForStart: lidar + GPIO + Spike + Hailo model ready
     WaitingForStart --> InitialScan: start button pressed
     InitialScan --> ClockwiseRun: right-side reading > 600mm
-    InitialScan --> CounterClockwiseStub: left-side reading > 600mm
+    InitialScan --> CounterClockwiseRun: left-side reading > 600mm
     ClockwiseRun --> ExitParkingLot: estacionamiento_clockwise()
+    CounterClockwiseRun --> ExitParkingLot: estacionamiento_counterclockwise()
     ExitParkingLot --> CornerCycle
-    CornerCycle --> CornerCycle: x12 total -- 3 laps x 4 corners,\n4th corner of each lap runs with parking=true
+    CornerCycle --> CornerCycle: x12 total -- 3 laps x 4 corners (4th of each lap runs parking=true)
     CornerCycle --> Idle: 12 corners complete
-    CounterClockwiseStub --> Idle: single 45deg turn only
     Idle --> Stopped: Ctrl+C
     WaitingForStart --> Stopped: Ctrl+C
     InitialScan --> Stopped: Ctrl+C
@@ -534,10 +534,11 @@ stateDiagram-v2
     Stopped --> [*]
 ```
 
-> **CounterClockwiseStub is exactly that today** -- the `else if
-> (distancia_izquierda > 600)` branch in `Obstacle_Challenge_Thread` only
-> does one 45&deg; turn and falls straight through to `Idle`; the 12-corner
-> loop that the clockwise path has was never written for this direction.
+> The direction of the run is fixed for the whole attempt by the single
+> side-wall reading taken in `InitialScan`, and both branches feed the same
+> `ExitParkingLot` &rarr; `CornerCycle` sequence. The counter-clockwise path is
+> the sign-mirrored twin of the clockwise one, so the corner cycle below is
+> drawn once rather than twice.
 
 ### One corner cycle (repeats x12)
 
@@ -552,11 +553,11 @@ flowchart TD
     D -- green --> E["Advance to 600mm (parking)<br/>or 400mm (not parking)"]
     D -- red --> F["Advance to 990mm"]
     D -- none --> G["Advance to 650mm<br/>set is_middle_case from the PREVIOUS cube's color"]
-    E --> H["Turn 86&deg; right, center vehicle, coast"]
+    E --> H["Turn 86&deg; into the next section<br/>(right clockwise, left counter-clockwise),<br/>center vehicle, coast"]
     F --> H
     G --> H
     H --> I(["Desicion(cube, is_middle_case, parking)"])
-    I --> J["Sleep 1s, then Slope(left)<br/>reset gyro +/-90deg to square up to the side wall"]
+    I --> J["Sleep 1s, then Slope() on the outer wall<br/>reset gyro +/-90deg to square up to the side wall"]
     J --> K{"was a cube already<br/>seen right at the corner?"}
     K -- "no (color was none)" --> L{"is_middle_case?"}
     L -- yes --> M["esquivar_cubos_middle(parking)<br/>one cube in the middle of the section"]
@@ -568,8 +569,10 @@ flowchart TD
 ```
 
 > `esquivar_cubos_1/2/middle` each call `calculte_angle_section_start_clockwise_chr`
-> to get an angle + distance to the cube, turn toward it (left for green,
-> right for red), advance alongside it, then small-turn back straight.
+> (or its `..._counterclockwise` counterpart) to get an angle + distance to the
+> cube, turn toward it (left for green, right for red -- the passing side is set
+> by the rules and does not mirror with the driving direction), advance alongside
+> it, then small-turn back straight.
 > `esquivar_cubos_2` additionally short-circuits to a plain 1000mm advance
 > when no second cube is present or it's the same color as the first.
 
@@ -582,13 +585,13 @@ flowchart TD
 
 | Constant | Value | Where it acts |
 |---|---|---|
-| Direction-of-run split | `600 mm` | Right reading above this at start -> clockwise run; left reading above this -> the counter-clockwise stub. |
+| Direction-of-run split | `600 mm` | Right reading above this at start -> clockwise run; left reading above this -> counter-clockwise run. Fixed for the whole attempt. |
 | Corner approach | `1100 mm` | First advance in every `Corner_Case`, before reading the cube color. |
 | Green-cube advance | `600 mm` (parking) / `400 mm` (not) | Second advance in `Corner_Case` when the corner cube is green. |
 | Red-cube advance | `990 mm` | Second advance in `Corner_Case` when the corner cube is red. |
 | No-cube advance | `650 mm` | Second advance in `Corner_Case` when no cube is seen at the corner. |
-| Corner turn | `86 deg` right | Every `Corner_Case`, turning into the next section. |
-| Gyro realign | `Slope(left) +/- 90 deg` | Start of every `Desicion`, squares the robot to the side wall before looking for cubes. |
+| Corner turn | `86 deg` | Every `Corner_Case`, turning into the next section: right when running clockwise, left when running counter-clockwise. |
+| Gyro realign | `Slope(outer wall) +/- 90 deg` | Start of every `Desicion`, squares the robot to the outer side wall (on the left running clockwise, on the right running counter-clockwise) before looking for cubes. |
 | Corners per run | `12` (3 laps x 4) | 4th corner of each lap calls `Corner_Case`/`Desicion` with `parking=true`. |
 | Cube-1 clearance | `hypotenuse - 400` (normal) / `-100` (parking, red) | `esquivar_cubos_1`'s advance-past-cube distance. |
 | Cube-2 clearance | `hypotenuse - 400` (normal) / `-150` (parking, green-cube case) | `esquivar_cubos_2`'s advance-past-cube distance. |
@@ -636,25 +639,77 @@ Both gain sets were obtained through trial-and-error tuning on the physical trac
 * **Parallel Parking Maneuver:** The camera detects the magenta parking lot markers (labeled `x-parking`) to locate the parking zone. The robot then uses the LiDAR to position itself at a set distance from the wall, and from there uses a combination of LiDAR and gyroscope readings to execute the parking maneuver itself.
 #### State Machine & Safety Systems
 
- * **Robot States:** The `Obstacle_Challenge_Thread` state machine runs: `Booting` → `WaitingForStart` (waits for LiDAR, GPIO, SPIKE hub, and the Hailo model to be ready, then the start button) → `InitialScan` (reads the side-wall distance to pick a direction) → `ClockwiseRun` → `ExitParkingLot` → a repeating `CornerCycle` (12 total: 3 laps × 4 corners, with the 4th corner of each lap run in parking mode) → `Idle` once all 12 corners are complete → `Stopped` (reachable from any state via Ctrl+C). Note: the counter-clockwise direction is currently a stub — it performs a single 45° turn and falls straight through to `Idle`; the full 12-corner cycle is only implemented for the clockwise direction.
+ * **Robot States:** The `Obstacle_Challenge_Thread` state machine runs: `Booting` → `WaitingForStart` (waits for LiDAR, GPIO, SPIKE hub, and the Hailo model to be ready, then the start button) → `InitialScan` (reads the side-wall distance to pick a direction) → `ClockwiseRun` or `CounterClockwiseRun` → `ExitParkingLot` → a repeating `CornerCycle` (12 total: 3 laps × 4 corners, with the 4th corner of each lap run in parking mode) → `Idle` once all 12 corners are complete → `Stopped` (reachable from any state via Ctrl+C). The direction is decided once in `InitialScan` and held for the whole attempt; the two directions run the same corner cycle with mirrored turn signs and side-wall references.
 * **Safety Systems:** `rasp_gpio.cpp` implements a start button (`Rasp_Gpio_Wait_For_Button`) and a status LED, plus a relay that powers on the SPIKE hub at boot. There is no dedicated hardware emergency-stop button separate from process termination (Ctrl+C), and no automatic sensor-failure fallback is implemented. The gyroscope and LiDAR do serve as the robot's recovery mechanism: at the start of every corner's decision logic, the robot re-squares its gyro heading against the LiDAR-measured side wall (`Slope(left)`, ±90°), correcting any drift accumulated during the previous cube-avoidance maneuver before continuing.
 ---
 
 ## 4. Engineering Process & Design Iterations <a id="engineering-process"></a>
 
-> MISSING **TODO, Engineering Journal Link:** add once available.
+>**Full engineering journal:** [`Engineering_Journal_CSS_WRO2026.pdf`](Engineering_Journal_CSS_WRO2026.pdf)
+>
+>The summary below is deliberately short. The complete account, design reasoning, tradeoff and risk registers, power and torque budgets, the dated logbook, and photographs of every prototype, is in the journal.
 
 ### Prototype Evolution
-> MISSING **TODO (Criterion 4, Systems Thinking, the highest-value section in the whole rubric):** don't just list what changed, explain the problem you were solving, what you tried, what failed and why, and what evidence (tests, data) supported the final choice. This is the "we chose X instead of Y because…" reasoning the rubric explicitly rewards at level 6.
 
-* **Prototype 1:** MISSING TODO, initial design, what you tested, what failed.
-* **Prototype 2 (Final):** MISSING TODO, specific improvements to chassis rigidity, weight balance, wiring, and *why* each was made.
+"The Maker" is the **sixth** distinct vehicle the team has built across two seasons. The break between the two seasons was deliberate: the 2026 car is not an incremental descendant of the 2025 one.
+
+| # | Season | Design | Outcome / reason for the next step |
+| :--- | :--- | :--- | :--- |
+| v1 | 2025 | Hybrid LEGO Technic chassis | Fast to iterate, but component placement was dictated by the Technic hole grid and the assembly had play at every joint |
+| v2 | 2025 | Fully custom 3D-printed chassis, double-Ackermann, AWD | **2nd place nationally.** Left us with three structural problems: barely under the 1.5 kg limit, high centre of gravity, inconsistent steering |
+| v3 | 2026 | Clean-sheet redesign, RWD, regular Ackermann, battery and Pi dropped low | All three problems were *layout* problems, so the frame was restarted rather than retrofitted |
+| v4 | 2026 | Packaging refinement | Component placement tightened around the new layout |
+| v5 | 2026 | Mounting revision | Serviceability fixes, including the LiDAR mount fix described below |
+| v6 | 2026 | **Final** | The vehicle documented in this README |
+
+Within 2026 the progress was incremental, no iteration after v3 changed the concept. See §2.5 of the journal for the full "we chose X instead of Y" reasoning behind each step.
+
+<table style="width:100%">
+
+<tr>
+<td colspan="2" align="center"><b>2025 season</b> — two designs</td>
+</tr>
+
+<tr>
+<td align="center" width="50%">
+<img src="v-photos/Robot_More_Photos/Versions/v1.jpeg" width="420"><br>
+<b>v1</b> — Hybrid LEGO Technic chassis<br>
+<em>Regional competition (Querétaro). Fast to iterate, but component placement was dictated by the Technic hole grid and the assembly had play at every beam connection.</em>
+</td>
+<td align="center" width="50%">
+<img src="v-photos/Robot_More_Photos/Versions/v2.jpeg" width="420"><br>
+<b>v2</b> — Fully custom 3D-printed chassis<br>
+<em>National competition, <b>2nd place nationally</b>. Double-Ackermann steering, AWD, RPLidar S2L. Left us with three structural problems: barely under 1.5 kg, high centre of gravity, inconsistent steering.</em>
+</td>
+</tr>
+
+<tr>
+<td colspan="2" align="center"><b>2026 season</b> — clean-sheet redesign, then four iterations</td>
+</tr>
+
+<tr>
+<td colspan="2" align="center">
+<img src="v-photos/Robot_More_Photos/Versions/v3_v4_v5_vfinal.jpg" width="820"><br>
+<b>v3, v4, v5</b> (bare printed frames) and <b>v6</b> (assembled, right)<br>
+<em>The progression is visible in the frame itself: material removed, mounting features consolidated, and the central bay opened up to drop the electronics lower.</em>
+</td>
+</tr>
+
+<tr>
+<td colspan="2" align="center">
+<img src="v-photos/Robot_More_Photos/Versions/vfinal.jpeg" width="620"><br>
+<b>v6 (final)</b> — <i>"The Maker"</i><br>
+<em>RWD, regular Ackermann, Oradar MS200k LiDAR, Raspberry Pi 5 + Hailo-10H. 240 × 160 × 250 mm, 1.006 kg.</em>
+</td>
+</tr>
+
+</table>
 
 ### Key Challenges & Solutions
-> MISSING **TODO:** pick 2–3 real technical problems and document problem → investigation → solution. (The RPLiDAR SDK scaling-factor question you were debugging, `dist_mm_q6` vs. `dist_mm_q2`, is a strong candidate if you've resolved it: it's exactly the kind of concrete, verifiable technical decision this section should showcase.)
 
-* **Challenge:** MISSING TODO
-* **Solution:** MISSING TODO
+* **The LiDAR could not see the walls.** After the compact chassis was finished the robot behaved as though blind. The dense repackaging had raised the LiDAR so its scanning plane passed *over* the 100 mm track walls, every wall reading was a miss, not a bad measurement. We revised the central CAD mount to bring the sensor down to ~60–80 mm while keeping the rear field of view clear. Sensor placement is now treated as a constraint set by the field, checked *before* a chassis is printed.
+* **Brownouts under hard acceleration.** The Pi 5 and Hailo accelerator caused abrupt shutdowns during acceleration, with the pack still charged. The traction motor's current spike was sagging the rail through the high internal resistance of generic 18650 cells. Fixed with Panasonic NCR18650B cells plus the X1203 board. The lesson: we had specified the pack by capacity (mAh), which is the wrong criterion for a load with sharp transients.
+* **Python could not keep up.** With a higher-rate camera and LiDAR attached, the 2025 Python control loop consumed data slower than the sensors produced it, so the robot acted on stale readings. We rewrote acquisition and control in C/C++, a rewrite rather than an optimisation, because the ceiling was the runtime itself, not any single slow function. The loop now runs at **> 50 Hz**.
 
 ---
 
@@ -669,7 +724,6 @@ Both gain sets were obtained through trial-and-error tuning on the physical trac
 6. Sensor calibration & motor tuning
 7. On-track testing
 
-*(Generic sequence is fine to keep, just confirm it matches your actual build order before finalizing.)*
 
 ### Tools Used
 * MISSING TODO, 3D printer model
@@ -745,12 +799,13 @@ Both gain sets were obtained through trial-and-error tuning on the physical trac
 ├── v-photos/                             # Required 6-view vehicle photos
 │   └── Robot_More_Photos/                # High-resolution gallery & field testing shots
 ├── video/                                # Open and Obstacle Challenges YouTube video links
+├── Engineering_Journal_CSS_WRO2026.pdf   # Engineering Journal PDF
 └── README.md                             # Main project documentation
 ```
 
 ## 8. Setup & Execution Instructions <a name="setup-instructions"></a>
 
-This repository builds **two separate programs**: `object_detection` (Obstacle Challenge — camera + Hailo-10H + LiDAR) and a second binary under `src/ondevice/` (Open Challenge — LiDAR + SPIKE hub only, no camera/Hailo). Steps 8.1–8.3 are shared setup; 8.4 and 8.5 cover each program's build/run.
+This repository builds **two separate programs**: `object_detection` (Obstacle Challenge, camera + Hailo-10H + LiDAR) and a second binary under `src/ondevice/` (Open Challenge, LiDAR + SPIKE hub only, no camera/Hailo). Steps 8.1–8.3 are shared setup; 8.4 and 8.5 cover each program's build/run.
 
 >*More detailed instructions in:*[`src\README.md`](src/README.md)
 
@@ -761,7 +816,7 @@ This repository builds **two separate programs**: `object_detection` (Obstacle C
 ```bash
    hailortcli fw-control identify
 ```
-   The installed HailoRT version must match (or be compatible with) the Hailo Dataflow Compiler version used to produce the `.hef` files — for the Hailo-10H specifically, both must be **v5.x** (Hailo-8/8L use a different, incompatible v3.x/v4.x pairing). Mismatched versions are a common cause of a `.hef` that "compiles fine" but fails to load on the Pi.
+   The installed HailoRT version must match (or be compatible with) the Hailo Dataflow Compiler version used to produce the `.hef` files, for the Hailo-10H specifically, both must be **v5.x** (Hailo-8/8L use a different, incompatible v3.x/v4.x pairing). Mismatched versions are a common cause of a `.hef` that "compiles fine" but fails to load on the Pi.
 3. **Install build dependencies:**
 ```bash
    sudo apt update
@@ -775,7 +830,7 @@ git clone --recurse-submodules https://github.com/alex309-duarte/WRO_Future_Engi
 # or, if already cloned:
 git submodule update --init --recursive
 ```
-The `--recurse-submodules` step is required — `yaml-cpp` and `curl` under `src/cpp/external/` are vendored as submodules.
+The `--recurse-submodules` step is required, `yaml-cpp` and `curl` under `src/cpp/external/` are vendored as submodules.
 
 ### 8.3 Wire up the hardware
 
@@ -787,7 +842,7 @@ The `--recurse-submodules` step is required — `yaml-cpp` and `curl` under `src
 ```bash
    screen /dev/ttyACM0 115200
 ```
-### 8.4 Build & run — Obstacle Challenge (`object_detection`)
+### 8.4 Build & run, Obstacle Challenge (`object_detection`)
 
 1. **Place the model.** Put a compiled `.hef` (see §8.6 to produce your own) under `src/HailoModels/`, or let `resources_manager` resolve/download it per `src/config/resources_config.yaml`.
 2. **Set the visualization config path.** `main()` falls back to a hardcoded path that won't exist on a fresh Pi, so export the real one first:
@@ -808,9 +863,9 @@ The `--recurse-submodules` step is required — `yaml-cpp` and `curl` under `src
    sudo ./object_detection --net /path/to/roboflow_yolov8n_wro_h10.hef --input rpi
 ```
 
-### 8.5 Build & run — Open Challenge (`src/ondevice/`)
+### 8.5 Build & run, Open Challenge (`src/ondevice/`)
 
-This binary is built via its own `Makefile` (not CMake) and must be built with the Oradar driver explicitly selected — plain `make` defaults to last year's RPLidar S2L driver, which this year's hardware doesn't use:
+This binary is built via its own `Makefile` (not CMake) and must be built with the Oradar driver explicitly selected, plain `make` defaults to last year's RPLidar S2L driver, which this year's hardware doesn't use:
 
 ```bash
 cd src/ondevice
@@ -821,9 +876,9 @@ sudo ./my_lidar_app
 
 ### 8.6 Calibration steps before first run
 
-- **Gyro:** zeroed automatically at the start of every run (`Reset gyro to 0°`) — no manual calibration step needed here.
-- **LiDAR mount offset:** `ORADAR_ANGLE_OFFSET` is set to 270°, empirically confirmed for this chassis's LiDAR mounting orientation — only needs re-checking if the LiDAR's physical mounting angle changes.
-- **Ackermann steering angle:** fixed at 45.44° in hardware (§3.1) — no software calibration needed.
+- **Gyro:** zeroed automatically at the start of every run (`Reset gyro to 0°`), no manual calibration step needed here.
+- **LiDAR mount offset:** `ORADAR_ANGLE_OFFSET` is set to 270°, empirically confirmed for this chassis's LiDAR mounting orientation, only needs re-checking if the LiDAR's physical mounting angle changes.
+- **Ackermann steering angle:** fixed at 45.44° in hardware (§3.1), no software calibration needed.
 
 ### 8.7 (Optional) Producing your own `.hef` model from scratch
 
@@ -837,7 +892,7 @@ Only needed if retraining the vision model rather than using the one already che
 > Training model and results in [`other\Training_model_and_results`](other/Training_model_and_results)
 
 2. **Train the YOLOv8n model** via Google Colab, using [Luxonis's training notebook](https://colab.research.google.com/github/luxonis/depthai-ml-training/blob/master/colab-notebooks/YoloV8_training.ipynb). This project's model was trained with `model=yolov8n.pt`, `epochs=100`, `batch=16`, `imgsz=320`.
-3. **Export to `.hef`** — on a laptop/desktop (not the Pi), the recommended one-command path via Ultralytics:
+3. **Export to `.hef`**, on a laptop/desktop (not the Pi), the recommended one-command path via Ultralytics:
 ```bash
    pip install ultralytics
    pip install /path/to/hailo_dataflow_compiler-<version>-<pyver>-linux_x86_64.whl
