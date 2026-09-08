@@ -1,10 +1,12 @@
 # object_detection_original_h10
 
-Camera + lidar navigation app for the WRO Future Engineers robot, running on a
+Camera, lidar  and navigation app for the WRO Future Engineers robot, running on a
 Raspberry Pi 5 with a Hailo-10H AI accelerator. It runs a Hailo inference
 pipeline (traffic-light / cube detection from the camera) alongside an
 Oradar MS200 lidar-based wall-following and cube-avoidance state machine that
-drives the robot through a LEGO SPIKE Prime hub.
+drives the robot using a LEGO SPIKE Prime hub for robot movements and gyroscope.
+
+We chose rapberry pi 5 because it has a PCI port which is the only one compatible with AI HAT for raspberry in any of its versions. For the AI HAT, the Raspberry Pi AI HAT+ 2 (40 TOPS + 8GB RAM) offers the best performance and keeps the current consumption low. A YOLO model 8 NANO was trained using the dataset images included in this repository. In the following secctions is described how to generate the ONNX model and from that model generate the HEF File which is the model used by the raspberry Pi AI HAT+ 2.
 
 ## 1. Module table
 
@@ -12,32 +14,24 @@ Files under `src/cpp/object_detection_original_h10/`:
 
 | File | Module | Description |
 |---|---|---|
-| `object_detection.cpp` | Main application | Parses CLI args, loads the Hailo model (`HailoInfer`), wires the preprocess -> inference -> postprocess pipeline threads, and spawns `Obstacle_Challenge_Thread`. `postprocess_callback` draws detections and also runs the lidar wall-segmentation/orientation logic (`Select_Wall`, `Fit_Line_Orientation`, `Slope`, `Distance_To_Wall`) used for wall following. The bulk of the file implements the Obstacle Challenge state machine: cube-color decision logic (`Desicion`, `Corner_Case`), cube avoidance maneuvers (`esquivar_cubos_1/2/middle`, `avoid_cube_start_section`), and the angle/hypotenuse geometry used to aim at each cube (`calculte_angle_section_start_clockwise[_chr]`, `calculte_angle_section_start_counterclockwise`). |
+| `object_detection.cpp` | Main application | Parses CLI args, loads the Hailo model (`HailoInfer`), wires the preprocess -> inference -> postprocess pipeline threads, and spawns `Obstacle_Challenge_Thread`. `postprocess_callback` draws detections and also runs the lidar wall-segmentation/orientation logic (`Select_Wall`, `Fit_Line_Orientation`, `Slope`, `Distance_To_Wall`) used for wall detection. The bulk of the file implements the Obstacle Challenge state machine: cube-color decision logic (`Desicion`, `Corner_Case`), cube avoidance maneuvers (`esquivar_cubos_1/2/middle`, `avoid_cube_start_section`), and the angle/hypotenuse geometry used to aim at each cube (`calculte_angle_section_start_clockwise[_chr]`, `calculte_angle_section_start_counterclockwise`). |
 | `Oradar_S2L.h` / `Oradar_S2L.cpp` | Oradar MS200 lidar driver | Owns the connection to the Oradar lidar (`Oradar_S2L_Init_Lidar`, background `Oradar_S2L_Lidar_Writer_Thread` that fills a 360-slot distance buffer), exposes the buffer (`Oradar_S2L_Get_Buffer`), degree/radian conversions, and a set of wall-relative navigation primitives (`Advance_And_Detect_Side`, `Advance_Until_Left/Right_Gap`, `Advance_And_Measure_Left/Right_Slope`, `Correction_For_Triangles_Left/Right`, `Slope`/`Slope2` least-squares wall-angle fits, `Reconcile_Readings`, `Average`). `RP_TO_ORADAR_IDX` translates the logical `LidarSide` angle (`FRONT`/`RIGHT`/`BACK`/`LEFT`, defined in `common_var.h`) into the Oradar's raw buffer index. |
-| `spike.h` / `spike.cpp` | SPIKE Prime driver | Serial link (over USB, `/dev/ttyACM0`) to the LEGO SPIKE Prime hub. Sends Python source lines as serial commands (`Spike_Send_Serial_Data`) to define on-hub motor-control routines at boot (`Spike_Initialize_Libraries`), then triggers them for turns, straight advances, centering, gyro reset/read, etc. |
+| `spike.h` / `spike.cpp` | SPIKE Prime driver | Serial link (over USB, `/dev/ttyACM0`) to the LEGO SPIKE Prime hub. Sends python source lines as serial commands (`Spike_Send_Serial_Data`)(C-python is the progrmming lenguage of the SPIKE Hub) to define on-hub motor-control routines at boot (`Spike_Initialize_Libraries`), then triggers them for turns, straight advances, centering, gyro reset/read, etc. |
 | `rasp_gpio.h` / `rasp_gpio.cpp` | Raspberry Pi GPIO | Uses `libgpiod` to read the start button, drive the status LED, and pulse the relay that powers on the SPIKE hub (`Rasp_Gpio_Init`, `Rasp_Gpio_Wait_For_Button`, `Rasp_Gpio_Power_On_Spike`, `Rasp_Gpio_Clean`). |
 | `common_var.h` | Shared constants | `direction`, `Color_traffic_light`, `Cube_number[_chr]`, `Brake_type`, and `LidarSide` enums plus the global `terminating_main` flag shared across the lidar/Spike/GPIO/main modules. |
 | `utils/utils.hpp` / `utils/utils.cpp` | Hailo postprocessing helpers | Bounding-box drawing, NMS output parsing (`parse_nms_data`) into `NamedBbox`, and COCO class name/color lookup helpers used by `postprocess_callback`. |
 
+Notes:
+This code contain in cpp folder is a copy from the Hailo apps examples to runs a simple object detection algorithm using their own hef file or a costum one. from that example is where we start adding the rest of the source files and change the make files to be able to compile from the repository folder. The repository can be placed in the home folder fromthe raspberry or another folder, in the following section a description on how to install the HAILO aplication is described. Other examples remain as part of the original repository from hailo apps. you need to look in the following path 'src/cpp/object_detection_original_h10/' to found the files that contains all the code. To compile it you need to navigate from that path to 'build/h10_original' executing make. After the make command it will generate the executable called "object_detection"
+
 **External dependencies used but not in this folder** (wired in via `CMakeLists.txt`, code lives in `src/cpp/common/`): `toolbox.hpp/.cpp` and `hailo_infer.hpp/.cpp` (shared Hailo pipeline plumbing: arg parsing, preprocess/inference/postprocess thread runners) and `resources_manager.hpp/.cpp` (resolves a `--net` model name/path to a local `.hef`, downloading it if needed per `config/resources_config.yaml`). The Oradar SDK (`oradar_sdk/`) and the `yaml-cpp`/`curl` submodules (`../external/`) are vendored source trees pulled in by `CMakeLists.txt` via `add_subdirectory`.
 
-## 2. Development history (this session)
-
-Changes made to this project while porting the lidar navigation code developed
-and tuned in the sibling `src/ondevice/` project:
-
-- Renamed `Oradar_S2L_Grados_A_Radianes` -> `Oradar_S2L_Degrees_To_Radians`, `Oradar_S2L_Radianes_A_Grados` -> `Oradar_S2L_Radians_To_Degrees`, and `Oradar_S2L_Avanzar_Hasta_La_Distancia` -> `Oradar_S2L_Advance_Until_Distance` (kept its existing `Brake_type` parameter and `terminating_main`/raw-index-270 behavior; this one is a project-specific variant, not swapped for `ondevice`'s simpler version). Updated all ~16 call sites in `object_detection.cpp` to match.
-- Added the `LidarSide{FRONT=0,RIGHT=90,BACK=180,LEFT=270}` enum to `common_var.h`, and `ORADAR_ANGLE_OFFSET`/`RP_TO_ORADAR_IDX` to `Oradar_S2L.h` -- reusing the `270`-degree offset already confirmed empirically for this robot by `Select_Wall` in `object_detection.cpp`.
-- Ported 11 new navigation functions from `ondevice/Oradar_S2L.cpp` into this project: `Advance_And_Detect_Side`, `Advance_Until_Left_Gap`, `Advance_Until_Right_Gap`, `Advance_And_Measure_Left_Slope`, `Advance_And_Measure_Right_Slope`, `Correction_For_Triangles_Left`, `Correction_For_Triangles_Right`, `Reconcile_Readings`, `Slope`, `Slope2`, `Average` -- rewritten to index `oradar_shared_buffer` through `RP_TO_ORADAR_IDX` instead of the raw literals used in `ondevice`.
-- Deliberately left `RPLidar_S2L.*` out of this project (Oradar-only here; no RPLidar SDK is vendored in this tree).
-- Resolved a repo-wide merge conflict from a teammate's WRO-template folder reorganization (`RM`-prefixed renames) that collided with this file; kept this project's content, since the remote copy predated the Oradar work above (it was missing `esquivar_cubos` entirely and still used the old Spanish function names).
-
-Related change in the **sibling `src/ondevice/` project** (its own `Makefile`, not this project's `CMakeLists.txt`, which was not modified this session): added a `LIDAR` build switch (`make` defaults to the RPLidar S2L driver, `make LIDAR=oradar` builds against `Oradar_S2L.cpp`/the vendored `oradar_sdk` instead), selected at compile time via `-DUSE_ORADAR` and a `LIDAR_FN(name)` macro in `main.cpp` that expands to `Oradar_S2L_name` or `RPLidar_S2L_name`. `object_detection_original_h10` has no such switch -- it links `Oradar_S2L.cpp` unconditionally (see `CMakeLists.txt` `SOURCES`).
-
-## 3. Running this code on another Raspberry Pi 5 + Hailo-10H
+## 2. Running this code on another Raspberry Pi 5 + Hailo-10H
 
 1. **Flash the OS.** Raspberry Pi OS 64-bit (Bookworm or newer) on the Pi 5, via Raspberry Pi Imager. Enable SSH/serial as needed.
-2. **Install the Hailo-10H stack.** Follow Hailo's Raspberry Pi setup for the AI HAT/M.2 Hailo-10H accelerator: install the `hailo-all` (or Hailo-10H specific) apt packages / PCIe driver + firmware + `HailoRT` runtime + `hailortcli` from Hailo's Raspberry Pi apt repo, then reboot and confirm the device is detected:
+2. **Install the Hailo-10H stack.** 
+IMPORTANT: before instlling make sure you have at least the Raspberry Pi AI HAT+ 2 (40 TOPS + 8GB RAM) connected to the raspberry pi 5, if not the compilation will fail.
+Follow Hailo's Raspberry Pi setup for the AI HAT/M.2 Hailo-10H accelerator: install the `hailo-all` (or Hailo-10H specific) apt packages / PCIe driver + firmware + `HailoRT` runtime + `hailortcli` from Hailo's Raspberry Pi apt repo, then reboot and confirm the device is detected:
    ```bash
    hailortcli fw-control identify
    ```
@@ -74,7 +68,7 @@ Related change in the **sibling `src/ondevice/` project** (its own `Makefile`, n
    ./object_detection --net <model_name_or_path.hef> [other args parsed by toolbox.cpp]
    ```
 
-## 4. From dataset to a working `.hef` (beginner walkthrough)
+## 3. From dataset to a working `.hef` (beginner walkthrough)
 
 This section is written for someone doing this for the first time. A `.hef` file
 is just "a neural network, packaged in the one format the Hailo chip understands."
@@ -92,7 +86,7 @@ There are two separate computers involved, and it's easy to mix them up:
   this repo's `object_detection` program. The Pi never trains or compiles
   anything; it only runs the already-compiled file.
 
-### 4.1 Get the labeled dataset
+### 3.1 Get the labeled dataset
 
 The images and annotations used to train the traffic-light/cube detector live
 in a separate repo:
@@ -114,7 +108,7 @@ split into a training set and a validation set, and there's no `data.yaml`
 (the small config file that tells YOLO where the images/labels live and what
 the classes are called). You'll create both of those in the next step.
 
-### 4.2 Train the YOLOv8n model
+### 3.2 Train the YOLOv8n model
 
 This project's own README documents training via Google Colab, using
 Luxonis's ready-made notebook:
@@ -148,7 +142,7 @@ this step.
    `runs/detect/train/weights/best.pt`. Download that file -- it's what the
    next step converts.
 
-### 4.3 Turn `best.pt` into a `.hef`
+### 3.3 Turn `best.pt` into a `.hef`
 
 There are two ways to do this. **Use option A unless you have a specific
 reason not to** -- it's one command instead of a whole toolchain install.
@@ -232,9 +226,9 @@ quantization/calibration step) and doesn't run on the Pi's ARM CPU.
    ```
    This produces `<model_name>.hef` in the working directory.
 
-### 4.4 Dataflow Compiler / HailoRT version compatibility -- read this before installing
+### 3.4 Dataflow Compiler / HailoRT version compatibility -- read this before installing
 
-The Hailo-8/8L and the Hailo-10H are different chip generations and **use
+The Hailo-8/8L and the Hailo-10H are different chip generations and **use of
 different major versions of the toolchain** -- installing the wrong one is
 the single most common reason this whole process fails partway through:
 
@@ -253,7 +247,7 @@ of `.hef` files that fail to load on the Pi even though compilation "succeeded."
 If in doubt, check the exact pairing on the Version Compatibility Table page
 in the Hailo AI Software Suite documentation.
 
-### 4.5 Deploy
+### 3.5 Deploy
 
 Copy the resulting `.hef` onto the Pi 5, into `src/HailoModels/` (or wherever
 `--net`/`resources_config.yaml` expects it), and pass its name/path to
