@@ -715,22 +715,8 @@ Within 2026 the progress was incremental, no iteration after v3 changed the conc
 
 ## 5. Construction Guide <a id="construction-guide"></a>
 
-### General Steps
-1. 3D design and CAD preparation
-2. Part fabrication / 3D printing
-3. Mechanical assembly & drivetrain mounting
-4. Wiring and power electronics integration
-5. Software environment installation
-6. Sensor calibration & motor tuning
-7. On-track testing
+Visit [Assembly instructions](other/Assembly_photos/Assembly_Process_EN.md) for all the details.
 
-
-### Tools Used
-* MISSING TODO, 3D printer model
-* MISSING TODO, soldering tools
-* MISSING TODO, other relevant tools
-
----
 
 ## 6. Bill of Materials (BOM) <a id="bom"></a>
 
