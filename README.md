@@ -912,7 +912,10 @@ Only needed if retraining the vision model rather than using the one already che
 ### About WRO
 - [WRO Official Site](https://wro-association.org/)
 - [Future Engineers Rules](other/WRO-2026-FE_GeneralRules.pdf)
-- [Team Repository](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS)
+
+### GitHub Repositories
+- [2026 Repository (WRO_Future_Engineers_Queretaro_CSS)](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS)
+- [2025 Repository (WRO_2025_SSbots)](https://github.com/JRavenelco/WRO_2025_SSbots)
 
 ### Datasheets
 - [Orbbec Oradar MS200k LiDAR](other/datasheets/MS200k-dToF-2D-LiDARSR-User-Manual-A2-1.pdf)
