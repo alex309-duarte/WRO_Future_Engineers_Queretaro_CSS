@@ -52,7 +52,7 @@ This repository contains the engineering documentation for **CSS**'s autonomous 
 **Age:** 27\
 **Role:** Coach\
 <img src="t-photos\Alejandro.jpeg" width="150">
-> Bachelor of Technology from the Universidad Nacional Autónoma de México (UNAM), Centro de Física Aplicada y Tecnología Avanzada (CFATA), and currently works as an Embedded Software Engineer at KOSTAL Automotive Services Mexicana, developing AUTOSAR-based embedded software (C, CAN/LIN bus communication, memory stack integration) for automotive door control modules serving clients such as Stellantis, FORD, and Rivian. His background in robotics coaching spans since February 2018, guiding high school teams at the Facultad de Ingeniería, Universidad Autónoma de Querétaro (UAQ) through the World Robot Olympiad, including leading our team to the 2023 international final in Panama City and to a national podium finish in RoboMission. As coach, his role is to teach the underlying engineering and programming concepts (Python, C, embedded systems) and guide the team's problem-solving process, without building or programming the vehicle himself.For more information visit: [CV Alejandro](other/CV_Manuel_Alejandro_Cardoso_Duarte_2026-compressed.pdf)
+> Bachelor of Technology from the Universidad Nacional Autónoma de México (UNAM), Centro de Física Aplicada y Tecnología Avanzada (CFATA), and currently works as an Embedded Software Engineer at KOSTAL Automotive Services Mexicana, developing AUTOSAR-based embedded software (C, CAN/LIN bus communication, memory stack integration) for automotive door control modules serving clients such as Stellantis, FORD, and Rivian. His background in robotics coaching spans since February 2018, guiding high school teams at the Facultad de Ingeniería, Universidad Autónoma de Querétaro (UAQ) through the World Robot Olympiad, including leading our team to the 2023 international final in Panama City and to a national podium finish in RoboMission. As coach, his role is to teach the underlying engineering and programming concepts (Python, C, embedded systems) and guide the team's problem-solving process, without building or programming the vehicle himself. For more information visit: [CV Alejandro](other/additionalMedia/Others/CV_Manuel_Alejandro_Cardoso_Duarte_2026-compressed.pdf)
 
 ---
 
@@ -383,7 +383,7 @@ A drawback of this configuration is that the batteries charge internally, in pla
 
 The robot's control loop is centered on the Raspberry Pi 5, which fuses two independent sensor streams and issues motor commands accordingly. The Orbbec Oradar MS200k LiDAR streams a 360° distance scan over serial, feeding the wall-following and obstacle-range logic. In parallel, the Raspberry Pi Camera Module 3 Wide streams frames that are run through a custom-trained YOLOv8n model accelerated by the Hailo-10H AI HAT, detecting obstacle pillars and classifying their color. The Raspberry Pi 5 fuses both streams (camera identifies *what* and roughly *where*, LiDAR gives the precise distance) and, running all control and vision code in C/C++ for low latency, computes the next steering/drive action.
 
-Motor and steering commands are sent over a serial (USB) link to the LEGO SPIKE Prime Hub, which actuates the Large Angular Motor (drivetrain) and Small Angular Motor (steering). The Hub's built-in IMU also reports heading back to the Raspberry Pi 5, closing the loop for orientation-aware navigation. Separately, the Raspberry Pi's GPIO pins handle the start button, status LED, and a relay that powers the SPIKE Hub on at boot, these run independently of the main sensor-fusion/control loop.
+Motor and steering commands are sent over a serial (USB) link to the LEGO SPIKE Prime Hub, which actuates the Large Angular Motor (drivetrain) and Small Angular Motor (steering). The Hub's built-in IMU also reports heading back to the Raspberry Pi 5, closing the loop for orientation-aware navigation. Separately, the Raspberry Pi's GPIO pins handle the start button, status LED, and a relay that powers the SPIKE Hub on at boot, these run independently of the main sensor/control loop.
 
 <img src="other\additionalMedia\Others\wro_processing_architecture_diagram.png" alt="Diagram of how the LiDAR, camera, Hailo-10H, Raspberry Pi 5, SPIKE Prime Hub, and motors are interconnected" width="800">
 
@@ -442,24 +442,34 @@ Wall and corner detection (`Select_Wall()`) follows this pipeline on each call:
 5. **Scoring**, a segment only qualifies as a wall if it has at least 6 points, spans at least 200 mm end-to-end (to reject compact objects/blocks), and has an RMS perpendicular residual under 15 mm against its own best-fit line (computed via Total Least Squares/PCA, since it has no bias toward any orientation).
 6. **Per-side tracking**, once a wall is chosen for a side, subsequent frames prefer to keep following that same physical wall (matched within 300 mm position / 20° orientation) rather than re-snapping every frame.
 
-Green/red pillar identification is handled by the camera + Hailo-10H YOLOv8n pipeline described in §3.2, which classifies pillar color directly from the RGB frame. The LiDAR's role is purely geometric: once a pillar is flagged by vision, the LiDAR supplies the precise distance/angle used to compute the avoidance vector (see §3.2, Sensor Fusion).
+Green/red pillar identification is handled by the camera + Hailo-10H YOLOv8n pipeline described in §3.2, which classifies pillar color directly from the RGB frame. The LiDAR's role is purely geometric: once a pillar is flagged by vision, the LiDAR supplies the precise distance/angle used to compute the avoidance vector.
 
 #### Sensor Fusion & Heading Estimation
 
-> MISSING **TODO:** Based on the current code, heading comes from the SPIKE Prime Hub's built-in gyro, read/reset via serial commands (`spike.cpp`), supplemented situationally by LiDAR wall-orientation data (`Slope()`, `Correction_For_Triangles_Left/Right`, `Advance_And_Measure_Left/Right_Slope`) to correct against the walls during specific maneuvers. This is **not** currently a formal fused estimate (no complementary filter or EKF combining both sources into one heading value), it's gyro-primary with LiDAR-based positional correction used where needed. If you want to claim "sensor fusion" here, either name/implement an actual fusion method, or reword this section to describe the current gyro + LiDAR-correction approach as-is.
+Heading is provided primarily by the LEGO SPIKE Prime Hub's built-in gyroscope, read and reset via serial commands (`spike.cpp`). This gyro reading is the robot's main orientation reference throughout a run.
 
-#### Trajectory Control & Closed-Loop Steering
+LiDAR data supplements this in specific situations rather than being continuously fused with the gyro. During particular maneuvers, wall-orientation readings from the Oradar LiDAR (`Slope()`, `Correction_For_Triangles_Left/Right`, `Advance_And_Measure_Left/Right_Slope`) are used to correct the robot's position and alignment against the track walls.
 
-Steering uses a Proportional-Derivative (PD) controller (no integral term is documented): the P term reacts to the lateral position error relative to the tracked wall (from `Distance_To_Wall()`), and the D term anticipates the rate of change of that error to damp oscillations, allowing smooth trajectories through both the wall-following and obstacle-avoidance challenges.
+It's worth being precise about what this is: it is **not** a formal sensor fusion implementation. There is no complementary filter, Kalman filter (EKF), or other algorithm combining the gyro and LiDAR signals into a single fused heading estimate. The architecture is better described as **gyro-primary heading with situational LiDAR-based positional correction**, the SPIKE gyro drives orientation continuously, and the LiDAR steps in at defined points in the maneuver logic to correct drift or misalignment against a known wall reference.
 
-> MISSING **TODO (Criterion 3, top-score territory):** No specific Kp/Kd gain values are recorded in the current documentation, nor a tuning narrative. Fill in: the actual gain values used, what was tried first that didn't work (e.g. oscillation at a given gain, overshoot on corners), and what was changed to fix it.
+ #### Trajectory Control & Closed-Loop Steering
+
+ Steering uses a Proportional-Derivative (PD) controller: the P term reacts to the lateral position error, and the D term anticipates the rate of change of that error to damp oscillations, allowing smooth trajectories through both the wall-following and obstacle-avoidance challenges.
+
+Two separate PD loops are tuned for the two control contexts:
+
+| Controller | Kp | Kd |
+| :--- | :---: | :---: |
+| Camera-based cube following | 150 | 100 |
+| Gyroscope-based wall following | 2 | 300000 |
+
+Both gain sets were obtained through trial-and-error tuning on the physical track rather than derived analytically.
 
 #### Avoidance & Navigation Logic
 
 * **Passing Rules:** Green → pass on left | Red → pass on right
-* Underlying logic: pillar color decisions are handled by `Desicion()`/`Corner_Case()`, and the actual avoidance maneuvers are implemented as `esquivar_cubos_1`/`esquivar_cubos_2`/`esquivar_cubos_middle` and `avoid_cube_start_section`, which use angle/hypotenuse geometry (`calculte_angle_section_start_clockwise[_chr]`, `calculte_angle_section_start_counterclockwise`) to aim the robot's approach at each detected pillar's position.
-* **Parallel Parking Maneuver:** MISSING **TODO**, not covered in the provided documentation. Needs: how the parking lot is detected (LiDAR gap detection? vision?) and how the maneuver itself is executed.
-
+* **Underlying logic:** pillar color decisions are handled by `Desicion()`/`Corner_Case()`, and the actual avoidance maneuvers are implemented as `esquivar_cubos_1`/`esquivar_cubos_2`/`esquivar_cubos_middle` and `avoid_cube_start_section`, which use angle/hypotenuse geometry (`calculte_angle_section_start_clockwise[_chr]`, `calculte_angle_section_start_counterclockwise`) to aim the robot's approach at each detected pillar's position.
+* **Parallel Parking Maneuver:** The camera detects the magenta parking lot markers (labeled `x-parking`) to locate the parking zone. The robot then uses the LiDAR to position itself at a set distance from the wall, and from there uses a combination of LiDAR and gyroscope readings to execute the parking maneuver itself.
 #### State Machine & Safety Systems
 
 * **Robot States:** The code confirms an `Obstacle_Challenge_Thread` state machine exists, driving wall-following and pillar-avoidance decisions/maneuvers, but the provided files don't enumerate a full named state list.
@@ -549,7 +559,9 @@ Steering uses a Proportional-Derivative (PD) controller (no integral term is doc
 ├── other/
 │   ├── additionalMedia/        # Pictures and videos for README.md
 │   ├── datasheets/             # Datasheets for components
-│   └── software_26topsRaspHAT/ # Raspberry Pi Hailo HAT configs and tools
+│   ├── software_26topsRaspHAT/ # Raspberry Pi Hailo HAT configs and tools
+│   ├── dataset.zip             # Compressed dataset used for roboflow_yolov8n_wro_h10.hef
+│   └── Rules pdf file          # WRO-2026-Future-Engineers-Self-Driving-Cars-General-Rules.pdf
 ├── schemes/
 │   └── hardware/               # Electrical documentation & hardware files
 │       └── pcb/                # Prototype PCB schematics (not implemented yet)
