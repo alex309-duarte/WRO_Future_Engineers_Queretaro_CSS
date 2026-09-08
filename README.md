@@ -91,7 +91,7 @@ The vehicle must complete three laps on the track with random placements of the 
 ### Obstacle Challenge
 The vehicle must complete three laps on the track while detecting and avoiding randomly placed coloured obstacles (either green or red blocks), passing them on a specific side according to their colour, and then finish by performing a parallel parking maneuver.
 
-More info: [WRO Official Site](https://wro-association.org/) | [Future Engineers Rules](other/WRO-2026-Future-Engineers-Self-Driving-Cars-General-Rules.pdf)
+More info: [WRO Official Site](https://wro-association.org/) | [Future Engineers Rules](other/WRO-2026-FE_GeneralRules.pdf)
 
 ---
 
@@ -322,8 +322,8 @@ The camera captures the visual feed used to detect obstacle pillars and classify
 Rather than using a separate IMU module, the team relies on the SPIKE Prime Hub's built-in IMU to supply the robot's heading/orientation. The hub communicates with the Raspberry Pi 5 over a serial link, both relaying IMU readings and receiving motor commands for the drivetrain and steering.
 
 ---
-
-**Removed: ultrasonic sensors**
+### **(REMOVED)**
+**Ultrasonic sensors**
 <br><img src="other\additionalMedia\Others\ultrasonic.jpg" width="200"><br>
 Ultrasonic sensors used in previous seasons were removed this year; the robot now relies entirely on the LiDAR and camera for perception, simplifying the sensor suite and reducing weight/power draw.
 
@@ -394,7 +394,7 @@ Motor and steering commands are sent over a serial (USB) link to the LEGO SPIKE 
 ### Hardware Schematics & PCB Design
 
 
-<img src="schemes\hardware\connectionsSchematics.jpeg" alt="Connections Schematics">
+<img src="schemes\hardware\wiringSchematics.jpeg" alt="Connections Schematics">
 
 *Figure 6. System wiring diagram showing power distribution (Geekworm X1203 UPS board from the 2S2P 18650 battery pack) and data connections between the Raspberry Pi 5, Camera Module 3 Wide (CSI), Hailo-10H AI HAT (PCIe), Oradar MS200 LiDAR (USB), LEGO SPIKE Prime hub (USB, driving the drive and steer motors), the GPIO-controlled start button/status LED (Grove LED-Button), and the Grove Relay that switches 5V power to the SPIKE hub.*
 
@@ -713,30 +713,39 @@ Both gain sets were obtained through trial-and-error tuning on the physical trac
 
 ```text
 .
-├── models/
-│   └── cad/                    # CAD designs for chassis
-│       ├── New/                # Current vehicle files
-│       └── old/                # Prototype iteration CAD files
-├── other/
-│   ├── additionalMedia/        # Pictures and videos for README.md
-│   ├── datasheets/             # Datasheets for components
-│   ├── software_26topsRaspHAT/ # Raspberry Pi Hailo HAT configs and tools
-│   ├── dataset.zip             # Compressed dataset used for roboflow_yolov8n_wro_h10.hef
-│   └── Rules pdf file          # WRO-2026-Future-Engineers-Self-Driving-Cars-General-Rules.pdf
-├── schemes/
-│   └── hardware/               # Electrical documentation & hardware files
-│       └── pcb/                # Prototype PCB schematics (not implemented yet)
-├── src/                        # Main C++ autonomous driving software
-│   ├── config/                 # System configuration and YAML parameters for Hailo HAT
-│   ├── cpp/                    # Obstacle Challenge & Vision, segmentation, and perception logic
-│   ├── HailoModels/            # Pre-compiled models for Hailo AI accelerator
-│   ├── ondevice/               # Open Challenge & Hardware SDKs (ORadar, RPLiDAR)
-│   └── tools/                  # Utility scripts and test binaries used by Hailo HAT
-├── t-photos/                   # Team photos (members & coaches)
-├── v-photos/                   # 6-view vehicle photos
-│   └── Robot_More_Photos/      # High-resolution gallery & testing shots
-├── video/                      # Demonstration videos and autonomous run clips
-└── README.md                   # Main project documentation
+├── models/                               # CAD designs and 3D vehicle models
+│   └── cad/                              # Computer-Aided Design files
+│       ├── New/                          # Current vehicle chassis and component CAD
+│       └── old/                          # Prototype iterations and legacy CAD files
+├── other/                                # Supporting materials and external software
+│   ├── additionalMedia/                  # Extra media assets for documentation
+│   │   ├── Others/                       # Miscellaneous diagrams and graphic assets
+│   │   └── Videos/                       # Short testing clips and component videos
+│   ├── dataset/                          # Computer vision dataset for model training
+│   │   ├── images/                       # Raw/annotated training images
+│   │   └── labels/                       # Bounding box labels (YOLO format)
+│   ├── datasheets/                       # Hardware datasheets for sensors and motors
+│   ├── software_26topsRaspHAT/           # Raspberry Pi & Hailo AI HAT setup/tools
+│   ├── Training_model_and_results/       # Model training scripts and evaluation logs
+│   │   └── weights/                      # Model weights (.pt, .onnx, .hef)
+│   └── WRO-2026-FE_GeneralRules.pdf      # WRO official competition rules
+├── schemes/                              # Electrical documentation & schematics
+│   └── hardware/                         # Circuit designs and wiring diagrams
+│       └── pcb/                          # Custom PCB schematics and board layouts
+│       └── wiringSchematics.jpeg         # System wiring diagram/schematics
+├── src/                                  # Main C++ autonomous driving software
+│   ├── config/                           # System YAML parameters and config files (Hailo)
+│   ├── cpp/                              # Core driving, perception, and control logic
+│   ├── HailoModels/                      # Pre-compiled models for Hailo AI accelerator
+│   ├── ondevice/                         # Onboard sensor drivers and SDKs
+│   │   ├── oradar_sdk/                   # ORadar LiDAR SDK
+│   │   └── rplidar_sdk/                  # RPLiDAR SDK
+│   └── tools/                            # Utility test scripts and helper binaries (Hailo)
+├── t-photos/                             # Team photos (members & coaches)
+├── v-photos/                             # Required 6-view vehicle photos
+│   └── Robot_More_Photos/                # High-resolution gallery & field testing shots
+├── video/                                # Open and Obstacle Challenges YouTube video links
+└── README.md                             # Main project documentation
 ```
 
 ## 8. Setup & Execution Instructions <a name="setup-instructions"></a>
@@ -861,7 +870,7 @@ Only needed if retraining the vision model rather than using the one already che
 
 ### About WRO
 - [WRO Official Site](https://wro-association.org/)
-- [Future Engineers Rules](other/WRO-2026-Future-Engineers-Self-Driving-Cars-General-Rules.pdf)
+- [Future Engineers Rules](other/WRO-2026-FE_GeneralRules.pdf)
 - [Team Repository](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS)
 
 ### Datasheets
