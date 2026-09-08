@@ -10,6 +10,9 @@ src/cpp/object_detection_original_h10/build/h10_original/_deps/
 #ignore dir files
 *.dir
 
+# ignore processed_video 
+video~/
+
 /src/cpp/object_detection_original_h10/build/h10_original/nul
 
 #ignore all the .log files
