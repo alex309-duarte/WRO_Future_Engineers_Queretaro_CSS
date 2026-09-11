@@ -930,6 +930,8 @@ Only needed if retraining the vision model rather than using the one already che
 
 ## 11. License <a name="license"></a>
 
+Released under the [MIT License](LICENSE).
+
 ```text
 MIT License
 
