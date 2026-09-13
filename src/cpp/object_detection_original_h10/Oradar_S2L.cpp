@@ -82,21 +82,22 @@ void Oradar_S2L_Advance_Until_Distance(int vel, int referencia, int distancia_ob
 
     distancia_frente = oradar_shared_buffer[270];
 
-    while((terminating_main == 0) && (distancia_frente > distancia_objetivo)){
+    while((terminating_main == 0) && ((distancia_frente > distancia_objetivo) || (distancia_frente == (float)0))){
         distancia_frente = oradar_shared_buffer[270];
         Spike_Forward(vel,referencia);
         usleep(1000);
     }
-    if(brake == Coast)
+    printf("ditancia a la cual sale = %f\n", distancia_frente);
+    if(brake == Hold)
     {
-        Spike_Coast_Motors();
+        Spike_Hold_Motors();
     }
-    else if(brake == Hold)
+    else if(brake == Brake)
     {
         Spike_Hold_Motors();
     }
     else{
-        /* No break applied */
+        Spike_Coast_Motors();
     }
 
 }

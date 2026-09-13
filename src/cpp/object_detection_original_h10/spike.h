@@ -22,6 +22,7 @@ void Spike_Center_Vehicle(void);
 void Spike_Center_Vehicle_Short(void);
 void Spike_Coast_Motors(void);
 void Spike_Hold_Motors(void);
+void Spike_Break_Motors(void);
 void Spike_Reset_Gyro(float degrees);
 float Spike_Get_Gyro(void);
 void Spike_Concatenate(int list_lenght,const char * argument_1[],char * buffer);

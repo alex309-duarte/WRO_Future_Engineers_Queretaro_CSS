@@ -37,7 +37,8 @@ enum Cube_number_chr{
 enum Brake_type{
     Hold = 1,
     Coast = 2,
-    No_brake = 3
+    No_brake = 3,
+    Brake = 4
 
 };
 

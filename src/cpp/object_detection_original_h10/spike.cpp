@@ -41,13 +41,14 @@ int Spike_Serial_Init(void){
 	tty.c_oflag = 0;
 	tty.c_iflag = 0;
     tty.c_cc[VMIN] = 0;
-    tty.c_cc[VTIME] = 5;              //timeout de 500 milisegundos
+    tty.c_cc[VTIME] = 1;              //timeout de 500 milisegundos
  
     if (tcsetattr(serial_port, TCSANOW, &tty) != 0) {
         printf("Error setting serial port attributes");
         close(serial_port);
         return 1;
     }
+    tcflush(serial_port, TCIOFLUSH);  // ← add this: discard stale bytes
 
     printf("Serial port %d opened successfully with 115200 baud.\n", serial_port);
 
@@ -60,13 +61,11 @@ void Spike_Close_Serial(void){
 
 void Spike_Send_Serial_Data(const char* data){
     int num_bytes;
-
 	char buffer_read[255] = "";
 	const char * buffer_Spike = data;
     //printf("Data %s\n",buffer_Spike);
     int i = 0;
     write(serial_port,buffer_Spike,strlen(buffer_Spike));
-
 	while(1){
         num_bytes = read(serial_port,&buffer_read[i],1);
         if(num_bytes <= 0){
@@ -147,6 +146,11 @@ void Spike_Initialize_Libraries(void){
     Spike_Send_Serial_Data("def fc():\r"); // motores libres
     Spike_Send_Serial_Data("motor.stop(port.A, stop = motor.COAST)\r");
     Spike_Send_Serial_Data("motor.stop(port.E, stop = motor.COAST)\r");
+    Spike_End_Function();
+
+    Spike_Send_Serial_Data("def br():\r"); // motores break
+    Spike_Send_Serial_Data("motor.stop(port.A, stop = motor.BREAK)\r");
+    Spike_Send_Serial_Data("motor.stop(port.E, stop = motor.BREAK)\r");
     Spike_End_Function();
 
     Spike_Send_Serial_Data("async def cv_especial():\r");
@@ -293,6 +297,10 @@ void Spike_Hold_Motors(void){
     Spike_Send_Serial_Data("Hold()\r");   
 }
 
+void Spike_Break_Motors(void){
+    Spike_Send_Serial_Data("br()\r");   
+}
+
 void Spike_Concatenate(int list_lenght,const char * argument_1[],char * buffer){
     int i = 0;
     int k = 0;
@@ -317,7 +325,7 @@ void Spike_Reset_Gyro(float degrees){
     //printf("concatenar \n");
     int degrees_to_int = (int)(degrees*10);
     char reset_degrees[255];
-    char degrees_get_string[10]  = "";
+    char degrees_get_string[255]  = "";
 
     snprintf(degrees_get_string, sizeof(degrees_get_string), "%d", degrees_to_int);
 
@@ -339,7 +347,7 @@ float Spike_Get_Gyro(void){
 }
 
 void Spike_Turn_For_Degrees(int direction, int speed, float degrees, int tire_turn, bool await){
-	char arguments[255];
+	char arguments[255] = "";
 	char string_direction[10] = "";
 	char string_speed[10] = "";
 	char string_degrees[10] = "";
@@ -383,6 +391,7 @@ void Spike_Turn_For_Degrees(int direction, int speed, float degrees, int tire_tu
     }
 
     Spike_Hold_Motors();
+    //printf("direccion: %d, speed; %d, degrees: %.1f, tire_turn: %d, await: %d, gyro_fina: %f \n", direction, speed, degrees,tire_turn, await,Spike_Get_Gyro());
 }
 
 void Spike_Small_Turn(int direction, int speed, float degrees, int tire_turn,  bool await){
@@ -467,7 +476,7 @@ void Spike_Advance_For_Degrees(int speed, int degrees, int reference){
             return_value = "0";
         }
     }
-    Spike_Coast_Motors();
+    Spike_Break_Motors();
 }
 
 void Spike_Advance_For_distance(int speed, int distance, int reference){
@@ -506,7 +515,7 @@ void Spike_Advance_For_distance(int speed, int distance, int reference){
             return_value = "0";
         }
     }
-    Spike_Hold_Motors();
+    Spike_Break_Motors();
 }
 
 void Spike_Forward(int speed, int reference){
