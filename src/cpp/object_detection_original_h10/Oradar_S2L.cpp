@@ -33,11 +33,11 @@ void *Oradar_S2L_Lidar_Writer_Thread(void *arg){
     full_scan_data_st scan_data;
 
     while(oradar_terminating == 0){
-        if(oradar_device->GrabFullScan(scan_data)){
+        if(oradar_device->GrabFullScanBlocking(scan_data,1000)){
             pthread_mutex_lock(&oradar_buffer_mutex);
             for(int i = 0; i < scan_data.vailtidy_point_num; i++){
                 int angle = (int)scan_data.data[i].angle;
-                if(angle >= 0 && angle < 360){
+                if((angle >= 0 && angle < 360) && (scan_data.data[i].distance != 0.0)){ /* para descaratar ceros del lidar */
                     oradar_shared_buffer[angle] = scan_data.data[i].distance;
                 }
             }
@@ -87,6 +87,7 @@ void Oradar_S2L_Advance_Until_Distance(int vel, int referencia, int distancia_ob
         Spike_Forward(vel,referencia);
         usleep(1000);
     }
+    Spike_Flush_Serial_Input();
     printf("ditancia a la cual sale = %f\n", distancia_frente);
     if(brake == Hold)
     {
@@ -123,6 +124,7 @@ direction Oradar_S2L_Advance_And_Detect_Side(int speed, int reference){
         Spike_Forward(speed,reference);
         usleep(1000);
     }
+    Spike_Flush_Serial_Input();
 
     if(right_distance > 1350){
         return right;
@@ -151,6 +153,7 @@ void Oradar_S2L_Advance_Until_Left_Gap(int speed, int reference){
         Spike_Forward(speed,reference);
         usleep(1000);
     }
+    Spike_Flush_Serial_Input();
 
 }
 
@@ -168,6 +171,7 @@ void Oradar_S2L_Advance_Until_Right_Gap(int speed, int reference){
         Spike_Forward(speed,reference);
         usleep(1000);
     }
+    Spike_Flush_Serial_Input();
 
 }
 

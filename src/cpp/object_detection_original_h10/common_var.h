@@ -29,7 +29,7 @@ enum Cube_number{
 
 enum Cube_number_chr{
     CUBE_first = 1000,
-    CUBE_second = 1500,
+    CUBE_second = 1300,
     CUBE_middle = 1450
 
 };

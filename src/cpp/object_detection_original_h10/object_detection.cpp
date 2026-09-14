@@ -52,6 +52,7 @@ Color_traffic_light Corner_Case(Color_traffic_light past_cube, bool *middle_cube
 Color_traffic_light esquivar_cubos_middle(bool parking = false);
 Color_traffic_light Desicion(Color_traffic_light past_cube, bool middle_cube, bool parking = false);
 Color_traffic_light estacionamiento_clockwise(void);
+void Advance_For_distance_Especial(int speed, int distance, int reference);
 
 // Holds the window points and the chosen wall's indices into them, shared by Slope()
 // and Distance_To_Wall() so both report on exactly the same wall-selection result
@@ -654,11 +655,6 @@ void *Obstacle_Challenge_Thread(void *arg){
     Color_traffic_light cubo_temp;
     bool is_middle_case = false;
 
-    Oradar_S2L_Get_Buffer(&lidar_shared_buffer[0]);
-    distancia_frente = lidar_shared_buffer[90];
-    distancia_derecha = lidar_shared_buffer[0];
-    distancia_izquierda = lidar_shared_buffer[180];
-
     //printf("dsitancia derecha : %f\n", distancia_derecha);
     //printf("dsitancia izquierda : %f\n", distancia_izquierda);
     //printf("dsitancia frente : %f\n", distancia_frente);
@@ -669,6 +665,11 @@ void *Obstacle_Challenge_Thread(void *arg){
     float slope = Slope(front);
     Spike_Reset_Gyro(0);
     Spike_Center_Vehicle_Short();
+
+    Oradar_S2L_Get_Buffer(&lidar_shared_buffer[0]);
+    distancia_frente = lidar_shared_buffer[90];
+    distancia_derecha = lidar_shared_buffer[0];
+    distancia_izquierda = lidar_shared_buffer[180];
 
 
     /*cubo_temp = esquivar_cubos_1();
@@ -1361,14 +1362,14 @@ Color_traffic_light esquivar_cubos_1(bool parking){
     }
     printf("angulo: %f, hipotenusa: %f\n",angle_to_wall, hypotenuse);
     //usleep(10000000);
-    Spike_Turn_For_Degrees(direction_to_turn, 60, angle_to_wall + 5, 40);
+    Spike_Turn_For_Degrees(direction_to_turn, 60, abs(angle_to_wall) + 5, 40);
     Spike_Center_Vehicle_Short();
     if((parking == false) || (cube == light_red)){
-        Spike_Advance_For_distance(80, (int)hypotenuse - 400, ((angle_to_wall + 5) *direction_to_turn*-1));
+        Spike_Advance_For_distance(80, (int)hypotenuse - 400, ((abs(angle_to_wall) + 5) *direction_to_turn*-1));
     }
     else{
         printf("caso verde en la seccion de parking\n");
-        Spike_Advance_For_distance(80, (int)hypotenuse, (angle_to_wall*direction_to_turn*-1));
+        Spike_Advance_For_distance(80, (int)hypotenuse - 200 , (angle_to_wall*direction_to_turn*-1));
     }
     Spike_Small_Turn((direction_to_turn * -1), 60, 0, 40);
     Spike_Center_Vehicle_Short();
@@ -1400,9 +1401,9 @@ Color_traffic_light esquivar_cubos_2( Color_traffic_light past_cube, bool parkin
                     direction_to_turn = right;
                 }
                 printf("angulo: %f, hipotenusa: %f\n",angle_to_wall, hypotenuse);
-                Spike_Turn_For_Degrees(direction_to_turn, 60, angle_to_wall, 40);
+                Spike_Turn_For_Degrees(direction_to_turn, 60,abs( angle_to_wall) -5 , 40);
                 Spike_Center_Vehicle_Short();
-                Spike_Advance_For_distance(80, (int)hypotenuse - 400, (angle_to_wall*direction_to_turn*-1));
+                Advance_For_distance_Especial(80, (int)hypotenuse - 250, ((abs(angle_to_wall) - 5)*direction_to_turn*-1));
                 Spike_Small_Turn((direction_to_turn * -1), 60, 0, 35);
                 Spike_Center_Vehicle_Short();
                 Spike_Coast_Motors();
@@ -1434,14 +1435,14 @@ Color_traffic_light esquivar_cubos_2( Color_traffic_light past_cube, bool parkin
                 printf("angulo: %f, hipotenusa: %f, direccion: %d\n",angle_to_wall, hypotenuse, direction_to_turn);
                 //printf("yaw antes del giro derecha: %f\n", Spike_Get_Gyro());
                 //usleep(10000000);
-                Spike_Turn_For_Degrees(direction_to_turn, 60, angle_to_wall, 40);
+                Spike_Turn_For_Degrees(direction_to_turn, 60, abs(angle_to_wall) - 5, 40);
                 Spike_Center_Vehicle_Short();
                 if((parking == false)){//el parking se utiliza aqui especialmente en el cubo rojo en la seccion de parking
-                    Spike_Advance_For_distance(80, (int)hypotenuse - 400, (angle_to_wall*direction_to_turn*-1));
+                    Advance_For_distance_Especial(80, (int)hypotenuse - 250, (angle_to_wall*direction_to_turn*-1));
                 }
                 else{
                     printf("segundo cubo rojo en la seccion de parking\n");
-                    Spike_Advance_For_distance(80, (int)hypotenuse - 260, (angle_to_wall*direction_to_turn*-1));
+                    Advance_For_distance_Especial(80, (int)hypotenuse - 260, ((abs(angle_to_wall) - 5)*direction_to_turn*-1));
                 }
                 Spike_Small_Turn((direction_to_turn * -1), 60, 0, 35);
                 Spike_Center_Vehicle_Short();
@@ -1611,6 +1612,68 @@ Color_traffic_light estacionamiento_clockwise(void){
     }
 
     return cube;
+}
+
+void Advance_For_distance_Especial(int speed, int distance, int reference){
+    int degrees = (int)((1.4)*((distance*360)/(196.035)));
+	char arguments[255];
+	char string_speed[10] = "";
+	char string_degrees[10] = "";
+    char string_reference[10] = "";
+    float distance_i;
+    float lidar_shared_buffer[360]; // Your shared buffer
+
+	snprintf(string_speed, sizeof(string_speed), "%d", speed);
+	snprintf(string_degrees, sizeof(string_degrees), "%d", degrees);
+	snprintf(string_reference, sizeof(string_reference), "%d", reference);
+
+	const char * cocatenate_list[10];
+	cocatenate_list[0] = "ag(";
+	cocatenate_list[1] = (const char *)string_speed;	
+	cocatenate_list[2] = ",";
+	cocatenate_list[3] = (const char *)string_degrees;
+    cocatenate_list[4] = ",";
+    cocatenate_list[5] = (const char *)string_reference;	
+	cocatenate_list[6] = ")\r";
+		
+	Spike_Concatenate(7,cocatenate_list, arguments);
+
+	Spike_Send_Serial_Data(arguments);
+
+    Oradar_S2L_Get_Buffer(&lidar_shared_buffer[0]);
+    distance_i = lidar_shared_buffer[270 - (reference)];
+    const char * return_value = Spike_Read_Serial_Data();
+    if (strcmp(return_value, "") == 0){
+        return_value = "0";
+    }
+    while ((atoi(return_value) != 255) && (distance_i > 370)){
+        usleep(1000);
+        Oradar_S2L_Get_Buffer(&lidar_shared_buffer[0]);
+        distance_i = lidar_shared_buffer[270 - (reference)]; 
+        return_value = Spike_Read_Serial_Data();
+        if((strcmp(return_value, "") != 0) && (atoi(return_value) != 255)){
+            printf("Spike wait (ag/distance): linea inesperada '%s'\n", return_value);
+        }
+        usleep(1000);
+        if(strcmp(return_value, "") == 0){
+            return_value = "0";
+        }
+    }
+    if(distance_i <= 370)
+    {
+        printf("mucha hipotenusa, se paro antes de completarla\n");
+        char control_c = '\003';
+        char msg[10] = "";
+        msg[0] = control_c;
+        msg[1] = '\r';
+        Spike_Send_Serial_Data(msg);
+        Spike_Read_Serial_Data();
+        Spike_Read_Serial_Data();
+        Spike_Read_Serial_Data();
+        Spike_Read_Serial_Data();
+        Spike_Send_Serial_Data("\r");
+    }
+    Spike_Hold_Motors();
 }
 
 void signal_handler(int signum){

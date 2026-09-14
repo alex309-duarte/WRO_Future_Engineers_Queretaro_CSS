@@ -63,7 +63,7 @@ void Spike_Send_Serial_Data(const char* data){
 			//printf("Error reading\n");
 			break;
 		}
-		if((buffer_read[i] == '\r') || (i > 255)){
+		if((buffer_read[i] == '\r') || (i >= (int)sizeof(buffer_read) - 1)){
 			buffer_read[i] = '\0';  //special character to convert data to string
 			break;
 		}
@@ -83,7 +83,7 @@ char* Spike_Read_Serial_Data(void){
 			break;
 		}
 		// printf("%c\n",buffer_read[i]);
-		if((buffer_read[i] == '\r') || (i > 255)){
+		if((buffer_read[i] == '\r') || (i >= (int)sizeof(buffer_read) - 1)){
 			buffer_read[i] = '\0';
 			break;
 		}
@@ -139,6 +139,11 @@ void Spike_Initialize_Libraries(void){
     Spike_Send_Serial_Data("motor.stop(port.E, stop = motor.COAST)\r");
     Spike_End_Function();
 
+    Spike_Send_Serial_Data("def br():\r"); // motores libres
+    Spike_Send_Serial_Data("motor.stop(port.A, stop = motor.BRAKE)\r");
+    Spike_Send_Serial_Data("motor.stop(port.E, stop = motor.BRAKE)\r");
+    Spike_End_Function();
+
     Spike_Send_Serial_Data("async def cv_especial():\r");
     Spike_Send_Serial_Data("await motor.run_to_absolute_position(port.A, 0, 550,\r");
     Spike_Send_Serial_Data("direction = motor.LONGEST_PATH, stop = motor.HOLD, acceleration = 1000, deceleration = 1000)\r");
@@ -152,6 +157,12 @@ void Spike_Initialize_Libraries(void){
     Spike_Send_Serial_Data("async def cvc_especial():\r"); //cntrar vehiculo parte corta
     Spike_Send_Serial_Data("await motor.run_to_absolute_position(port.A, 0, 550,\r");
     Spike_Send_Serial_Data("direction = motor.SHORTEST_PATH, stop = motor.HOLD, acceleration = 1000, deceleration = 1000)\r");
+    Spike_Send_Serial_Data("return 255\r");
+    Spike_End_Function();
+
+    Spike_Send_Serial_Data("def cvca():\r"); 
+    Spike_Send_Serial_Data("motor.set_duty_cycle(port.E, (100)*(70))\r");
+    Spike_Send_Serial_Data("runloop.run(cvc_especial())\r");
     Spike_Send_Serial_Data("return 255\r");
     Spike_End_Function();
 
@@ -213,11 +224,17 @@ void Spike_Center_Vehicle(void){
         if(strcmp(return_value, "") == 0){
             return_value = "0";
         }
+        usleep(1000);
     }
 }
 
-void Spike_Center_Vehicle_Short(void){
-    Spike_Send_Serial_Data("cvc()\r");
+void Spike_Center_Vehicle_Short(bool advance){
+    if( advance == false){
+        Spike_Send_Serial_Data("cvc()\r");
+    }
+    else{
+        Spike_Send_Serial_Data("cvca()\r");
+    }
     const char * return_value = Spike_Read_Serial_Data();
     if (strcmp(return_value, "") == 0){
         return_value = "0";
@@ -227,6 +244,7 @@ void Spike_Center_Vehicle_Short(void){
         if(strcmp(return_value, "") == 0){
             return_value = "0";
         }
+        usleep(1000);
     }
 }
 
@@ -237,6 +255,11 @@ void Spike_Coast_Motors(void){
 void Spike_Hold_Motors(void){
     Spike_Send_Serial_Data("Hold()\r");   
 }
+
+void Spike_Break_Motors(void){
+    Spike_Send_Serial_Data("br()\r");   
+}
+
 
 void Spike_Concatenate(int list_lenght,const char * argument_1[],char * buffer){
     int i = 0;
@@ -313,9 +336,10 @@ void Spike_Turn_For_Degrees(int direction, int speed, int degrees){
         if(strcmp(return_value, "") == 0){
             return_value = "0";
         }
+        usleep(1000);
     }
 
-    Spike_Hold_Motors();
+    Spike_Break_Motors();
 }
 
 void Spike_Advance_For_Degrees(int speed, int degrees, int reference){
@@ -350,8 +374,9 @@ void Spike_Advance_For_Degrees(int speed, int degrees, int reference){
         if(strcmp(return_value, "") == 0){
             return_value = "0";
         }
+        usleep(1000);
     }
-    Spike_Coast_Motors();
+    Spike_Break_Motors();
 }
 
 void Spike_Forward(int speed, int reference){

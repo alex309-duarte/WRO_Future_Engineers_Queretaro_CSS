@@ -59,6 +59,19 @@ void Spike_Close_Serial(void){
     close(serial_port);
 }
 
+// Descarta cualquier byte pendiente de leer en el puerto serie. Pensado para
+// llamarse justo despues de una fase de manejo continuo (Spike_Forward llamado
+// en loop, p.ej. Oradar_S2L_Advance_Until_Distance) que manda comandos "da()"
+// mas rapido de lo que el hub alcanza a ecoar: los ecos sobrantes se quedan
+// en cola y, si nadie los descarta, el siguiente comando que sí espera una
+// respuesta limpia (turn/ag/etc) tiene que drenarlos uno por uno antes de
+// llegar al "255" real -- eso es lo que se veia como lineas "inesperadas"
+// repetidas (da(80,0), Hold(), ...) en el log. Como esos ecos de da() nunca
+// se leen ni se usan, es seguro tirarlos aqui en vez de dejar que se acumulen.
+void Spike_Flush_Serial_Input(void){
+    tcflush(serial_port, TCIFLUSH);
+}
+
 void Spike_Send_Serial_Data(const char* data){
     int num_bytes;
 	char buffer_read[255] = "";
@@ -72,7 +85,7 @@ void Spike_Send_Serial_Data(const char* data){
 			//printf("Error reading\n");
 			break;
 		}
-		if((buffer_read[i] == '\r') || (i > 255)){
+		if((buffer_read[i] == '\r') || (i >= (int)sizeof(buffer_read) - 1)){
 			buffer_read[i] = '\0';  //special character to convert data to string
 			break;
 		}
@@ -85,6 +98,14 @@ char* Spike_Read_Serial_Data(void){
 	int i = 0;
 	int num_bytes;
 	static char buffer_read[255] = "";
+	// Invalida el buffer al empezar cada llamada: si read() hace timeout (sin
+	// bytes nuevos) antes de leer nada, buffer_read debe quedar vacio en vez
+	// de regresar intacto el string de la llamada anterior. Sin esto, un
+	// timeout justo despues de mandar un comando (turn/ag/etc, que tardan
+	// mucho mas que el timeout de 100ms del puerto) hace que se regrese el
+	// "255" que dejo el comando ANTERIOR -- el caller cree que el movimiento
+	// ya termino cuando apenas empezo, y corta el giro/avance antes de tiempo.
+	buffer_read[0] = '\0';
 	while(1){
 		num_bytes = read(serial_port,&buffer_read[i],1);
 		if(num_bytes <= 0){
@@ -92,7 +113,7 @@ char* Spike_Read_Serial_Data(void){
 			break;
 		}
 		// printf("%c\n",buffer_read[i]);
-		if((buffer_read[i] == '\r') || (i > 255)){
+		if((buffer_read[i] == '\r') || (i >= (int)sizeof(buffer_read) - 1)){
 			buffer_read[i] = '\0';
 			break;
 		}
@@ -149,8 +170,8 @@ void Spike_Initialize_Libraries(void){
     Spike_End_Function();
 
     Spike_Send_Serial_Data("def br():\r"); // motores break
-    Spike_Send_Serial_Data("motor.stop(port.A, stop = motor.BREAK)\r");
-    Spike_Send_Serial_Data("motor.stop(port.E, stop = motor.BREAK)\r");
+    Spike_Send_Serial_Data("motor.stop(port.A, stop = motor.BRAKE)\r");
+    Spike_Send_Serial_Data("motor.stop(port.E, stop = motor.BRAKE)\r");
     Spike_End_Function();
 
     Spike_Send_Serial_Data("async def cv_especial():\r");
@@ -268,6 +289,9 @@ void Spike_Center_Vehicle(void){
     while (atoi(return_value) != 255){
         usleep(1000);
         return_value = Spike_Read_Serial_Data();
+        if((strcmp(return_value, "") != 0) && (atoi(return_value) != 255)){
+            printf("Spike wait (cv): linea inesperada '%s'\n", return_value);
+        }
         if(strcmp(return_value, "") == 0){
             return_value = "0";
         }
@@ -283,6 +307,9 @@ void Spike_Center_Vehicle_Short(void){
     while (atoi(return_value) != 255){
         usleep(1000);
         return_value = Spike_Read_Serial_Data();
+        if((strcmp(return_value, "") != 0) && (atoi(return_value) != 255)){
+            printf("Spike wait (cvc): linea inesperada '%s'\n", return_value);
+        }
         if(strcmp(return_value, "") == 0){
             return_value = "0";
         }
@@ -385,6 +412,9 @@ void Spike_Turn_For_Degrees(int direction, int speed, float degrees, int tire_tu
     while (atoi(return_value) != 255){
         usleep(1000);
         return_value = Spike_Read_Serial_Data();
+        if((strcmp(return_value, "") != 0) && (atoi(return_value) != 255)){
+            printf("Spike wait (turn): linea inesperada '%s'\n", return_value);
+        }
         if(strcmp(return_value, "") == 0){
             return_value = "0";
         }
@@ -433,6 +463,9 @@ void Spike_Small_Turn(int direction, int speed, float degrees, int tire_turn,  b
     while (atoi(return_value) != 255){
         usleep(1000);
         return_value = Spike_Read_Serial_Data();
+        if((strcmp(return_value, "") != 0) && (atoi(return_value) != 255)){
+            printf("Spike wait (small_turn): linea inesperada '%s'\n", return_value);
+        }
         if(strcmp(return_value, "") == 0){
             return_value = "0";
         }
@@ -453,13 +486,13 @@ void Spike_Advance_For_Degrees(int speed, int degrees, int reference){
 
 	const char * cocatenate_list[10];
 	cocatenate_list[0] = "ag(";
-	cocatenate_list[1] = (const char *)string_speed;	
+	cocatenate_list[1] = (const char *)string_speed;
 	cocatenate_list[2] = ",";
 	cocatenate_list[3] = (const char *)string_degrees;
     cocatenate_list[4] = ",";
-    cocatenate_list[5] = (const char *)string_reference;	
+    cocatenate_list[5] = (const char *)string_reference;
 	cocatenate_list[6] = ")\r";
-		
+
 	Spike_Concatenate(7,cocatenate_list, arguments);
 
 	Spike_Send_Serial_Data(arguments);
@@ -471,6 +504,9 @@ void Spike_Advance_For_Degrees(int speed, int degrees, int reference){
     while (atoi(return_value) != 255){
         usleep(1000);
         return_value = Spike_Read_Serial_Data();
+        if((strcmp(return_value, "") != 0) && (atoi(return_value) != 255)){
+            printf("Spike wait (ag/degrees): linea inesperada '%s'\n", return_value);
+        }
         usleep(1000);
         if(strcmp(return_value, "") == 0){
             return_value = "0";
@@ -510,6 +546,9 @@ void Spike_Advance_For_distance(int speed, int distance, int reference){
     while (atoi(return_value) != 255){
         usleep(1000);
         return_value = Spike_Read_Serial_Data();
+        if((strcmp(return_value, "") != 0) && (atoi(return_value) != 255)){
+            printf("Spike wait (ag/distance): linea inesperada '%s'\n", return_value);
+        }
         usleep(1000);
         if(strcmp(return_value, "") == 0){
             return_value = "0";
