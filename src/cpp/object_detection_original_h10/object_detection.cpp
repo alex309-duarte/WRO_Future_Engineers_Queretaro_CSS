@@ -9,6 +9,8 @@
 
 #include <cstdlib>
 #include <string>
+#include <cstdio>
+#include <ctime>
 
 struct traffic_lights_struct{
     float  middle_point_x;
@@ -98,6 +100,88 @@ int find_max_index(float arr[], int n) {
         }
     }
     return max_index;
+}
+
+// One counter shared by Save_Lidar_Debug_Snapshot and Save_Wall_Detection_Snapshot so a
+// single call site can log the raw scan and the algorithm's wall-detection outcome for
+// that same scan under a matching snapshot_id, and the two can be joined later.
+static int Next_Debug_Snapshot_Id() {
+    static int next_id = 0;
+    return next_id++;
+}
+
+static std::string Debug_Timestamp() {
+    struct timespec ts;
+    clock_gettime(CLOCK_REALTIME, &ts);
+    char time_buf[32];
+    struct tm tm_info;
+    localtime_r(&ts.tv_sec, &tm_info);
+    strftime(time_buf, sizeof(time_buf), "%Y-%m-%d %H:%M:%S", &tm_info);
+    char full_buf[48];
+    snprintf(full_buf, sizeof(full_buf), "%s.%03ld", time_buf, ts.tv_nsec / 1000000);
+    return full_buf;
+}
+
+// Appends one full 360-value lidar scan to a debug CSV (snapshot_id, timestamp,
+// angle_deg, range_mm), one row per angle, so a snapshot from a specific call site
+// (e.g. right after the settling usleep in
+// calculte_angle_section_start_counterclockwise_chr) can be inspected later when
+// tracking down misreads like front-wall outliers. snapshot_id increments once per
+// call (not per row), so all 360 rows from the same call can be grouped/filtered
+// without having to match on the timestamp string.
+static void Save_Lidar_Debug_Snapshot(int snapshot_id, const float lidar_buffer[360], const char *tag) {
+    const char *path_env = std::getenv("WRO_LIDAR_DEBUG_LOG");
+    const std::string path = path_env ? path_env : "/home/maker/lidar_debug_log.csv";
+
+    FILE *f = fopen(path.c_str(), "a");
+    if (!f) return;
+
+    const std::string time_str = Debug_Timestamp();
+    for (int angle = 0; angle < 360; angle++) {
+        fprintf(f, "%d,%s,%s,%d,%.1f\n",
+                snapshot_id, time_str.c_str(), tag, angle, lidar_buffer[angle]);
+    }
+    fclose(f);
+}
+
+// Appends this same scan's Select_Wall() outcome for all four sides (found, distance,
+// orientation, point count) to a companion debug CSV, tagged with the same
+// snapshot_id as Save_Lidar_Debug_Snapshot's raw dump - so the algorithm's conclusion
+// can be compared side-by-side against the raw points that produced it, e.g. to see
+// whether a front-wall outlier point actually got pulled into the chosen wall segment.
+static void Save_Wall_Detection_Snapshot(int snapshot_id, const char *tag) {
+    const char *path_env = std::getenv("WRO_WALL_DEBUG_LOG");
+    const std::string path = path_env ? path_env : "/home/maker/lidar_wall_debug_log.csv";
+
+    FILE *f = fopen(path.c_str(), "a");
+    if (!f) return;
+
+    const std::string time_str = Debug_Timestamp();
+    struct SideInfo { direction side; const char *name; };
+    static const SideInfo sides[] = {
+        { front,  "front"  },
+        { right,  "right"  },
+        { left,   "left"   },
+        { behind, "behind" },
+    };
+    for (const auto &s : sides) {
+        WallSelection sel = Select_Wall(s.side);
+        if (!sel.found) {
+            fprintf(f, "%d,%s,%s,%s,0,,,0\n", snapshot_id, time_str.c_str(), tag, s.name);
+            continue;
+        }
+        float orientation_deg = Fit_Line_Orientation(sel.pts, sel.chosen_indices);
+        float orientation_rad = Oradar_S2L_Degrees_To_Radians(orientation_deg);
+        cv::Point2f dir(cos(orientation_rad), sin(orientation_rad));
+        cv::Point2f centroid(0, 0);
+        for (int idx : sel.chosen_indices) centroid += sel.pts[idx];
+        centroid *= (1.0f / (float)sel.chosen_indices.size());
+        float distance_mm = std::fabs(centroid.x * dir.y - centroid.y * dir.x);
+        fprintf(f, "%d,%s,%s,%s,1,%.1f,%.2f,%zu\n",
+                snapshot_id, time_str.c_str(), tag, s.name,
+                distance_mm, orientation_deg, sel.chosen_indices.size());
+    }
+    fclose(f);
 }
 
 // Recursively splits a contiguous wall segment at its point of maximum perpendicular
@@ -338,7 +422,7 @@ void postprocess_callback(
                 if (!is_outlier[i]) { last_inlier = i; break; }
             }
             if (first_inlier >= 0 && last_inlier >= 0 && first_inlier != last_inlier) {
-                float delta_phi_rad = Oradar_S2L_Degrees_To_Radians(360.0f - point_angle_deg[last_inlier] + point_angle_deg[first_inlier]);
+                float delta_phi_rad = Oradar_S2L_Degrees_To_Radians(375.0f - point_angle_deg[last_inlier] + point_angle_deg[first_inlier]);
                 float r_i = point_range_mm[last_inlier];
                 float d_max = (delta_phi_rad >= lambda_rad)
                     ? -1.0f
@@ -466,9 +550,10 @@ void postprocess_callback(
         // shows all three sides at once instead of just whichever one was queried.
         struct SideHighlight { direction side; const char *label; cv::Scalar color; };
         static const std::vector<SideHighlight> sides_to_highlight = {
-            { front, "front", cv::Scalar(0, 0, 255) },  // red
-            { right, "right", cv::Scalar(255, 0, 0) },  // blue
-            { left,  "left",  cv::Scalar(0, 200, 0) },  // green
+            { front,  "front",  cv::Scalar(0, 0, 255) },    // red
+            { right,  "right",  cv::Scalar(255, 0, 0) },    // blue
+            { left,   "left",   cv::Scalar(0, 200, 0) },    // green
+            { behind, "behind", cv::Scalar(0, 200, 200) },  // yellow-ish
         };
 
         bool highlight_mask[360] = {false};
@@ -721,8 +806,7 @@ void *Obstacle_Challenge_Thread(void *arg){
     //cubo_temp = esquivar_cubos_1(false);
     //esquivar_cubos_2(cubo_temp, false);
     //Spike_Turn_For_Degrees(right, 60, 90, 40);
-
-
+    
     
     if(distancia_derecha > 600){
         printf("Sentido horario\n");
@@ -768,7 +852,7 @@ void *Obstacle_Challenge_Thread(void *arg){
         cubo_temp = Desicion_counterclockwise(cubo_temp, is_middle_case);
         cubo_temp = Corner_Case_counterclockwise(cubo_temp, &is_middle_case,true);
         cubo_temp = Desicion_counterclockwise(cubo_temp, is_middle_case,true);
-        printf("vuelta 1 terminada");
+        /*printf("vuelta 1 terminada");
         cubo_temp = Corner_Case_counterclockwise(cubo_temp, &is_middle_case);
         cubo_temp = Desicion_counterclockwise(cubo_temp, is_middle_case);
         cubo_temp = Corner_Case_counterclockwise(cubo_temp, &is_middle_case);
@@ -786,6 +870,57 @@ void *Obstacle_Challenge_Thread(void *arg){
         cubo_temp = Desicion_counterclockwise(cubo_temp, is_middle_case);
         cubo_temp = Corner_Case_counterclockwise(cubo_temp, &is_middle_case,true);
         cubo_temp = Desicion_counterclockwise(cubo_temp, is_middle_case,true);
+        */usleep(1000000);
+        if(cubo_temp == light_green){
+            Spike_Advance_For_Degrees(50,500,0);
+            Spike_Turn_For_Degrees(right, 60,90,45, true);
+            Spike_Center_Vehicle();
+            Oradar_S2L_Advance_Until_Distance(50, -90, 280, Hold);
+            Spike_Reset_Gyro(0);
+            usleep(100000);
+            Spike_Turn_For_Degrees(left, 50, 90, 45, true);
+            Spike_Center_Vehicle();
+        }
+            
+        float slope_final = Slope(right);
+        printf("reset angle before %f\n", slope);
+        if(slope_final > 0){
+            slope_final = slope_final - 90;
+        }else{
+            slope_final = slope_final + 90;
+        }
+        Spike_Reset_Gyro(slope_final);
+        usleep(100000);
+        float distance_to_right = 1000;
+        distance_to_right = Distance_To_Wall(right);
+        while(distance_to_right > 160){
+            Spike_Forward(45, -10);
+            distance_to_right = Distance_To_Wall(right);
+            usleep(1000);
+        }
+        Oradar_S2L_Advance_Until_Distance(50, 0, 200, Hold);
+        Spike_Reset_Gyro(0);
+        usleep(100000);
+        Spike_Advance_For_Degrees(-50,740,0);
+        Spike_Turn_For_Degrees(left, -50,50,45, true);
+        Spike_Center_Vehicle();
+        Spike_Reset_Gyro(0);
+        usleep(100000);
+        Spike_Turn_For_Degrees(right, -50, 100, 45, true);
+        Spike_Center_Vehicle();
+        usleep(2000000);
+        Spike_Advance_For_Degrees(-50,390,90);
+        Spike_Break_Motors();
+        Spike_Reset_Gyro(0);
+        usleep(100000); 
+        Spike_Turn_For_Degrees(left, -50,28,45, true);
+        Spike_Hold_Motors();
+        Spike_Reset_Gyro(0);
+        usleep(100000);
+        Spike_Turn_For_Degrees(right, 40, -15, 45, true);
+        Spike_Center_Vehicle();
+
+        
 
     }
 
@@ -955,6 +1090,56 @@ static WallSelection Select_Wall(const direction side) {
         return result;
     }
 
+    // Despike: a short run (1-2 points) whose range jumps sharply away from and then
+    // straight back to a level both flanking neighbors agree on is a multipath/
+    // reflective-surface glitch, not a real object or gap. Such a run gets its range
+    // replaced with a linear interpolation between its flanking neighbors, rather than
+    // just deleted: deleting it still leaves an angular gap between the two flanks wide
+    // enough (at typical wall ranges, a 2-3deg gap alone can exceed gap_threshold_mm) to
+    // trip the gap-based segmenter below anyway, so the wall still gets chopped in two.
+    // Interpolating keeps the point density continuous through the glitch instead.
+    // Confirmed via a logged front-wall scan (lidar_debug_log.csv snapshot_id 0): angles
+    // 251-252 dipped to ~1959/1979mm between neighbors reading ~2386mm and ~2360mm,
+    // splitting the front wall into a 5-point and a 22-point fragment; interpolating
+    // instead of deleting merges them back into one 29-point run.
+    const float despike_neighbor_agree_mm = 60.0f;  // how tightly the two flanks must agree with each other
+    const float despike_jump_mm = 150.0f;           // how far the run must diverge from that flank level
+    // 3, not 2: a second logged front-wall scan (lidar_debug_log.csv, run starting
+    // 2026-09-16 19:26, snapshot_id 3) hit a 3-point glitch (angles 261-263, dipping to
+    // ~1430mm between ~2450mm neighbors) that a 2-point run misses entirely. Combined
+    // with the always-present middle_exclusion_deg gap at the window's center, that left
+    // every fragment under min_wall_points and front came back "not found" outright.
+    // Bridging up to 3 points recovers a clean 13-point/2.6mm-residual segment there.
+    const int   despike_max_run = 3;                // longest glitch run considered, in points
+    {
+        for (size_t i = 1; i < pts.size(); i++) {
+            for (int run_len = 1; run_len <= despike_max_run; run_len++) {
+                if (i + (size_t)run_len >= pts.size()) break; // need a flank point on both sides
+                float before_r = (float)cv::norm(pts[i - 1]);
+                float after_r = (float)cv::norm(pts[i + run_len]);
+                if (std::fabs(before_r - after_r) > despike_neighbor_agree_mm) continue; // flanks disagree - not a clean glitch
+                bool all_diverge = true;
+                for (int k = 0; k < run_len; k++) {
+                    float r = (float)cv::norm(pts[i + k]);
+                    if (std::fabs(r - before_r) < despike_jump_mm || std::fabs(r - after_r) < despike_jump_mm) {
+                        all_diverge = false;
+                        break;
+                    }
+                }
+                if (all_diverge) {
+                    for (int k = 0; k < run_len; k++) {
+                        float frac = (float)(k + 1) / (float)(run_len + 1);
+                        float interp_r = before_r + frac * (after_r - before_r);
+                        float angle_deg = (float)pt_angle[i + k];
+                        float angle_rad = Oradar_S2L_Degrees_To_Radians(angle_deg);
+                        pts[i + k] = cv::Point2f(interp_r * cos(angle_rad), interp_r * sin(angle_rad));
+                    }
+                    break;
+                }
+            }
+        }
+    }
+
     // Radius Outlier Removal: drop points with too few neighbors nearby. Without this,
     // a single stray noisy point can trigger a false gap/corner split below and shatter
     // a real, long wall into several small fragments - while a small isolated cluster
@@ -994,7 +1179,7 @@ static WallSelection Select_Wall(const direction side) {
     }
 
     // Gap-based segmentation: a new wall starts wherever consecutive points jump apart
-    const float gap_threshold_mm = 60.0f;
+    const float gap_threshold_mm = 75.0f;
     std::vector<std::vector<int>> segments;
     std::vector<int> current_segment = {0};
     for (size_t i = 1; i < pts.size(); i++) {
@@ -1034,6 +1219,16 @@ static WallSelection Select_Wall(const direction side) {
     // a meaningful distance; requiring that directly excludes objects no matter how
     // many points or how low a residual they happen to have.
     const float min_wall_extent_mm = 200.0f;
+    // A wall genuinely facing "side" must run roughly perpendicular to that side's
+    // viewing axis (e.g. a real front wall runs left-right, not front-back). Without
+    // this check, a close/long side wall can leak into an adjacent direction's window:
+    // it's close enough that its far end still subtends an angle near that other
+    // direction's reference angle, even though the wall itself clearly belongs to the
+    // side it's parallel to. Confirmed via Lidar Coordinates_screenshot_ (front reported
+    // 487mm while the highlighted points were plainly a continuation of the right wall,
+    // same orientation as the "right" pick, ~90deg off from a genuine front wall).
+    const float expected_orientation_deg = std::fmod((float)middle_point + 90.0f, 180.0f);
+    const float max_side_orientation_diff_deg = 50.0f;
     struct SegmentScore {
         size_t seg_idx; float residual; bool qualifies;
         cv::Point2f centroid; float orientation_deg; float extent;
@@ -1050,6 +1245,9 @@ static WallSelection Select_Wall(const direction side) {
         for (int idx : seg) centroid += pts[idx];
         centroid *= (1.0f / (float)seg.size());
         float orientation_deg = Fit_Line_Orientation(pts, seg);
+        float orientation_diff = std::fmod(std::fabs(orientation_deg - expected_orientation_deg), 180.0f);
+        if (orientation_diff > 90.0f) orientation_diff = 180.0f - orientation_diff;
+        if (orientation_diff > max_side_orientation_diff_deg) continue; // wrong-facing wall, not this side's
         scores.push_back({s, residual, qualifies, centroid, orientation_deg, extent});
     }
     std::sort(scores.begin(), scores.end(), [](const SegmentScore &a, const SegmentScore &b) {
@@ -1260,14 +1458,22 @@ void calculte_angle_section_start_clockwise_chr(Color_traffic_light traffic_ligh
     float diStanceToLeftWallmm = 0;
     float distanceToBackWallmm = 0;
     float lidar_shared_buffer[360];
+    float distance_to_wall_front_temp = 0;
+    float distance_to_wall_behind_temp = 0;
     float side_1 = 0;
     float side_2 = 0;
-
+    usleep(500000);
+    while((distance_to_wall_front_temp == 0)){ /* waiting until a valid wall is detected */
+        distance_to_wall_front_temp = Distance_To_Wall(front);
+        distance_to_wall_behind_temp = Distance_To_Wall(behind);
+    }
     Oradar_S2L_Get_Buffer(&lidar_shared_buffer[0]);
-    diStanceToFrontWallmm = lidar_shared_buffer[270];
-    distanceToBackWallmm = lidar_shared_buffer[90];
+    diStanceToFrontWallmm = distance_to_wall_front_temp;
+        // Rear wall not confidently found this scan (e.g. out of range/no clean fit) -
+        // fall back to the field-length estimate instead of trusting a 0 reading.
+    distanceToBackWallmm = 3000 - distance_to_wall_front_temp;
     diStanceToLeftWallmm = lidar_shared_buffer[180];
-    
+
     //printf("atras: %f\n", distanceToBackWallmm);
 
     if(cube_number_per_section == CUBE_first){
@@ -1407,6 +1613,9 @@ Color_traffic_light esquivar_cubos_1(bool parking){
     }
     printf("angulo: %f, hipotenusa: %f\n",angle_to_wall, hypotenuse);
     //usleep(10000000);
+    if(angle_to_wall > 70.0){ /* limit the angle in case of an emergency */
+        angle_to_wall = 70.0;
+    }
     Spike_Turn_For_Degrees(direction_to_turn, 60, abs(angle_to_wall) + 5, 40);
     Spike_Center_Vehicle_Short();
     if((parking == false) || (cube == light_red)){
@@ -1446,6 +1655,9 @@ Color_traffic_light esquivar_cubos_2( Color_traffic_light past_cube, bool parkin
                     direction_to_turn = right;
                 }
                 printf("angulo: %f, hipotenusa: %f\n",angle_to_wall, hypotenuse);
+                if(angle_to_wall > 70.0){ /* limit the angle in case of an emergency */
+                    angle_to_wall = 70.0;
+                }
                 Spike_Turn_For_Degrees(direction_to_turn, 60,abs( angle_to_wall) -5 , 40);
                 Spike_Center_Vehicle_Short();
                 Advance_For_distance_Especial(80, (int)hypotenuse - 250, ((abs(angle_to_wall) - 5)*direction_to_turn*-1));
@@ -1486,6 +1698,9 @@ Color_traffic_light esquivar_cubos_2( Color_traffic_light past_cube, bool parkin
                     direction_to_turn = right;
                 }
                 printf("angulo: %f, hipotenusa: %f, direccion: %d\n",angle_to_wall, hypotenuse, direction_to_turn);
+                if(angle_to_wall > 70.0){ /* limit the angle in case of an emergency */
+                    angle_to_wall = 70.0;
+                }
                 //printf("yaw antes del giro derecha: %f\n", Spike_Get_Gyro());
                 //usleep(10000000);
                 Spike_Turn_For_Degrees(direction_to_turn, 60, abs(angle_to_wall) - 5, 40);
@@ -1582,6 +1797,9 @@ Color_traffic_light esquivar_cubos_middle(bool parking){
     }
 
     printf("angulo: %f, hipotenusa: %f\n",angle_to_wall, hypotenuse);
+    if(angle_to_wall > 70.0){ /* limit the angle in case of an emergency */
+        angle_to_wall = 70.0;
+    }
     Spike_Turn_For_Degrees(direction_to_turn, 60, abs(angle_to_wall) + 3, 40, true);
     printf("===============Turn finsih position================\n");
     //usleep(2000000);
@@ -1683,12 +1901,30 @@ void calculte_angle_section_start_counterclockwise_chr(Color_traffic_light traff
     float diStanceToRightWallmm = 0;
     float distanceToBackWallmm = 0;
     float lidar_shared_buffer[360];
+    float distance_to_wall_front_temp = 0;
+    float distance_to_wall_behind_temp = 0;
     float side_1 = 0;
     float side_2 = 0;
-
+    usleep(100000);
+    // Debug data capture used to diagnose/tune front-wall outlier filtering
+    // (see Select_Wall's despike step) - re-enable to log more snapshots for comparison.
+    // {
+    //     const int debug_snapshot_id = Next_Debug_Snapshot_Id();
+    //     const char *debug_tag = "calculte_angle_section_start_counterclockwise_chr";
+    //     float lidar_debug_snapshot[360];
+    //     Oradar_S2L_Get_Buffer(&lidar_debug_snapshot[0]);
+    //     Save_Lidar_Debug_Snapshot(debug_snapshot_id, lidar_debug_snapshot, debug_tag);
+    //     Save_Wall_Detection_Snapshot(debug_snapshot_id, debug_tag);
+    // }
+    while((distance_to_wall_front_temp == 0)){ /* waiting until a valid wall is detected */
+        distance_to_wall_front_temp = Distance_To_Wall(front);
+        distance_to_wall_behind_temp = Distance_To_Wall(behind);
+    }
     Oradar_S2L_Get_Buffer(&lidar_shared_buffer[0]);
-    diStanceToFrontWallmm = lidar_shared_buffer[270];
-    distanceToBackWallmm = lidar_shared_buffer[90];
+    diStanceToFrontWallmm = distance_to_wall_front_temp;
+        // Rear wall not confidently found this scan (e.g. out of range/no clean fit) -
+        // fall back to the field-length estimate instead of trusting a 0 reading.
+    distanceToBackWallmm = 3000 - distance_to_wall_front_temp;
     diStanceToRightWallmm = lidar_shared_buffer[0];
 
     if(cube_number_per_section == CUBE_first){
@@ -1697,8 +1933,10 @@ void calculte_angle_section_start_counterclockwise_chr(Color_traffic_light traff
         if(traffic_light_color == light_red){
             if(parking == false){
                 side_2 = diStanceToRightWallmm - 185;
+                printf("------------------ 400 ---------------------NO parking\n");
             }
             else{
+                printf("------------------ 400 --------------------- parking\n");
                 side_2 = diStanceToRightWallmm - 400;
             }
             angle_rad = atan(((side_1)/(side_2)));
@@ -1745,6 +1983,7 @@ void calculte_angle_section_start_counterclockwise_chr(Color_traffic_light traff
     *hypotenuse = sqrt( pow(side_1,2) + pow(side_2,2));
     *angle = 90 - Oradar_S2L_Radians_To_Degrees(angle_rad);
     printf("[ccw] distancia frente: %f, distancia atras: %f, distancia derecha: %f, angle rad: %f\n", diStanceToFrontWallmm, distanceToBackWallmm, diStanceToRightWallmm, angle_rad);
+    //usleep(5000000);
 }
 
 // Estructuralmente identica a esquivar_cubos_1: el criterio verde->izquierda,
@@ -1766,14 +2005,18 @@ Color_traffic_light esquivar_cubos_1_counterclockwise(bool parking){
         direction_to_turn = right;
     }
     printf("angulo: %f, hipotenusa: %f\n",angle_to_wall, hypotenuse);
+    if(angle_to_wall > 70.0){ /* limit the angle in case of an emergency */
+        angle_to_wall = 70.0;
+    }
     Spike_Turn_For_Degrees(direction_to_turn, 60, abs(angle_to_wall) + 5, 40);
+    usleep(100000);
     Spike_Center_Vehicle_Short();
     if((parking == false) || (cube == light_green)){
-        Spike_Advance_For_distance(80, (int)hypotenuse - 400, ((abs(angle_to_wall) + 5) *direction_to_turn*-1));
+        Spike_Advance_For_distance(80, (int)hypotenuse - (400*(angle_to_wall/45)), ((abs(angle_to_wall)) *direction_to_turn*-1));
     }
     else{
         printf("caso verde en la seccion de parking\n");
-        Spike_Advance_For_distance(80, (int)hypotenuse - 200 , (angle_to_wall*direction_to_turn*-1));
+        Spike_Advance_For_distance(80, (int)hypotenuse - (200*(angle_to_wall/45)) , (angle_to_wall*direction_to_turn*-1));
     }
     Spike_Small_Turn((direction_to_turn * -1), 60, 0, 40);
     Spike_Center_Vehicle_Short();
@@ -1792,13 +2035,14 @@ Color_traffic_light esquivar_cubos_2_counterclockwise( Color_traffic_light past_
     bool is_cube_present = false;
 
     if(past_cube == light_red){
-        if((middle_point_x > 0.1) && (cube != none) && ( cube != light_xparking)){
+        if(/*(middle_point_x > 0.1) && *//* lo quite porque aveces no lo veia */(cube != none) && ( cube != light_xparking)){
             is_cube_present = true;
             if( past_cube == cube ){
                 if(parking == false){
                     Oradar_S2L_Advance_Until_Distance(80, 0, 1000, Hold);
                 }
                 else{
+                    printf("                  vehicle_vuleta especial \n");
                     Oradar_S2L_Advance_Until_Distance(80, 0, 1175, Hold);
                     Spike_Turn_For_Degrees(right, 60, 30, 40);
                     Spike_Small_Turn(left, 60, 0, 40);
@@ -1816,14 +2060,17 @@ Color_traffic_light esquivar_cubos_2_counterclockwise( Color_traffic_light past_
                     direction_to_turn = right;
                 }
                 printf("angulo: %f, hipotenusa: %f\n",angle_to_wall, hypotenuse);
-                Spike_Turn_For_Degrees(direction_to_turn, 60,abs( angle_to_wall) -5 , 40);
+                if(angle_to_wall > 70.0){ /* limit the angle in case of an emergency */
+                    angle_to_wall = 70.0;
+                }
+                Spike_Turn_For_Degrees(direction_to_turn, 60,abs( angle_to_wall)  , 40);
                 Spike_Center_Vehicle_Short();
                 if((parking == false)){
-                    Advance_For_distance_Especial(80, (int)hypotenuse - 250, (angle_to_wall*direction_to_turn*-1));
+                    Advance_For_distance_Especial(80, (int)hypotenuse - (250*(angle_to_wall/45)), (angle_to_wall*direction_to_turn*-1));
                 }
                 else{
                     printf("segundo cubo rojo en la seccion de parking\n");
-                    Advance_For_distance_Especial(80, (int)hypotenuse - 260, ((abs(angle_to_wall) - 5)*direction_to_turn*-1));
+                    Advance_For_distance_Especial(80, (int)hypotenuse - (260*(angle_to_wall/45)), ((abs(angle_to_wall) - 5)*direction_to_turn*-1));
                 }
                 Spike_Small_Turn((direction_to_turn * -1), 60, 0, 35);
                 Spike_Center_Vehicle_Short();
@@ -1853,9 +2100,12 @@ Color_traffic_light esquivar_cubos_2_counterclockwise( Color_traffic_light past_
                     direction_to_turn = right;
                 }
                 printf("angulo: %f, hipotenusa: %f, direccion: %d\n",angle_to_wall, hypotenuse, direction_to_turn);
-                Spike_Turn_For_Degrees(direction_to_turn, 60, abs(angle_to_wall) - 5, 40);
+                if(angle_to_wall > 70.0){ /* limit the angle in case of an emergency */
+                    angle_to_wall = 70.0;
+                }   
+                Spike_Turn_For_Degrees(direction_to_turn, 60, abs(angle_to_wall) , 40);
                 Spike_Center_Vehicle_Short();
-                Advance_For_distance_Especial(80, (int)hypotenuse - 250, (angle_to_wall*direction_to_turn*-1));
+                Advance_For_distance_Especial(80, (int)hypotenuse - (250*(angle_to_wall/45)), (angle_to_wall*direction_to_turn*-1));
                 Spike_Small_Turn((direction_to_turn * -1), 60, 0, 35);
                 Spike_Center_Vehicle_Short();
                 Spike_Coast_Motors();
@@ -1953,16 +2203,19 @@ Color_traffic_light esquivar_cubos_middle_counterclockwise(bool parking){
     }
 
     printf("angulo: %f, hipotenusa: %f\n",angle_to_wall, hypotenuse);
-    Spike_Turn_For_Degrees(direction_to_turn, 60, abs(angle_to_wall) + 3, 40, true);
+    if(angle_to_wall > 70.0){ /* limit the angle in case of an emergency */
+        angle_to_wall = 70.0;
+    }
+    Spike_Turn_For_Degrees(direction_to_turn, 60, abs(angle_to_wall) + 5, 40, true);
     printf("===============Turn finsih position (ccw)================\n");
     Spike_Center_Vehicle_Short();
     if(cube == light_green)
     {
-        Spike_Advance_For_distance(80, (int)hypotenuse - 450, ((abs(angle_to_wall) + 3 )*direction_to_turn*-1));
+        Spike_Advance_For_distance(80, (int)hypotenuse - (450*(angle_to_wall/45)), ((abs(angle_to_wall) + 3 )*direction_to_turn*-1));
     }
     else
     {
-        Spike_Advance_For_distance(80, (int)hypotenuse - 350, ((abs(angle_to_wall) + 3 )*direction_to_turn*-1));
+        Spike_Advance_For_distance(80, (int)hypotenuse - (350*(angle_to_wall/45)), ((abs(angle_to_wall) + 3 )*direction_to_turn*-1));
     }
     Spike_Small_Turn((direction_to_turn * -1), 60, 0, 40);
     Spike_Center_Vehicle_Short();
@@ -1975,11 +2228,11 @@ Color_traffic_light esquivar_cubos_middle_counterclockwise(bool parking){
 // funciones esquivar_cubos_* y usa Slope(right) en vez de Slope(left) -- la
 // correccion de rumbo en la vuelta counterclockwise va por el lidar derecho.
 Color_traffic_light Desicion_counterclockwise(Color_traffic_light past_cube, bool middle_cube, bool parking){
+
     printf("Entro a decision (ccw)\n");
     Color_traffic_light cubo_temp;
     float slope = Slope(right);
     printf("reset angle before %f\n", slope);
-
     if(slope > 0){
         slope = slope - 90;
     }else{
@@ -1996,12 +2249,14 @@ Color_traffic_light Desicion_counterclockwise(Color_traffic_light past_cube, boo
         else{
             printf("esquivando 2 cubos en la seccion\n");
             cubo_temp = esquivar_cubos_1_counterclockwise(parking);
+
             cubo_temp = esquivar_cubos_2_counterclockwise(cubo_temp, parking);
         }
     }
     else{
         printf("esquivando segundo cubo porque habia uno en la esquina\n");
         cubo_temp = esquivar_cubos_2_counterclockwise(past_cube, parking);
+        
     }
 
     printf("==========================descision_finish (ccw)=================================\n");
@@ -2021,8 +2276,8 @@ Color_traffic_light Desicion_counterclockwise(Color_traffic_light past_cube, boo
 Color_traffic_light estacionamiento_counterclockwise(void){
     Spike_Turn_For_Degrees(right, -60, 16, 45, true);
     Spike_Center_Vehicle();
-    Spike_Turn_For_Degrees(left, 60, 45, 40, true);
-    usleep(300000);
+    Spike_Turn_For_Degrees(left, 45, 45, 40, true);
+    usleep(1500000);
 
     Color_traffic_light cube = traffic_lights.light_color;
     if(cube == light_red){
@@ -2044,6 +2299,12 @@ Color_traffic_light estacionamiento_counterclockwise(void){
         Oradar_S2L_Advance_Until_Distance(80, 0, 800, Hold);
         Spike_Advance_For_Degrees(-80, 600, 0);
 
+    }else{
+        printf("no vio nada pero se acomoda como rojo\n");
+        Spike_Small_Turn(right, 60, 35, 15,true);
+        Spike_Small_Turn(right, 60, 0, 40, true);
+        Spike_Center_Vehicle_Short();
+        usleep(5000000);
     }
 
     return cube;

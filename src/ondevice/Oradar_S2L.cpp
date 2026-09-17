@@ -102,7 +102,7 @@ direction Oradar_S2L_Advance_And_Detect_Side(int speed, int reference){
         right_distance = oradar_shared_buffer[RP_TO_ORADAR_IDX(RIGHT)];
         left_distance = oradar_shared_buffer[RP_TO_ORADAR_IDX(LEFT)];
         back_distance = oradar_shared_buffer[RP_TO_ORADAR_IDX(BACK)];
-        //Spike_Forward(speed,reference);
+        Spike_Forward(speed,reference);
         usleep(1000);
         printf("dsitancia derecha : %f\n", right_distance);
         printf("dsitancia izquierda : %f\n", left_distance);

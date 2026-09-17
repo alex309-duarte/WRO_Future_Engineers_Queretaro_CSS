@@ -72,6 +72,13 @@ void Spike_Flush_Serial_Input(void){
     tcflush(serial_port, TCIFLUSH);
 }
 
+// El REPL de SPIKE Prime ecoa la linea de entrada (p.ej. "\n>>> turn_special(...)")
+// antes de mandar el "255" real. Ese eco es normal y no indica ningun problema,
+// asi que se filtra de los prints "linea inesperada" para no ensuciar el log.
+bool Spike_Is_Repl_Echo(const char* line){
+    return strstr(line, ">>>") != NULL;
+}
+
 void Spike_Send_Serial_Data(const char* data){
     int num_bytes;
 	char buffer_read[255] = "";
@@ -277,6 +284,16 @@ void Spike_Initialize_Libraries(void){
     Spike_Send_Serial_Data("fc()\r");
     Spike_Send_Serial_Data("return 255\r");
     Spike_End_Function();
+
+    Spike_Send_Serial_Data("def ag_u(speed,degrees,reference):\r");
+    Spike_Send_Serial_Data("error = 0\r");
+    Spike_Send_Serial_Data("motor.reset_relative_position(port.E,0)\r");
+    Spike_Send_Serial_Data("while abs(degrees) > abs(motor.relative_position(port.E)):\r");
+    Spike_Send_Serial_Data("error = pd(motion_sensor.tilt_angles()[0],((10)*(reference)),speed,-0.03,0,error)\r");
+    Spike_Send_Serial_Data(remove);
+    Spike_Send_Serial_Data("fc()\r");
+    Spike_Send_Serial_Data("return 255\r");
+    Spike_End_Function();
 }
 
 
@@ -289,7 +306,7 @@ void Spike_Center_Vehicle(void){
     while (atoi(return_value) != 255){
         usleep(1000);
         return_value = Spike_Read_Serial_Data();
-        if((strcmp(return_value, "") != 0) && (atoi(return_value) != 255)){
+        if((strcmp(return_value, "") != 0) && (atoi(return_value) != 255) && !Spike_Is_Repl_Echo(return_value)){
             printf("Spike wait (cv): linea inesperada '%s'\n", return_value);
         }
         if(strcmp(return_value, "") == 0){
@@ -307,7 +324,7 @@ void Spike_Center_Vehicle_Short(void){
     while (atoi(return_value) != 255){
         usleep(1000);
         return_value = Spike_Read_Serial_Data();
-        if((strcmp(return_value, "") != 0) && (atoi(return_value) != 255)){
+        if((strcmp(return_value, "") != 0) && (atoi(return_value) != 255) && !Spike_Is_Repl_Echo(return_value)){
             printf("Spike wait (cvc): linea inesperada '%s'\n", return_value);
         }
         if(strcmp(return_value, "") == 0){
@@ -412,7 +429,7 @@ void Spike_Turn_For_Degrees(int direction, int speed, float degrees, int tire_tu
     while (atoi(return_value) != 255){
         usleep(1000);
         return_value = Spike_Read_Serial_Data();
-        if((strcmp(return_value, "") != 0) && (atoi(return_value) != 255)){
+        if((strcmp(return_value, "") != 0) && (atoi(return_value) != 255) && !Spike_Is_Repl_Echo(return_value)){
             printf("Spike wait (turn): linea inesperada '%s'\n", return_value);
         }
         if(strcmp(return_value, "") == 0){
@@ -463,7 +480,7 @@ void Spike_Small_Turn(int direction, int speed, float degrees, int tire_turn,  b
     while (atoi(return_value) != 255){
         usleep(1000);
         return_value = Spike_Read_Serial_Data();
-        if((strcmp(return_value, "") != 0) && (atoi(return_value) != 255)){
+        if((strcmp(return_value, "") != 0) && (atoi(return_value) != 255) && !Spike_Is_Repl_Echo(return_value)){
             printf("Spike wait (small_turn): linea inesperada '%s'\n", return_value);
         }
         if(strcmp(return_value, "") == 0){
@@ -485,7 +502,11 @@ void Spike_Advance_For_Degrees(int speed, int degrees, int reference){
 	snprintf(string_reference, sizeof(string_reference), "%d", reference);
 
 	const char * cocatenate_list[10];
-	cocatenate_list[0] = "ag(";
+    if(speed > 0){
+	    cocatenate_list[0] = "ag(";
+    }else{
+        cocatenate_list[0] = "ag_u(";
+    }
 	cocatenate_list[1] = (const char *)string_speed;
 	cocatenate_list[2] = ",";
 	cocatenate_list[3] = (const char *)string_degrees;
@@ -504,7 +525,7 @@ void Spike_Advance_For_Degrees(int speed, int degrees, int reference){
     while (atoi(return_value) != 255){
         usleep(1000);
         return_value = Spike_Read_Serial_Data();
-        if((strcmp(return_value, "") != 0) && (atoi(return_value) != 255)){
+        if((strcmp(return_value, "") != 0) && (atoi(return_value) != 255) && !Spike_Is_Repl_Echo(return_value)){
             printf("Spike wait (ag/degrees): linea inesperada '%s'\n", return_value);
         }
         usleep(1000);
@@ -546,7 +567,7 @@ void Spike_Advance_For_distance(int speed, int distance, int reference){
     while (atoi(return_value) != 255){
         usleep(1000);
         return_value = Spike_Read_Serial_Data();
-        if((strcmp(return_value, "") != 0) && (atoi(return_value) != 255)){
+        if((strcmp(return_value, "") != 0) && (atoi(return_value) != 255) && !Spike_Is_Repl_Echo(return_value)){
             printf("Spike wait (ag/distance): linea inesperada '%s'\n", return_value);
         }
         usleep(1000);
