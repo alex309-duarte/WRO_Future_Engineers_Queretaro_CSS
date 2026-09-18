@@ -755,12 +755,14 @@ Visit [Assembly instructions](other/Assembly_photos/Assembly_Process_EN.md) for 
 .
 ├── models/                               # CAD designs and 3D vehicle models
 │   └── cad/                              # Computer-Aided Design files
-│       ├── New/                          # Current vehicle chassis and component CAD
-│       └── old/                          # Prototype iterations and legacy CAD files
+│       ├── Final_assembly/               # Current vehicle chassis CAD assembly
+│       ├── Iterations/                   # Prototype iterations and legacy CAD files
+│       └── Stl/                          # STL CAD Files
 ├── other/                                # Supporting materials and external software
 │   ├── additionalMedia/                  # Extra media assets for documentation
 │   │   ├── Others/                       # Miscellaneous diagrams and graphic assets
 │   │   └── Videos/                       # Short testing clips and component videos
+│   ├── Assembly_photos/                  # Pictures for construction guide
 │   ├── dataset/                          # Computer vision dataset for model training
 │   │   ├── images/                       # Raw/annotated training images
 │   │   └── labels/                       # Bounding box labels (YOLO format)
@@ -785,7 +787,10 @@ Visit [Assembly instructions](other/Assembly_photos/Assembly_Process_EN.md) for 
 ├── v-photos/                             # Required 6-view vehicle photos
 │   └── Robot_More_Photos/                # High-resolution gallery & field testing shots
 ├── video/                                # Open and Obstacle Challenges YouTube video links
+├── .gitignore                            # .gitignore
 ├── Engineering_Journal_CSS_WRO2026.pdf   # Engineering Journal PDF
+├── LICENSE                               # MIT LICENSE file
+├── SERVICES_README.md                    # Explanation for setting up daemon services
 └── README.md                             # Main project documentation
 ```
 

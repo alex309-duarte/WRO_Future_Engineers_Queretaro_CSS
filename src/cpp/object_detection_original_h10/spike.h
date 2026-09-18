@@ -22,6 +22,7 @@ void Spike_Center_Vehicle(void);
 void Spike_Center_Vehicle_Short(void);
 void Spike_Coast_Motors(void);
 void Spike_Hold_Motors(void);
+void Spike_Break_Motors(void);
 void Spike_Reset_Gyro(float degrees);
 float Spike_Get_Gyro(void);
 void Spike_Concatenate(int list_lenght,const char * argument_1[],char * buffer);
@@ -31,6 +32,8 @@ void Spike_Advance_For_distance(int speed, int distance, int reference);
 void Spike_Forward(int speed, int reference);
 void Spike_Follow_Reference(int speed, float reference_1, float reference_2);
 void Spike_Small_Turn(int direction, int speed, float degrees, int tire_turn, bool await = false);
+void Spike_Flush_Serial_Input(void);
+bool Spike_Is_Repl_Echo(const char* line);
 
 // Contenido del archivo de cabecera (prototipos, definiciones, etc.)
 
