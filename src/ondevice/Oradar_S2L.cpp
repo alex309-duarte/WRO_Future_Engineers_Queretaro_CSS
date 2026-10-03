@@ -97,23 +97,23 @@ direction Oradar_S2L_Advance_And_Detect_Side(int speed, int reference){
     left_distance = oradar_shared_buffer[RP_TO_ORADAR_IDX(LEFT)];
 
 
-    while((oradar_terminating == 0) && (((right_distance < 1350) && (left_distance < 1350)) || (front_distance > 1100))){
+    while((oradar_terminating == 0) && (((right_distance < 1350) && (left_distance < 1350) && (right_distance != 0) && (left_distance != 0) ) || (front_distance > 1100))){
         front_distance = oradar_shared_buffer[RP_TO_ORADAR_IDX(FRONT)];
         right_distance = oradar_shared_buffer[RP_TO_ORADAR_IDX(RIGHT)];
         left_distance = oradar_shared_buffer[RP_TO_ORADAR_IDX(LEFT)];
         back_distance = oradar_shared_buffer[RP_TO_ORADAR_IDX(BACK)];
         Spike_Forward(speed,reference);
         usleep(1000);
-        printf("dsitancia derecha : %f\n", right_distance);
-        printf("dsitancia izquierda : %f\n", left_distance);
-        printf("dsitancia frente : %f\n", front_distance);
-        printf("dsitancia atras : %f\n", back_distance);
+        //printf("dsitancia derecha : %f\n", right_distance);
+        //printf("dsitancia izquierda : %f\n", left_distance);
+        //printf("dsitancia frente : %f\n", front_distance);
+        //printf("dsitancia atras : %f\n", back_distance);
     }
 
-    if(right_distance > 1350){
+    if(right_distance > 1350 || right_distance == 0 ){
         return right;
     }
-    else if (left_distance > 1350)
+    else if (left_distance > 1350 || left_distance == 0)
     {
         return left;
     }
@@ -196,6 +196,21 @@ void Oradar_S2L_Advance_Until_Distance(int speed, int reference, int target_dist
     front_distance = oradar_shared_buffer[RP_TO_ORADAR_IDX(FRONT)];
 
     while((oradar_terminating == 0) && ((front_distance > target_distance) || (front_distance == 0))){
+        front_distance = oradar_shared_buffer[RP_TO_ORADAR_IDX(FRONT)];
+        Spike_Forward(speed,reference);
+        //printf("dsitancia frente : %f\n", front_distance);
+        usleep(1000);
+    }
+
+    Spike_Hold_Motors();
+}
+
+void Oradar_S2L_Advance_Until_Distance_R(int speed, int reference, int target_distance){
+    float front_distance;
+
+    front_distance = oradar_shared_buffer[RP_TO_ORADAR_IDX(FRONT)];
+
+    while((oradar_terminating == 0) && ((front_distance < target_distance) || (front_distance == 0))){
         front_distance = oradar_shared_buffer[RP_TO_ORADAR_IDX(FRONT)];
         Spike_Forward(speed,reference);
         //printf("dsitancia frente : %f\n", front_distance);

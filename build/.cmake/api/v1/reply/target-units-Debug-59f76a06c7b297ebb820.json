@@ -1,0 +1,591 @@
+{
+	"artifacts" : 
+	[
+		{
+			"path" : "_deps/curl/tests/unit/units"
+		}
+	],
+	"backtrace" : 1,
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"add_executable",
+			"target_link_libraries",
+			"set_target_properties",
+			"find_package",
+			"add_dependencies",
+			"set_property",
+			"include",
+			"target_compile_definitions",
+			"target_include_directories"
+		],
+		"files" : 
+		[
+			"/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/curl/tests/unit/CMakeLists.txt",
+			"/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/curl/CMake/FindLibssh2.cmake",
+			"/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/curl/CMakeLists.txt",
+			"/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/curl/CMake/FindLibidn2.cmake",
+			"/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/curl/lib/CMakeLists.txt",
+			"/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/curl/CMake/PickyWarnings.cmake"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 41,
+				"parent" : 0
+			},
+			{
+				"command" : 1,
+				"file" : 0,
+				"line" : 44,
+				"parent" : 0
+			},
+			{
+				"file" : 2
+			},
+			{
+				"command" : 3,
+				"file" : 2,
+				"line" : 1290,
+				"parent" : 3
+			},
+			{
+				"file" : 1,
+				"parent" : 4
+			},
+			{
+				"command" : 2,
+				"file" : 1,
+				"line" : 110,
+				"parent" : 5
+			},
+			{
+				"command" : 3,
+				"file" : 2,
+				"line" : 1267,
+				"parent" : 3
+			},
+			{
+				"file" : 3,
+				"parent" : 7
+			},
+			{
+				"command" : 2,
+				"file" : 3,
+				"line" : 85,
+				"parent" : 8
+			},
+			{
+				"file" : 4
+			},
+			{
+				"command" : 1,
+				"file" : 4,
+				"line" : 48,
+				"parent" : 10
+			},
+			{
+				"command" : 4,
+				"file" : 0,
+				"line" : 42,
+				"parent" : 0
+			},
+			{
+				"command" : 6,
+				"file" : 2,
+				"line" : 320,
+				"parent" : 3
+			},
+			{
+				"file" : 5,
+				"parent" : 13
+			},
+			{
+				"command" : 5,
+				"file" : 5,
+				"line" : 453,
+				"parent" : 14
+			},
+			{
+				"command" : 7,
+				"file" : 0,
+				"line" : 52,
+				"parent" : 0
+			},
+			{
+				"command" : 5,
+				"file" : 2,
+				"line" : 1805,
+				"parent" : 3
+			},
+			{
+				"command" : 5,
+				"file" : 2,
+				"line" : 255,
+				"parent" : 3
+			},
+			{
+				"command" : 5,
+				"file" : 2,
+				"line" : 159,
+				"parent" : 3
+			},
+			{
+				"command" : 8,
+				"file" : 0,
+				"line" : 45,
+				"parent" : 0
+			}
+		]
+	},
+	"compileGroups" : 
+	[
+		{
+			"compileCommandFragments" : 
+			[
+				{
+					"fragment" : "-g"
+				},
+				{
+					"backtrace" : 15,
+					"fragment" : "-Werror-implicit-function-declaration"
+				},
+				{
+					"backtrace" : 15,
+					"fragment" : "-W"
+				},
+				{
+					"backtrace" : 15,
+					"fragment" : "-Wall"
+				},
+				{
+					"backtrace" : 15,
+					"fragment" : "-Wpedantic"
+				},
+				{
+					"backtrace" : 15,
+					"fragment" : "-Wbad-function-cast"
+				},
+				{
+					"backtrace" : 15,
+					"fragment" : "-Wconversion"
+				},
+				{
+					"backtrace" : 15,
+					"fragment" : "-Wmissing-declarations"
+				},
+				{
+					"backtrace" : 15,
+					"fragment" : "-Wmissing-prototypes"
+				},
+				{
+					"backtrace" : 15,
+					"fragment" : "-Wnested-externs"
+				},
+				{
+					"backtrace" : 15,
+					"fragment" : "-Wno-long-long"
+				},
+				{
+					"backtrace" : 15,
+					"fragment" : "-Wno-multichar"
+				},
+				{
+					"backtrace" : 15,
+					"fragment" : "-Wpointer-arith"
+				},
+				{
+					"backtrace" : 15,
+					"fragment" : "-Wshadow"
+				},
+				{
+					"backtrace" : 15,
+					"fragment" : "-Wsign-compare"
+				},
+				{
+					"backtrace" : 15,
+					"fragment" : "-Wundef"
+				},
+				{
+					"backtrace" : 15,
+					"fragment" : "-Wunused"
+				},
+				{
+					"backtrace" : 15,
+					"fragment" : "-Wwrite-strings"
+				},
+				{
+					"backtrace" : 15,
+					"fragment" : "-Waddress"
+				},
+				{
+					"backtrace" : 15,
+					"fragment" : "-Wattributes"
+				},
+				{
+					"backtrace" : 15,
+					"fragment" : "-Wcast-align"
+				},
+				{
+					"backtrace" : 15,
+					"fragment" : "-Wcast-qual"
+				},
+				{
+					"backtrace" : 15,
+					"fragment" : "-Wdeclaration-after-statement"
+				},
+				{
+					"backtrace" : 15,
+					"fragment" : "-Wdiv-by-zero"
+				},
+				{
+					"backtrace" : 15,
+					"fragment" : "-Wempty-body"
+				},
+				{
+					"backtrace" : 15,
+					"fragment" : "-Wendif-labels"
+				},
+				{
+					"backtrace" : 15,
+					"fragment" : "-Wfloat-equal"
+				},
+				{
+					"backtrace" : 15,
+					"fragment" : "-Wformat-security"
+				},
+				{
+					"backtrace" : 15,
+					"fragment" : "-Wignored-qualifiers"
+				},
+				{
+					"backtrace" : 15,
+					"fragment" : "-Wmissing-field-initializers"
+				},
+				{
+					"backtrace" : 15,
+					"fragment" : "-Wmissing-noreturn"
+				},
+				{
+					"backtrace" : 15,
+					"fragment" : "-Wno-padded"
+				},
+				{
+					"backtrace" : 15,
+					"fragment" : "-Wno-sign-conversion"
+				},
+				{
+					"backtrace" : 15,
+					"fragment" : "-Wno-switch-default"
+				},
+				{
+					"backtrace" : 15,
+					"fragment" : "-Wno-switch-enum"
+				},
+				{
+					"backtrace" : 15,
+					"fragment" : "-Wno-system-headers"
+				},
+				{
+					"backtrace" : 15,
+					"fragment" : "-Wold-style-definition"
+				},
+				{
+					"backtrace" : 15,
+					"fragment" : "-Wredundant-decls"
+				},
+				{
+					"backtrace" : 15,
+					"fragment" : "-Wstrict-prototypes"
+				},
+				{
+					"backtrace" : 15,
+					"fragment" : "-Wtype-limits"
+				},
+				{
+					"backtrace" : 15,
+					"fragment" : "-Wunreachable-code"
+				},
+				{
+					"backtrace" : 15,
+					"fragment" : "-Wunused-parameter"
+				},
+				{
+					"backtrace" : 15,
+					"fragment" : "-Wvla"
+				},
+				{
+					"backtrace" : 15,
+					"fragment" : "-Wclobbered"
+				},
+				{
+					"backtrace" : 15,
+					"fragment" : "-Wmissing-parameter-type"
+				},
+				{
+					"backtrace" : 15,
+					"fragment" : "-Wold-style-declaration"
+				},
+				{
+					"backtrace" : 15,
+					"fragment" : "-Wpragmas"
+				},
+				{
+					"backtrace" : 15,
+					"fragment" : "-Wstrict-aliasing=3"
+				},
+				{
+					"backtrace" : 15,
+					"fragment" : "-ftree-vrp"
+				},
+				{
+					"backtrace" : 15,
+					"fragment" : "-Wjump-misses-init"
+				},
+				{
+					"backtrace" : 15,
+					"fragment" : "-Wdouble-promotion"
+				},
+				{
+					"backtrace" : 15,
+					"fragment" : "-Wformat=2"
+				},
+				{
+					"backtrace" : 15,
+					"fragment" : "-Wtrampolines"
+				},
+				{
+					"backtrace" : 15,
+					"fragment" : "-Warray-bounds=2"
+				},
+				{
+					"backtrace" : 15,
+					"fragment" : "-Wno-format-signedness"
+				},
+				{
+					"backtrace" : 15,
+					"fragment" : "-Wduplicated-cond"
+				},
+				{
+					"backtrace" : 15,
+					"fragment" : "-Wnull-dereference"
+				},
+				{
+					"backtrace" : 15,
+					"fragment" : "-fdelete-null-pointer-checks"
+				},
+				{
+					"backtrace" : 15,
+					"fragment" : "-Wshift-negative-value"
+				},
+				{
+					"backtrace" : 15,
+					"fragment" : "-Wshift-overflow=2"
+				},
+				{
+					"backtrace" : 15,
+					"fragment" : "-Wunused-const-variable"
+				},
+				{
+					"backtrace" : 15,
+					"fragment" : "-Walloc-zero"
+				},
+				{
+					"backtrace" : 15,
+					"fragment" : "-Wduplicated-branches"
+				},
+				{
+					"backtrace" : 15,
+					"fragment" : "-Wformat-truncation=2"
+				},
+				{
+					"backtrace" : 15,
+					"fragment" : "-Wimplicit-fallthrough"
+				},
+				{
+					"backtrace" : 15,
+					"fragment" : "-Wrestrict"
+				},
+				{
+					"backtrace" : 15,
+					"fragment" : "-Warith-conversion"
+				},
+				{
+					"backtrace" : 15,
+					"fragment" : "-Wenum-conversion"
+				},
+				{
+					"backtrace" : 15,
+					"fragment" : "-Warray-compare"
+				},
+				{
+					"backtrace" : 15,
+					"fragment" : "-Wenum-int-mismatch"
+				},
+				{
+					"backtrace" : 15,
+					"fragment" : "-Wxor-used-as-pow"
+				},
+				{
+					"backtrace" : 2,
+					"fragment" : "-I/usr/include"
+				}
+			],
+			"defines" : 
+			[
+				{
+					"backtrace" : 16,
+					"define" : "BUILDING_LIBCURL"
+				},
+				{
+					"backtrace" : 2,
+					"define" : "CURL_STATICLIB"
+				},
+				{
+					"backtrace" : 17,
+					"define" : "HAVE_CONFIG_H"
+				},
+				{
+					"backtrace" : 2,
+					"define" : "UNITTESTS"
+				},
+				{
+					"backtrace" : 18,
+					"define" : "_GNU_SOURCE"
+				}
+			],
+			"includes" : 
+			[
+				{
+					"backtrace" : 19,
+					"path" : "/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/curl/include"
+				},
+				{
+					"backtrace" : 20,
+					"path" : "/home/maker/WRO_Future_Engineers_Queretaro_CSS/build/_deps/curl/lib"
+				},
+				{
+					"backtrace" : 20,
+					"path" : "/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/curl/lib"
+				},
+				{
+					"backtrace" : 20,
+					"path" : "/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/curl/tests/libtest"
+				},
+				{
+					"backtrace" : 20,
+					"path" : "/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/curl/tests/unit"
+				}
+			],
+			"language" : "C",
+			"sourceIndexes" : 
+			[
+				0
+			]
+		}
+	],
+	"dependencies" : 
+	[
+		{
+			"backtrace" : 2,
+			"id" : "curlu::@65ee7e89a07d473ed98d"
+		},
+		{
+			"backtrace" : 12,
+			"id" : "curlu-unitprotos::@65ee7e89a07d473ed98d"
+		}
+	],
+	"id" : "units::@ccb7aaa63c615893a376",
+	"link" : 
+	{
+		"commandFragments" : 
+		[
+			{
+				"fragment" : "-g",
+				"role" : "flags"
+			},
+			{
+				"fragment" : "",
+				"role" : "flags"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "_deps/curl/lib/libcurlu-d.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 6,
+				"fragment" : "-lssh2",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 9,
+				"fragment" : "-lidn2",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 11,
+				"fragment" : "/usr/lib/aarch64-linux-gnu/libssl.so",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 11,
+				"fragment" : "/usr/lib/aarch64-linux-gnu/libcrypto.so",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 11,
+				"fragment" : "/usr/lib/aarch64-linux-gnu/libz.so",
+				"role" : "libraries"
+			}
+		],
+		"language" : "C"
+	},
+	"name" : "units",
+	"nameOnDisk" : "units",
+	"paths" : 
+	{
+		"build" : "_deps/curl/tests/unit",
+		"source" : "/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/curl/tests/unit"
+	},
+	"sourceGroups" : 
+	[
+		{
+			"name" : "Source Files",
+			"sourceIndexes" : 
+			[
+				0
+			]
+		},
+		{
+			"name" : "CMake Rules",
+			"sourceIndexes" : 
+			[
+				1
+			]
+		}
+	],
+	"sources" : 
+	[
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"isGenerated" : true,
+			"path" : "/home/maker/WRO_Future_Engineers_Queretaro_CSS/build/_deps/curl/tests/unit/units.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 0,
+			"isGenerated" : true,
+			"path" : "/home/maker/WRO_Future_Engineers_Queretaro_CSS/build/_deps/curl/tests/unit/units.c.rule",
+			"sourceGroupIndex" : 1
+		}
+	],
+	"type" : "EXECUTABLE"
+}

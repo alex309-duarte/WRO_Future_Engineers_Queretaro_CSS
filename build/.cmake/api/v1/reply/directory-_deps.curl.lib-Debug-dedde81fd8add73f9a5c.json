@@ -1,0 +1,45 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"install"
+		],
+		"files" : 
+		[
+			"/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/curl/lib/CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 328,
+				"parent" : 0
+			}
+		]
+	},
+	"installers" : 
+	[
+		{
+			"backtrace" : 1,
+			"component" : "Unspecified",
+			"destination" : "lib",
+			"paths" : 
+			[
+				"_deps/curl/lib/libcurl-d.a"
+			],
+			"targetId" : "libcurl_static::@65ee7e89a07d473ed98d",
+			"targetIndex" : 46,
+			"type" : "target"
+		}
+	],
+	"paths" : 
+	{
+		"build" : "_deps/curl/lib",
+		"source" : "/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/curl/lib"
+	}
+}

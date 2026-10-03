@@ -1,0 +1,63 @@
+{
+	"backtrace" : 1,
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"add_custom_target",
+			"add_dependencies"
+		],
+		"files" : 
+		[
+			"/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/curl/tests/CMakeLists.txt",
+			"/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/curl/tests/certs/CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 48,
+				"parent" : 0
+			},
+			{
+				"command" : 1,
+				"file" : 0,
+				"line" : 49,
+				"parent" : 0
+			},
+			{
+				"file" : 1
+			},
+			{
+				"command" : 1,
+				"file" : 1,
+				"line" : 38,
+				"parent" : 3
+			}
+		]
+	},
+	"dependencies" : 
+	[
+		{
+			"backtrace" : 2,
+			"id" : "tt::@bf1319d0031bb6b64393"
+		},
+		{
+			"backtrace" : 4,
+			"id" : "build-certs::@fa3545a9fffce04bd0ed"
+		}
+	],
+	"id" : "testdeps::@bf1319d0031bb6b64393",
+	"name" : "testdeps",
+	"paths" : 
+	{
+		"build" : "_deps/curl/tests",
+		"source" : "/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/curl/tests"
+	},
+	"sources" : [],
+	"type" : "UTILITY"
+}

@@ -1,0 +1,95 @@
+{
+	"backtrace" : 1,
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"add_custom_target",
+			"add_dependencies"
+		],
+		"files" : 
+		[
+			"/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/curl/tests/CMakeLists.txt",
+			"/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/curl/tests/server/CMakeLists.txt",
+			"/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/curl/tests/libtest/CMakeLists.txt",
+			"/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/curl/tests/tunit/CMakeLists.txt",
+			"/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/curl/tests/unit/CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 32,
+				"parent" : 0
+			},
+			{
+				"file" : 1
+			},
+			{
+				"command" : 1,
+				"file" : 1,
+				"line" : 42,
+				"parent" : 2
+			},
+			{
+				"file" : 2
+			},
+			{
+				"command" : 1,
+				"file" : 2,
+				"line" : 55,
+				"parent" : 4
+			},
+			{
+				"file" : 3
+			},
+			{
+				"command" : 1,
+				"file" : 3,
+				"line" : 42,
+				"parent" : 6
+			},
+			{
+				"file" : 4
+			},
+			{
+				"command" : 1,
+				"file" : 4,
+				"line" : 43,
+				"parent" : 8
+			}
+		]
+	},
+	"dependencies" : 
+	[
+		{
+			"backtrace" : 3,
+			"id" : "servers::@3e2f492dfa14cf22b0d3"
+		},
+		{
+			"backtrace" : 5,
+			"id" : "libtests::@2cb800f565716e68b328"
+		},
+		{
+			"backtrace" : 7,
+			"id" : "tunits::@21a5299fe06e35b2c43c"
+		},
+		{
+			"backtrace" : 9,
+			"id" : "units::@ccb7aaa63c615893a376"
+		}
+	],
+	"id" : "tt::@bf1319d0031bb6b64393",
+	"name" : "tt",
+	"paths" : 
+	{
+		"build" : "_deps/curl/tests",
+		"source" : "/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/curl/tests"
+	},
+	"sources" : [],
+	"type" : "UTILITY"
+}

@@ -1,4 +1,4 @@
-#include "spike.h"
+ #include "spike.h"
 #include "rasp_gpio.h"
 #include "common_var.h"
 #include <math.h>
@@ -88,16 +88,16 @@ int main(){
 
         if(sentido == right){
             Spike_Turn_For_Degrees(der, 100, 70);
-            Spike_Center_Vehicle_Short(true);
-            Spike_Advance_For_Degrees(80, 1350, -90);
+            Spike_Center_Vehicle_Short();
+            Spike_Advance_For_Degrees(100, 1350, -90);
             angulo_correccion = Oradar_S2L_Wall_Slope(LEFT);
             Spike_Reset_Gyro(angulo_correccion);
             usleep(200000);
-            while (v < 10){
-            Oradar_S2L_Advance_Until_Right_Gap(80, 0);
+            while (v < 11){
+            Oradar_S2L_Advance_Until_Right_Gap(100, 0);
             Spike_Turn_For_Degrees(der, 100, 70);
-            Spike_Center_Vehicle_Short(true);
-            Spike_Advance_For_Degrees(80, 600, -90);
+            Spike_Center_Vehicle_Short();
+            Spike_Advance_For_Degrees(100, 600, -90);
             angulo_correccion = Oradar_S2L_Wall_Slope(LEFT);
             Spike_Reset_Gyro(angulo_correccion);
             usleep(200000);
@@ -108,16 +108,16 @@ int main(){
         else if (sentido == left)
         {
             Spike_Turn_For_Degrees(izq, 100, 70);
-            Spike_Center_Vehicle_Short(true);
-            Spike_Advance_For_Degrees(80, 1350, 90);
+            Spike_Center_Vehicle_Short();
+            Spike_Advance_For_Degrees(100, 1350, 90);
             angulo_correccion = Oradar_S2L_Wall_Slope(RIGHT);
             Spike_Reset_Gyro(angulo_correccion);
             usleep(200000);
-            while (v < 10){
-            Oradar_S2L_Advance_Until_Left_Gap(80, 0);
+            while (v < 11){
+            Oradar_S2L_Advance_Until_Left_Gap(100, 0);
             Spike_Turn_For_Degrees(izq, 100, 70);
-            Spike_Center_Vehicle_Short(true);
-            Spike_Advance_For_Degrees(80, 600, 90);
+            Spike_Center_Vehicle_Short();
+            Spike_Advance_For_Degrees(100, 600, 90);
             angulo_correccion = Oradar_S2L_Wall_Slope(RIGHT);
             Spike_Reset_Gyro(angulo_correccion);
             usleep(200000);
@@ -131,21 +131,21 @@ int main(){
 
         printf("caso adentro\n");
 
-        sentido = Oradar_S2L_Advance_And_Detect_Side(60, 0);
+        sentido = Oradar_S2L_Advance_And_Detect_Side(80, 0);
         printf("sentido : %d \n", sentido);
 
         if(sentido == right){
             Spike_Turn_For_Degrees(der, 100, 70);
-            Spike_Center_Vehicle_Short(true);
-            Spike_Advance_For_Degrees(80, 600, -90);
+            Spike_Center_Vehicle_Short();
+            Spike_Advance_For_Degrees(100, 600, -90);
             angulo_correccion = Oradar_S2L_Wall_Slope(LEFT);
             Spike_Reset_Gyro(angulo_correccion);
             usleep(200000);
-            while (v < 10){
-            Oradar_S2L_Advance_Until_Right_Gap(80, 0);
+            while (v < 11){
+            Oradar_S2L_Advance_Until_Right_Gap(100, 0);
             Spike_Turn_For_Degrees(der, 100, 70);
-            Spike_Center_Vehicle_Short(true);
-            Spike_Advance_For_Degrees(80, 600, -90);
+            Spike_Center_Vehicle_Short();
+            Spike_Advance_For_Degrees(100, 600, -90);
             angulo_correccion = Oradar_S2L_Wall_Slope(LEFT);
             Spike_Reset_Gyro(angulo_correccion);
             usleep(200000);
@@ -156,16 +156,16 @@ int main(){
         else if (sentido == left)
         {
             Spike_Turn_For_Degrees(izq, 100, 70);
-            Spike_Center_Vehicle_Short(true);
-            Spike_Advance_For_Degrees(80, 600, 90);
+            Spike_Center_Vehicle_Short();
+            Spike_Advance_For_Degrees(100, 600, 90);
             angulo_correccion = Oradar_S2L_Wall_Slope(RIGHT);
             Spike_Reset_Gyro(angulo_correccion);
             usleep(200000);
-            while (v < 10){
-            Oradar_S2L_Advance_Until_Left_Gap(80, 0);
+            while (v < 11){
+            Oradar_S2L_Advance_Until_Left_Gap(100, 0);
             Spike_Turn_For_Degrees(izq, 100, 70);
-            Spike_Center_Vehicle_Short(true);
-            Spike_Advance_For_Degrees(80, 600, 90);
+            Spike_Center_Vehicle_Short();
+            Spike_Advance_For_Degrees(100, 600, 90);
             angulo_correccion = Oradar_S2L_Wall_Slope(RIGHT);
             Spike_Reset_Gyro(angulo_correccion);
             usleep(200000);
@@ -174,7 +174,7 @@ int main(){
         }
     } 
 
-    if (sentido == right){
+    /*if (sentido == right){
         if(distancia_izquierda < 400){
             Oradar_S2L_Advance_Until_Distance(80, 0, 450);
             printf("seccion por fuera\n");
@@ -229,8 +229,8 @@ int main(){
             printf("parte de adelante\n");
         }
 
-    }
-    
+    }*/
+    Oradar_S2L_Advance_Until_Distance(100, 0, 1600);
     printf("acabe");
     
     Rasp_Gpio_Clean();

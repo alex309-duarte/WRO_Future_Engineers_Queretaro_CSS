@@ -32,6 +32,7 @@ void Oradar_S2L_Advance_Until_Right_Gap(int speed, int reference);
 int Oradar_S2L_Advance_And_Measure_Left_Slope(int speed, int degrees, int reference);
 int Oradar_S2L_Advance_And_Measure_Right_Slope(int speed, int degrees, int reference);
 void Oradar_S2L_Advance_Until_Distance(int speed, int reference, int target_distance);
+void Oradar_S2L_Advance_Until_Distance_R(int speed, int reference, int target_distance);
 int Oradar_S2L_Correction_For_Triangles_Right(int degree);
 int Oradar_S2L_Correction_For_Triangles_Left(int degree);
 int Oradar_S2L_Reconcile_Readings(int reading_a, int reading_b, int reading_c);

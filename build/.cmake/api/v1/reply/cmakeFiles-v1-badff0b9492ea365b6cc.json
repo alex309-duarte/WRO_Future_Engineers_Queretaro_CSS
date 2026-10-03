@@ -1,0 +1,1036 @@
+{
+	"globsDependent" : 
+	[
+		{
+			"expression" : "/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/yaml-cpp/src/*.cpp",
+			"listDirectories" : true,
+			"paths" : 
+			[
+				"/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/yaml-cpp/src/binary.cpp",
+				"/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/yaml-cpp/src/convert.cpp",
+				"/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/yaml-cpp/src/depthguard.cpp",
+				"/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/yaml-cpp/src/directives.cpp",
+				"/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/yaml-cpp/src/emit.cpp",
+				"/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/yaml-cpp/src/emitfromevents.cpp",
+				"/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/yaml-cpp/src/emitter.cpp",
+				"/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/yaml-cpp/src/emitterstate.cpp",
+				"/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/yaml-cpp/src/emitterutils.cpp",
+				"/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/yaml-cpp/src/exceptions.cpp",
+				"/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/yaml-cpp/src/exp.cpp",
+				"/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/yaml-cpp/src/fptostring.cpp",
+				"/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/yaml-cpp/src/memory.cpp",
+				"/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/yaml-cpp/src/node.cpp",
+				"/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/yaml-cpp/src/node_data.cpp",
+				"/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/yaml-cpp/src/nodebuilder.cpp",
+				"/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/yaml-cpp/src/nodeevents.cpp",
+				"/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/yaml-cpp/src/null.cpp",
+				"/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/yaml-cpp/src/ostream_wrapper.cpp",
+				"/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/yaml-cpp/src/parse.cpp",
+				"/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/yaml-cpp/src/parser.cpp",
+				"/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/yaml-cpp/src/regex_yaml.cpp",
+				"/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/yaml-cpp/src/scanner.cpp",
+				"/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/yaml-cpp/src/scanscalar.cpp",
+				"/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/yaml-cpp/src/scantag.cpp",
+				"/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/yaml-cpp/src/scantoken.cpp",
+				"/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/yaml-cpp/src/simplekey.cpp",
+				"/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/yaml-cpp/src/singledocparser.cpp",
+				"/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/yaml-cpp/src/stream.cpp",
+				"/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/yaml-cpp/src/tag.cpp"
+			]
+		},
+		{
+			"expression" : "/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/yaml-cpp/src/contrib/*.cpp",
+			"listDirectories" : true,
+			"paths" : 
+			[
+				"/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/yaml-cpp/src/contrib/graphbuilder.cpp",
+				"/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/yaml-cpp/src/contrib/graphbuilderadapter.cpp"
+			]
+		}
+	],
+	"inputs" : 
+	[
+		{
+			"path" : "CMakeLists.txt"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "/home/maker/WRO_Future_Engineers_Queretaro_CSS/build/CMakeFiles/3.31.6/CMakeSystem.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/CMakeSystemSpecificInitialize.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/Platform/Linux-Initialize.cmake"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "/home/maker/WRO_Future_Engineers_Queretaro_CSS/build/CMakeFiles/3.31.6/CMakeCCompiler.cmake"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "/home/maker/WRO_Future_Engineers_Queretaro_CSS/build/CMakeFiles/3.31.6/CMakeCXXCompiler.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/CMakeSystemSpecificInformation.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/CMakeGenericSystem.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/CMakeInitializeConfigs.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/Platform/Linux.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/Platform/UnixPaths.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/CMakeCInformation.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/CMakeLanguageInformation.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/Compiler/GNU-C.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/Compiler/GNU.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/Compiler/CMakeCommonCompilerMacros.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/Platform/Linux-GNU-C.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/Platform/Linux-GNU.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/CMakeCommonLanguageInclude.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/Internal/CMakeCLinkerInformation.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/Internal/CMakeCommonLinkerInformation.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/Linker/GNU-C.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/Linker/GNU.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/Platform/Linker/Linux-GNU-C.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/Platform/Linker/Linux-GNU.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/Platform/Linker/GNU.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/CMakeCXXInformation.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/CMakeLanguageInformation.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/Compiler/GNU-CXX.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/Compiler/GNU.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/Platform/Linux-GNU-CXX.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/Platform/Linux-GNU.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/CMakeCommonLanguageInclude.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/Internal/CMakeCXXLinkerInformation.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/Internal/CMakeCommonLinkerInformation.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/Linker/GNU-CXX.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/Linker/GNU.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/Platform/Linker/Linux-GNU-CXX.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/Platform/Linker/Linux-GNU.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/FindThreads.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/CheckLibraryExists.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/CheckIncludeFile.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/CheckCSourceCompiles.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/Internal/CheckSourceCompiles.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/FindPackageHandleStandardArgs.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/FindPackageMessage.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/usr/lib/cmake/HailoRT/HailoRTConfigVersion.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/usr/lib/cmake/HailoRT/HailoRTConfig.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/usr/lib/cmake/HailoRT/HailoRTTargets.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/usr/lib/cmake/HailoRT/HailoRTTargets-release.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/usr/lib/aarch64-linux-gnu/cmake/opencv4/OpenCVConfig-version.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/usr/lib/aarch64-linux-gnu/cmake/opencv4/OpenCVConfig.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/FindPackageHandleStandardArgs.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/FindPackageMessage.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/usr/lib/aarch64-linux-gnu/cmake/opencv4/OpenCVModules.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/usr/lib/aarch64-linux-gnu/cmake/opencv4/OpenCVModules-release.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/yaml-cpp/CMakeLists.txt"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/CMakePackageConfigHelpers.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/WriteBasicConfigVersionFile.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/CMakeDependentOption.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/CheckCXXCompilerFlag.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/Internal/CheckCompilerFlag.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/Internal/CheckFlagCommonConfig.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/Internal/CheckSourceCompiles.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/CMakeCheckCompilerFlagCommonPatterns.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/CheckCXXSourceCompiles.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/Internal/CheckSourceCompiles.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/GNUInstallDirs.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/CTest.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/CTestUseLaunchers.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/CTestTargets.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/DartConfiguration.tcl.in"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/yaml-cpp/yaml-cpp-config.cmake.in"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/BasicConfigVersion-AnyNewerVersion.cmake.in"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/yaml-cpp/yaml-cpp.pc.in"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/curl/CMakeLists.txt"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/curl/CMake/Utilities.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/curl/CMake/Macros.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/CMakeDependentOption.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/CheckCCompilerFlag.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/Internal/CheckCompilerFlag.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/CheckCSourceCompiles.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/curl/CMake/PickyWarnings.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/CheckCCompilerFlag.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/curl/CMake/CurlSymbolHiding.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/FindPerl.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/FindCygwin.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/FindMsys.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/FindPackageHandleStandardArgs.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/FindPackageMessage.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/CMakePushCheckState.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/CheckFunctionExists.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/CheckIncludeFile.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/CheckIncludeFiles.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/CheckLibraryExists.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/CheckSymbolExists.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/CheckTypeSize.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/CheckIncludeFile.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/CheckIncludeFileCXX.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/CheckCSourceCompiles.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/FindThreads.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/CheckLibraryExists.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/CheckIncludeFile.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/CheckCSourceCompiles.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/FindPackageHandleStandardArgs.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/FindPackageMessage.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/CheckStructHasMember.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/CheckSourceCompiles.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/Internal/CheckSourceCompiles.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/CheckCSourceCompiles.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/CheckCXXSourceCompiles.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/FindOpenSSL.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/FindPkgConfig.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/FindPackageHandleStandardArgs.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/FindPackageMessage.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/FindPackageHandleStandardArgs.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/FindPackageMessage.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/FindZLIB.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/SelectLibraryConfigurations.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/FindPackageHandleStandardArgs.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/FindPackageMessage.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/curl/CMake/FindLibidn2.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/FindPkgConfig.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/FindPackageHandleStandardArgs.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/FindPackageMessage.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/curl/CMake/FindLibssh2.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/FindPkgConfig.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/FindPackageHandleStandardArgs.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/FindPackageMessage.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/CheckStructHasMember.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/CheckCSourceRuns.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/Internal/CheckSourceRuns.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/CheckCSourceRuns.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/curl/CMake/OtherTests.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/CheckCSourceCompiles.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/CheckCSourceRuns.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/CheckTypeSize.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/CheckIncludeFile.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/CheckIncludeFileCXX.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/GNUInstallDirs.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/curl/curl-config.in"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/curl/libcurl.pc.in"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/CMakePackageConfigHelpers.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/WriteBasicConfigVersionFile.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/BasicConfigVersion-SameMajorVersion.cmake.in"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/curl/CMake/curl-config.in.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/curl/CMake/cmake_uninstall.in.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/CPack.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/CPackComponent.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Templates/CPackConfig.cmake.in"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Templates/CPackConfig.cmake.in"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/curl/docs/CMakeLists.txt"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/curl/docs/libcurl/CMakeLists.txt"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "/home/maker/WRO_Future_Engineers_Queretaro_CSS/build/_deps/curl/docs/libcurl/Makefile.inc.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/curl/docs/libcurl/Makefile.inc"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/curl/docs/libcurl/opts/CMakeLists.txt"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "/home/maker/WRO_Future_Engineers_Queretaro_CSS/build/_deps/curl/docs/libcurl/opts/Makefile.inc.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/curl/docs/libcurl/opts/Makefile.inc"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/curl/scripts/CMakeLists.txt"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/curl/lib/CMakeLists.txt"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/curl/lib/curl_config-cmake.h.in"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "/home/maker/WRO_Future_Engineers_Queretaro_CSS/build/_deps/curl/lib/Makefile.inc.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/curl/lib/Makefile.inc"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/curl/tests/CMakeLists.txt"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/curl/tests/config.in"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/curl/tests/configurehelp.pm.in"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/curl/tests/http/CMakeLists.txt"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/curl/tests/http/config.ini.in"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/curl/tests/server/CMakeLists.txt"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "/home/maker/WRO_Future_Engineers_Queretaro_CSS/build/_deps/curl/tests/server/Makefile.inc.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/curl/tests/server/Makefile.inc"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/curl/tests/libtest/CMakeLists.txt"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "/home/maker/WRO_Future_Engineers_Queretaro_CSS/build/_deps/curl/tests/libtest/Makefile.inc.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/curl/tests/libtest/Makefile.inc"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/curl/tests/tunit/CMakeLists.txt"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "/home/maker/WRO_Future_Engineers_Queretaro_CSS/build/_deps/curl/tests/tunit/Makefile.inc.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/curl/tests/tunit/Makefile.inc"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/curl/tests/unit/CMakeLists.txt"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "/home/maker/WRO_Future_Engineers_Queretaro_CSS/build/_deps/curl/tests/unit/Makefile.inc.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/curl/tests/unit/Makefile.inc"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/curl/tests/certs/CMakeLists.txt"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "/home/maker/WRO_Future_Engineers_Queretaro_CSS/build/_deps/curl/tests/certs/Makefile.inc.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/curl/tests/certs/Makefile.inc"
+		},
+		{
+			"path" : "oradar_sdk/CMakeLists.txt"
+		},
+		{
+			"path" : "oradar_sdk/cmake/oradar_base.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/CMakeParseArguments.cmake"
+		},
+		{
+			"path" : "oradar_sdk/cmake/install_package.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/CMakeParseArguments.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/FindSWIG.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/FindPackageHandleStandardArgs.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/FindPackageMessage.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/FindPythonInterp.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/FindPackageHandleStandardArgs.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/FindPackageMessage.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/FindPythonLibs.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/CMakeFindFrameworks.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/SelectLibraryConfigurations.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/FindPackageHandleStandardArgs.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/FindPackageMessage.cmake"
+		},
+		{
+			"path" : "oradar_sdk/cmake/oradar_parse.cmake"
+		},
+		{
+			"path" : "oradar_sdk/cmake/oradar_base.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.31/Modules/CMakeParseArguments.cmake"
+		},
+		{
+			"path" : "oradar_sdk/cmake/cmake_uninstall.cmake.in"
+		},
+		{
+			"path" : "oradar_sdk/core/CMakeLists.txt"
+		},
+		{
+			"path" : "oradar_sdk/core/base/CMakeLists.txt"
+		},
+		{
+			"path" : "oradar_sdk/core/common/CMakeLists.txt"
+		},
+		{
+			"path" : "oradar_sdk/core/math/CMakeLists.txt"
+		},
+		{
+			"path" : "oradar_sdk/core/network/CMakeLists.txt"
+		},
+		{
+			"path" : "oradar_sdk/core/serial/CMakeLists.txt"
+		},
+		{
+			"path" : "oradar_sdk/core/serial/impl/CMakeLists.txt"
+		},
+		{
+			"path" : "oradar_sdk/core/serial/impl/unix/CMakeLists.txt"
+		},
+		{
+			"path" : "oradar_sdk/src/CMakeLists.txt"
+		},
+		{
+			"path" : "oradar_sdk/src/filters/CMakeLists.txt"
+		}
+	],
+	"kind" : "cmakeFiles",
+	"paths" : 
+	{
+		"build" : "/home/maker/WRO_Future_Engineers_Queretaro_CSS/build",
+		"source" : "/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/object_detection_original_h10"
+	},
+	"version" : 
+	{
+		"major" : 1,
+		"minor" : 1
+	}
+}

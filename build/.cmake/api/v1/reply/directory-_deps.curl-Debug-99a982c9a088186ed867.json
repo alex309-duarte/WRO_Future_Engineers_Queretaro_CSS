@@ -1,0 +1,153 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"install"
+		],
+		"files" : 
+		[
+			"/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/curl/CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 2277,
+				"parent" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 2308,
+				"parent" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 2312,
+				"parent" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 2369,
+				"parent" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 2374,
+				"parent" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 2411,
+				"parent" : 0
+			}
+		]
+	},
+	"installers" : 
+	[
+		{
+			"backtrace" : 1,
+			"component" : "Unspecified",
+			"destination" : "bin",
+			"paths" : 
+			[
+				"/home/maker/WRO_Future_Engineers_Queretaro_CSS/build/_deps/curl/curl-config"
+			],
+			"type" : "file"
+		},
+		{
+			"backtrace" : 2,
+			"component" : "Unspecified",
+			"destination" : "lib/pkgconfig",
+			"paths" : 
+			[
+				"/home/maker/WRO_Future_Engineers_Queretaro_CSS/build/_deps/curl/libcurl.pc"
+			],
+			"type" : "file"
+		},
+		{
+			"backtrace" : 3,
+			"component" : "Unspecified",
+			"destination" : "include",
+			"paths" : 
+			[
+				"/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/curl/include/curl"
+			],
+			"type" : "directory"
+		},
+		{
+			"backtrace" : 4,
+			"component" : "Unspecified",
+			"destination" : "lib/cmake/CURL",
+			"exportName" : "CURLTargets",
+			"exportTargets" : 
+			[
+				{
+					"id" : "libcurl_static::@65ee7e89a07d473ed98d",
+					"index" : 46
+				}
+			],
+			"paths" : 
+			[
+				"_deps/curl/CMakeFiles/Export/8e83d16133499b505bf3986f4f209a65/CURLTargets.cmake"
+			],
+			"type" : "export"
+		},
+		{
+			"backtrace" : 5,
+			"component" : "Unspecified",
+			"destination" : "lib/cmake/CURL",
+			"paths" : 
+			[
+				"/home/maker/WRO_Future_Engineers_Queretaro_CSS/build/_deps/curl/generated/CURLConfigVersion.cmake",
+				"/home/maker/WRO_Future_Engineers_Queretaro_CSS/build/_deps/curl/generated/CURLConfig.cmake",
+				"/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/curl/CMake/FindBrotli.cmake",
+				"/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/curl/CMake/FindCares.cmake",
+				"/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/curl/CMake/FindGSS.cmake",
+				"/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/curl/CMake/FindGnuTLS.cmake",
+				"/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/curl/CMake/FindLDAP.cmake",
+				"/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/curl/CMake/FindLibbacktrace.cmake",
+				"/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/curl/CMake/FindLibgsasl.cmake",
+				"/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/curl/CMake/FindLibidn2.cmake",
+				"/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/curl/CMake/FindLibpsl.cmake",
+				"/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/curl/CMake/FindLibssh.cmake",
+				"/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/curl/CMake/FindLibssh2.cmake",
+				"/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/curl/CMake/FindLibuv.cmake",
+				"/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/curl/CMake/FindMbedTLS.cmake",
+				"/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/curl/CMake/FindNGHTTP2.cmake",
+				"/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/curl/CMake/FindNGHTTP3.cmake",
+				"/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/curl/CMake/FindNGTCP2.cmake",
+				"/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/curl/CMake/FindNettle.cmake",
+				"/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/curl/CMake/FindQuiche.cmake",
+				"/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/curl/CMake/FindRustls.cmake",
+				"/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/curl/CMake/FindWolfSSL.cmake",
+				"/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/curl/CMake/FindZstd.cmake"
+			],
+			"type" : "file"
+		},
+		{
+			"backtrace" : 6,
+			"component" : "Unspecified",
+			"destination" : "bin",
+			"paths" : 
+			[
+				"/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/curl/scripts/wcurl"
+			],
+			"type" : "file"
+		}
+	],
+	"paths" : 
+	{
+		"build" : "_deps/curl",
+		"source" : "/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/external/curl"
+	}
+}
