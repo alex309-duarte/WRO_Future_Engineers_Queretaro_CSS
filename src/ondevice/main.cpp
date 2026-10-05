@@ -56,10 +56,15 @@ int main(){
     pthread_create(&writer, NULL, Oradar_S2L_Lidar_Writer_Thread, NULL);
     
     Rasp_Gpio_Init();
-    Rasp_Gpio_Power_On_Spike();
-    Spike_Serial_Init();
-    Spike_Interpreter();
-    Spike_Initialize_Libraries();
+    // Placa Hiwonder en lugar del hub SPIKE, sin rele: abre la placa, centra la
+    // direccion y calibra el giroscopio con el robot quieto.
+    if(Spike_Hiwonder_Init() != 0){
+        Rasp_Gpio_Clean();
+        Oradar_S2L_Set_Terminating();
+        pthread_join(writer, NULL);
+        Oradar_S2L_Close();
+        return 1;
+    }
     Rasp_Gpio_Wait_For_Button();
     Spike_Reset_Gyro(0);
     usleep(200000); //wiating for reset gyro
