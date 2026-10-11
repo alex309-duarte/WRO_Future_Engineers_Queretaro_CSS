@@ -58,6 +58,14 @@ long required_integer(const char *name, long minimum, long maximum) {
     return value;
 }
 
+// Variable opcional: vacía o ausente devuelve el valor por defecto.
+double optional_double(const char *name, double fallback, double minimum,
+                       double maximum) {
+    const char *value = std::getenv(name);
+    if (value == nullptr || *value == '\0') return fallback;
+    return required_double(name, minimum, maximum);
+}
+
 double required_nonzero_factor(const char *name) {
     const double value = required_double(name, 1.0e-9, 1.0, true);
     if (value == 0.0) {
@@ -134,15 +142,16 @@ void Hiwonder_Initialize_From_Environment() {
         required_nonzero_factor("HIWONDER_PD_OUTPUT_TO_STEERING");
     compat.tire_turn_to_steering =
         required_nonzero_factor("HIWONDER_TIRE_TURN_TO_STEERING");
+    // 5.7 r/s es el tope del firmware pos-v8 (5.76 medido en vacío a 12 V).
     compat.rps_at_speed_100 =
-        required_double("HIWONDER_RPS_AT_SPEED_100", 0.01, 3.0);
+        required_double("HIWONDER_RPS_AT_SPEED_100", 0.01, 5.7);
     compat.traction_direction =
         required_double("HIWONDER_TRACTION_DIRECTION", 1.0, 1.0, true);
     if (compat.traction_direction != 1.0 && compat.traction_direction != -1.0) {
         throw std::runtime_error("HIWONDER_TRACTION_DIRECTION debe ser +1 o -1");
     }
     compat.max_rps_limit = static_cast<float>(
-        required_double("HIWONDER_MAX_RPS", 0.01, 3.0));
+        required_double("HIWONDER_MAX_RPS", 0.01, 5.7));
     brick_config.max_speed_rps = compat.max_rps_limit;
 
     compat.forward_kp = required_double("HIWONDER_FORWARD_KP", 0.0, 1.0e6, true);
@@ -158,6 +167,8 @@ void Hiwonder_Initialize_From_Environment() {
         required_integer("HIWONDER_POSITION_TIMEOUT_MS", 100, 60000));
     compat.control_period = std::chrono::milliseconds(
         required_integer("HIWONDER_CONTROL_PERIOD_MS", 1, 200));
+    compat.heading_deadband_deg =
+        optional_double("HIWONDER_HEADING_DEADBAND_DEG", 0.0, 0.0, 5.0);
     compat.spike_degrees_to_ticks = 1320.0 / 360.0;
 
     const double wheel_diameter =
@@ -169,16 +180,23 @@ void Hiwonder_Initialize_From_Environment() {
     try {
         brick->open();
         const auto capabilities = brick->motor_position_capabilities();
-        if (!capabilities.valid || capabilities.protocol_version != 1 ||
-            (capabilities.motor_mask & 0x01U) == 0U ||
-            capabilities.ticks_per_revolution_m1 != 1320U) {
+        // pos-v5 en adelante: MOTOR_EXT v2+, posición en el motor configurado
+        // (M4) y 1320 ticks por vuelta. HOLD (v3, pos-v8) es opcional:
+        // Spike_Hold_Motors cae a una parada sin él.
+        const unsigned motor = brick->position_motor_id();
+        if (!capabilities.valid || capabilities.protocol_version < 2 ||
+            (capabilities.motor_mask & (1U << motor)) == 0U ||
+            capabilities.ticks_per_revolution != 1320U) {
             throw std::runtime_error(
-                "firmware Hiwonder incompatible: se requiere MOTOR_EXT v1, M1 y 1320 ticks");
+                "firmware Hiwonder incompatible: se requiere MOTOR_EXT v2 o "
+                "posterior, posición en M" + std::to_string(motor + 1) +
+                " y 1320 ticks (pos-v8 recomendado)");
         }
         if (!brick->wait_for_imu(std::chrono::seconds(2))) {
             throw std::runtime_error("no llegó telemetría IMU en 2 segundos");
         }
-        brick->calibrate_gyro(std::chrono::seconds(2));
+        // 5 s: en banco, 2 s dejaban ~0.5° de deriva en 20 s.
+        brick->calibrate_gyro(std::chrono::seconds(5));
         spike_compat::Spike_Attach(brick.get(), compat);
     } catch (...) {
         spike_compat::Spike_Detach();
@@ -190,7 +208,7 @@ void Hiwonder_Initialize_From_Environment() {
     g_distance_scale = distance_scale;
     g_brick = std::move(brick);
     std::cout << "Hiwonder armado en " << brick_config.device
-              << "; MOTOR_EXT v1, 1320 ticks/vuelta e IMU verificados\n";
+              << "; MOTOR_EXT v2+, M4 con 1320 ticks/vuelta e IMU verificados\n";
 }
 
 void Hiwonder_Shutdown() noexcept {

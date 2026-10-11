@@ -4,6 +4,8 @@
 
 #include "spike_compat/spike_compat.h"
 
+#include <cmath>
+#include <cstdint>
 #include <cstdio>
 #include <cstring>
 #include <stdexcept>
@@ -109,6 +111,62 @@ void test_default_tick_conversion() {
           "los factores del LEGO NO traen valor por defecto");
 }
 
+void test_position_motor_config() {
+    check(hiwonder::Config{}.position_motor_id == 3,
+          "el motor de posicion por defecto es M4 (indice 3), como el firmware");
+    hiwonder::Config bad;
+    bad.position_motor_id = 4;
+    check_throws([&] { hiwonder::Brick brick(bad); },
+                 "position_motor_id fuera de 0..3 se rechaza sin abrir el puerto");
+}
+
+void test_imu_units() {
+    // Trama tal como la publica el firmware: aceleración en m/s², giro en rad/s.
+    const float raw[6] = {0.0F, 0.0F, 9.807F, 0.0F, 0.0F, 1.5707963F};
+    std::uint8_t payload[24];
+    std::memcpy(payload, raw, sizeof(payload));
+    const auto s = hiwonder::Brick::decode_imu_payload(payload);
+    check(std::abs(s.accel_z_g - 1.0F) < 1e-5F,
+          "9.807 m/s2 del firmware se leen como 1 g");
+    check(std::abs(s.gyro_z_dps - 90.0F) < 1e-3F,
+          "pi/2 rad/s del firmware se leen como 90 dps (antes 1.57: yaw 57x menor)");
+    check(std::abs(s.roll_deg) < 1e-3F && std::abs(s.pitch_deg) < 1e-3F,
+          "placa plana: roll y pitch 0");
+}
+
+void test_variant_defaults() {
+    const spike_compat::Config c{};
+    check(c.forward_kp == 0.11 && c.forward_kd == 0.7 &&
+              c.follow_kp == 0.08 && c.follow_kd == 0.7 &&
+              c.advance_kp == 0.1 && c.advance_kd == 0.5,
+          "ganancias configurables: por defecto las de spike.cpp");
+    check(c.traction_direction == 1.0, "traction_direction por defecto +1");
+}
+
+void test_traction_direction_validated() {
+    // Brick sin abrir: la validación debe fallar antes de tocar el puerto.
+    hiwonder::Brick brick;
+    spike_compat::Config c;
+    c.pd_output_to_steering = 0.1;
+    c.rps_at_speed_100 = 1.0;
+    c.traction_direction = 0.5;
+    spike_compat::Spike_Attach(&brick, c);
+    check_throws([] { Spike_Forward(50, 0); },
+                 "traction_direction distinto de +-1 se rechaza antes de mover");
+    spike_compat::Spike_Detach();
+}
+
+void test_heading_deadband() {
+    check(spike_compat::apply_deadband(0.2, 0.3) == 0.0,
+          "dentro de la banda el error de rumbo es 0");
+    check(std::abs(spike_compat::apply_deadband(1.0, 0.3) - 0.7) < 1e-12 &&
+              std::abs(spike_compat::apply_deadband(-1.0, 0.3) + 0.7) < 1e-12,
+          "fuera de la banda resta su ancho (continua, sin salto)");
+    check(spike_compat::apply_deadband(0.05, 0.0) == 0.05 &&
+              spike_compat::Config{}.heading_deadband_deg == 0.0,
+          "banda 0 por defecto: mismo comportamiento que el SPIKE original");
+}
+
 }  // namespace
 
 int main() {
@@ -118,6 +176,11 @@ int main() {
     test_requires_attach();
     test_requires_calibration();
     test_default_tick_conversion();
+    test_position_motor_config();
+    test_imu_units();
+    test_heading_deadband();
+    test_variant_defaults();
+    test_traction_direction_validated();
     std::printf("%d comprobaciones, %d fallos\n", g_checks, g_failures);
     return g_failures == 0 ? 0 : 1;
 }

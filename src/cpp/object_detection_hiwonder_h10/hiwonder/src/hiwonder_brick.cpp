@@ -52,7 +52,11 @@ std::runtime_error system_error(const std::string &what) {
 
 }  // namespace
 
-Brick::Brick(Config config) : config_(std::move(config)) {}
+Brick::Brick(Config config) : config_(std::move(config)) {
+    if (config_.position_motor_id > 3) {
+        throw std::invalid_argument("position_motor_id debe estar entre 0 y 3");
+    }
+}
 
 Brick::~Brick() { close(); }
 
@@ -168,7 +172,7 @@ MotorPositionCapabilities Brick::motor_position_capabilities(
             return motor_position_capabilities_.sequence != initial;
         })) {
         throw std::runtime_error(
-            "el firmware no respondió a capacidades de posición M1");
+            "el firmware no respondió a capacidades de posición");
     }
     return motor_position_capabilities_;
 }
@@ -192,7 +196,7 @@ MotorPositionStatus Brick::move_motor_relative(
         std::lock_guard<std::mutex> lock(state_mutex_);
         initial = motor_position_status_.sequence;
     }
-    std::vector<std::uint8_t> payload{0x01, 0x00};
+    std::vector<std::uint8_t> payload{0x01, config_.position_motor_id};
     append_le(payload, delta_ticks);
     append_le(payload, max_rps);
     append_le(payload, tolerance_ticks);
@@ -203,7 +207,7 @@ MotorPositionStatus Brick::move_motor_relative(
             return motor_position_status_.sequence != initial &&
                    motor_position_status_.command == 0x01;
         })) {
-        throw std::runtime_error("sin confirmación del movimiento M1");
+        throw std::runtime_error("sin confirmación del movimiento de posición");
     }
     return motor_position_status_;
 }
@@ -215,13 +219,13 @@ MotorPositionStatus Brick::motor_position_status(
         std::lock_guard<std::mutex> lock(state_mutex_);
         initial = motor_position_status_.sequence;
     }
-    send_frame(kFunctionMotorExt, {0x04, 0x00});
+    send_frame(kFunctionMotorExt, {0x04, config_.position_motor_id});
     std::unique_lock<std::mutex> lock(state_mutex_);
     if (!motor_position_cv_.wait_for(lock, timeout, [&] {
             return motor_position_status_.sequence != initial &&
                    motor_position_status_.command == 0x04;
         })) {
-        throw std::runtime_error("sin respuesta de estado de posición M1");
+        throw std::runtime_error("sin respuesta de estado de posición");
     }
     return motor_position_status_;
 }
@@ -233,13 +237,13 @@ MotorPositionStatus Brick::cancel_motor_position(
         std::lock_guard<std::mutex> lock(state_mutex_);
         initial = motor_position_status_.sequence;
     }
-    send_frame(kFunctionMotorExt, {0x02, 0x00});
+    send_frame(kFunctionMotorExt, {0x02, config_.position_motor_id});
     std::unique_lock<std::mutex> lock(state_mutex_);
     if (!motor_position_cv_.wait_for(lock, timeout, [&] {
             return motor_position_status_.sequence != initial &&
                    motor_position_status_.command == 0x02;
         })) {
-        throw std::runtime_error("sin confirmación de cancelación M1");
+        throw std::runtime_error("sin confirmación de cancelación de posición");
     }
     return motor_position_status_;
 }
@@ -251,13 +255,43 @@ MotorPositionStatus Brick::zero_motor_position(
         std::lock_guard<std::mutex> lock(state_mutex_);
         initial = motor_position_status_.sequence;
     }
-    send_frame(kFunctionMotorExt, {0x03, 0x00});
+    send_frame(kFunctionMotorExt, {0x03, config_.position_motor_id});
     std::unique_lock<std::mutex> lock(state_mutex_);
     if (!motor_position_cv_.wait_for(lock, timeout, [&] {
             return motor_position_status_.sequence != initial &&
                    motor_position_status_.command == 0x03;
         })) {
-        throw std::runtime_error("sin confirmación de cero M1");
+        throw std::runtime_error("sin confirmación de cero de posición");
+    }
+    return motor_position_status_;
+}
+
+MotorPositionStatus Brick::hold_motor_position(
+    float max_rps, std::uint16_t tolerance_ticks, std::uint16_t max_pulse,
+    std::chrono::milliseconds reply_timeout) {
+    if (!std::isfinite(max_rps) || max_rps <= 0.0F ||
+        max_rps > config_.max_speed_rps) {
+        throw std::invalid_argument("max_rps fuera del límite configurado");
+    }
+    if (tolerance_ticks == 0 || max_pulse < 300 || max_pulse > 1000) {
+        throw std::invalid_argument("tolerancia o tope de PWM del HOLD inválido");
+    }
+    std::uint64_t initial = 0;
+    {
+        std::lock_guard<std::mutex> lock(state_mutex_);
+        initial = motor_position_status_.sequence;
+    }
+    std::vector<std::uint8_t> payload{0x05, config_.position_motor_id};
+    append_le(payload, max_rps);
+    append_le(payload, tolerance_ticks);
+    append_le(payload, max_pulse);
+    send_frame(kFunctionMotorExt, payload);
+    std::unique_lock<std::mutex> lock(state_mutex_);
+    if (!motor_position_cv_.wait_for(lock, reply_timeout, [&] {
+            return motor_position_status_.sequence != initial &&
+                   motor_position_status_.command == 0x05;
+        })) {
+        throw std::runtime_error("sin confirmación del HOLD");
     }
     return motor_position_status_;
 }
@@ -447,6 +481,26 @@ double Brick::motor_ticks_to_degrees(
            calibration.ticks_per_output_revolution;
 }
 
+ImuSample Brick::decode_imu_payload(const std::uint8_t *payload) {
+    // ONE_G de QMI8658.c: el firmware multiplica por este valor, así que
+    // dividir por el mismo devuelve exactamente las cuentas en g.
+    constexpr double kFirmwareOneG = 9.807;
+    constexpr double kRadiansToDegrees = 57.29577951308232;
+    ImuSample s;
+    s.accel_x_g = static_cast<float>(read_float_le(payload) / kFirmwareOneG);
+    s.accel_y_g = static_cast<float>(read_float_le(payload + 4) / kFirmwareOneG);
+    s.accel_z_g = static_cast<float>(read_float_le(payload + 8) / kFirmwareOneG);
+    s.gyro_x_dps = static_cast<float>(read_float_le(payload + 12) * kRadiansToDegrees);
+    s.gyro_y_dps = static_cast<float>(read_float_le(payload + 16) * kRadiansToDegrees);
+    s.gyro_z_dps = static_cast<float>(read_float_le(payload + 20) * kRadiansToDegrees);
+    s.roll_deg = static_cast<float>(
+        std::atan2(s.accel_y_g, s.accel_z_g) * kRadiansToDegrees);
+    s.pitch_deg = static_cast<float>(
+        std::atan2(-s.accel_x_g, std::hypot(s.accel_y_g, s.accel_z_g)) *
+        kRadiansToDegrees);
+    return s;
+}
+
 std::uint8_t Brick::crc8_maxim(const std::uint8_t *data,
                                std::size_t size) noexcept {
     std::uint8_t crc = 0;
@@ -566,7 +620,7 @@ void Brick::process_frame(std::uint8_t function,
         MotorPositionCapabilities capabilities;
         capabilities.protocol_version = payload[1];
         capabilities.motor_mask = payload[2];
-        capabilities.ticks_per_revolution_m1 =
+        capabilities.ticks_per_revolution =
             read_le<std::uint32_t>(payload.data() + 4);
         std::lock_guard<std::mutex> lock(state_mutex_);
         capabilities.sequence = motor_position_capabilities_.sequence + 1;
@@ -576,7 +630,7 @@ void Brick::process_frame(std::uint8_t function,
         return;
     }
     if (function == kFunctionMotorExt && payload.size() == 20 &&
-        payload[0] >= 0x01 && payload[0] <= 0x04) {
+        payload[0] >= 0x01 && payload[0] <= 0x05) {
         MotorPositionStatus status;
         status.command = payload[0];
         status.motor_id = payload[1];
@@ -621,20 +675,7 @@ void Brick::process_frame(std::uint8_t function,
     if (function != kFunctionImu || payload.size() != 24) {
         return;
     }
-    ImuSample next;
-    next.accel_x_g = read_float_le(payload.data());
-    next.accel_y_g = read_float_le(payload.data() + 4);
-    next.accel_z_g = read_float_le(payload.data() + 8);
-    next.gyro_x_dps = read_float_le(payload.data() + 12);
-    next.gyro_y_dps = read_float_le(payload.data() + 16);
-    next.gyro_z_dps = read_float_le(payload.data() + 20);
-    constexpr double kRadiansToDegrees = 57.29577951308232;
-    next.roll_deg = static_cast<float>(
-        std::atan2(next.accel_y_g, next.accel_z_g) * kRadiansToDegrees);
-    next.pitch_deg = static_cast<float>(
-        std::atan2(-next.accel_x_g,
-                   std::hypot(next.accel_y_g, next.accel_z_g)) *
-        kRadiansToDegrees);
+    ImuSample next = decode_imu_payload(payload.data());
 
     const auto now = std::chrono::steady_clock::now();
     std::lock_guard<std::mutex> lock(state_mutex_);

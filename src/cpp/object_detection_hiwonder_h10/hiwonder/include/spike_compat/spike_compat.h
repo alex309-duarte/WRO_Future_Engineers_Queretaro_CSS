@@ -36,17 +36,18 @@ struct Config {
     // r/s equivalentes a speed=100. CALIBRAR.
     double rps_at_speed_100 = 0.0;
 
-    // Signo de M1 respecto al avance físico del robot. La variante H10 exige
-    // configurarlo explícitamente como +1 o -1 antes de armar la misión.
-    double traction_direction = 1.0;
-
-    // Grados del eje de propulsión SPIKE -> ticks del encoder de M1.
+    // Grados del eje de propulsión SPIKE -> ticks del encoder del motor de
+    // posición (M4; Brick::position_motor_id()).
     // 1320 ticks/vuelta está MEDIDO (banco 2026-08-22), pero la equivalencia
     // sólo es 1:1 si el diámetro de rueda coincide con el del robot LEGO.
     double spike_degrees_to_ticks = 1320.0 / 360.0;
 
-    // Ganancias del PD en el host. Son configurables porque el programa H10
-    // de origen y la referencia Hailo10H histórica no usan los mismos valores.
+    // Signo del motor de propulsión respecto al avance físico del robot (+1 o
+    // -1). Se aplica a la velocidad y a los ticks de Advance_For_Degrees.
+    double traction_direction = 1.0;
+
+    // Ganancias del PD. Los valores por defecto son los de spike.cpp (funciones
+    // da / apd / ag); son configurables porque cada chasis necesita los suyos.
     double forward_kp = 0.11;
     double forward_kd = 0.7;
     double follow_kp = 0.08;
@@ -58,10 +59,33 @@ struct Config {
     float max_rps_limit = 1.0f;              // tope duro de velocidad
     std::uint16_t position_tolerance_ticks = 15;
     std::uint16_t position_timeout_ms = 20000;
-    std::chrono::milliseconds control_period{20};  // periodo del lazo del host
+    // Los lazos bloqueantes (Advance, Turn) esperan cada muestra NUEVA del IMU
+    // (20 Hz) antes del siguiente paso, para que el término D vea un cambio de
+    // rumbo real. Este valor sólo acota la espera si el IMU no llega (x5).
+    std::chrono::milliseconds control_period{20};
+
+    // Banda muerta del error de RUMBO, en grados (Forward y Advance). 0 = como
+    // el original. Con el robot quieto, la deriva residual del giroscopio
+    // (~0.01 °/s tras calibrar) deja el servo corrigiendo unas unidades; una
+    // banda de 0.3° lo evita. Es continua: fuera de la banda resta su ancho,
+    // así no hay salto al cruzarla. No afecta a Follow_Reference.
+    double heading_deadband_deg = 0.0;
+
+    // --- HOLD (Spike_Hold_Motors) -----------------------------------------
+    // Como motor.HOLD del SPIKE: el motor de propulsión sostiene su posición y
+    // vuelve si lo desplazan. PWM limitado y, si queda bloqueado 3 s al tope,
+    // el firmware lo suelta (estado stalled). Requiere MOTOR_EXT v3 (pos-v8);
+    // con firmware anterior Hold_Motors hace una parada, como antes.
+    float hold_max_rps = 1.0f;
+    std::uint16_t hold_tolerance_ticks = 8;    // ~2.2° del eje de salida
+    std::uint16_t hold_max_pulse = 400;        // 40 % de PWM
 
     hiwonder::SteeringCalibration steering{};
 };
+
+// Banda muerta continua: 0 dentro de ±band; fuera, error - signo(error)*band.
+// Pura; band <= 0 deja el error igual.
+double apply_deadband(double error, double band);
 
 // Asocia la capa a un Brick ya construido. No abre el puerto.
 void Spike_Attach(hiwonder::Brick *brick, const Config &config);

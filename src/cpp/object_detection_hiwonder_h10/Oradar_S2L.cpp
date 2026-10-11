@@ -1,26 +1,145 @@
 #include "Oradar_S2L.h"
-#include <ord_lidar_driver.h>
 #include "spike.h"
 #include <cstdio>
+#include <cstdlib>
 #include <cmath>
 #include <unistd.h>
 #include <pthread.h>
 
-using namespace ordlidar;
+// El driver se elige al compilar (CMake: -DWRO_LIDAR=ORADAR|RPLIDAR_S2L). Los
+// dos llenan el mismo buffer de 360 con la orientacion del Oradar (derecha=0,
+// atras=90, izquierda=180, frente=270), que es la que usan los algoritmos de
+// abajo y object_detection.cpp; asi la mision no cambia con el lidar.
 
-static OrdlidarDriver *oradar_device = nullptr;
 static pthread_mutex_t oradar_buffer_mutex = PTHREAD_MUTEX_INITIALIZER;
 static volatile int oradar_terminating = 0;
 static volatile float oradar_shared_buffer[360] = {0};
 static volatile unsigned long oradar_scan_seq = 0; // incremented every time a new full scan is written
 
+// WRO_LIDAR_PORT cambia el puerto sin recompilar.
+static const char *lidar_port(const char *fallback){
+    const char *port = std::getenv("WRO_LIDAR_PORT");
+    return (port != nullptr && *port != '\0') ? port : fallback;
+}
+
+#if defined(WRO_LIDAR_RPLIDAR_S2L)
+
+#include <sl_lidar.h>
+#include <sl_lidar_driver.h>
+
+using namespace sl;
+
+// RPLidar S2L: 1 Mbaud. Su angulo crece en sentido horario desde la marca
+// frontal del lidar. RPLIDAR_FRONT_DEG es el angulo del lidar que apunta al
+// frente del robot y RPLIDAR_CLOCKWISE=0 invierte el sentido (lidar boca
+// abajo). VERIFICAR en el robot: ver README.md.
+#ifndef RPLIDAR_FRONT_DEG
+#define RPLIDAR_FRONT_DEG 0
+#endif
+#ifndef RPLIDAR_CLOCKWISE
+#define RPLIDAR_CLOCKWISE 1
+#endif
+
+static ILidarDriver *rplidar_device = nullptr;
+static IChannel *rplidar_channel = nullptr;
+
+// Angulo del lidar -> indice del buffer en la orientacion del Oradar.
+static int rplidar_to_buffer_index(float lidar_deg){
+    const int raw = ((int)lidar_deg % 360 + 360) % 360;
+    const int robot_cw = RPLIDAR_CLOCKWISE ? raw - RPLIDAR_FRONT_DEG : RPLIDAR_FRONT_DEG - raw;
+    return RP_TO_ORADAR_IDX(robot_cw);
+}
+
+void Oradar_S2L_Init_Lidar(void){
+    const char *port = lidar_port("/dev/ttyUSB0");
+    sl_lidar_response_device_info_t devinfo;
+
+    while (oradar_terminating == 0) {
+        rplidar_device = *createLidarDriver();
+        rplidar_channel = *createSerialPortChannel(port, 1000000);
+        if (SL_IS_OK(rplidar_device->connect(rplidar_channel)) &&
+            SL_IS_OK(rplidar_device->getDeviceInfo(devinfo))) {
+            break;
+        }
+        printf("RPLidar S2L connect failed on %s, retrying...\n", port);
+        rplidar_device->disconnect();
+        delete rplidar_device;
+        delete rplidar_channel;
+        rplidar_device = nullptr;
+        rplidar_channel = nullptr;
+        usleep(1000000);
+    }
+    if (rplidar_device == nullptr) return;
+
+    rplidar_device->setMotorSpeed(DEFAULT_MOTOR_SPEED);
+    usleep(200000);
+    rplidar_device->startScan(false, true);
+    printf("RPLidar S2L connect successful on %s\n", port);
+}
+
+void *Oradar_S2L_Lidar_Writer_Thread(void *arg){
+    (void)arg;
+    static sl_lidar_response_measurement_node_hq_t nodes[8192];
+    float sum[360];
+    int count_per_index[360];
+
+    while(oradar_terminating == 0 && rplidar_device != nullptr){
+        size_t count = sizeof(nodes) / sizeof(nodes[0]);
+        if (SL_IS_OK(rplidar_device->grabScanDataHq(nodes, count))) {
+            rplidar_device->ascendScanData(nodes, count);
+            for (int i = 0; i < 360; i++) {
+                sum[i] = 0.0f;
+                count_per_index[i] = 0;
+            }
+            // Como el driver S2L anterior: calidad > 20 y promedio por grado.
+            for (size_t pos = 0; pos < count; ++pos) {
+                const int quality = nodes[pos].quality >> SL_LIDAR_RESP_MEASUREMENT_QUALITY_SHIFT;
+                const float distance = nodes[pos].dist_mm_q2 / 4.0f;
+                if (quality > 20 && distance > 0.0f) {
+                    const int idx = rplidar_to_buffer_index(nodes[pos].angle_z_q14 * 90.f / 16384.f);
+                    sum[idx] += distance;
+                    count_per_index[idx]++;
+                }
+            }
+            pthread_mutex_lock(&oradar_buffer_mutex);
+            for (int i = 0; i < 360; i++) {
+                if (count_per_index[i] > 0) {
+                    oradar_shared_buffer[i] = sum[i] / count_per_index[i];
+                }
+            }
+            oradar_scan_seq++;
+            pthread_mutex_unlock(&oradar_buffer_mutex);
+        }
+    }
+    return NULL;
+}
+
+void Oradar_S2L_Close(void){
+    if(rplidar_device){
+        rplidar_device->stop();
+        rplidar_device->setMotorSpeed(0);
+        rplidar_device->disconnect();
+        delete rplidar_device;
+        rplidar_device = nullptr;
+    }
+    delete rplidar_channel;
+    rplidar_channel = nullptr;
+}
+
+#else  // Oradar MS200
+
+#include <ord_lidar_driver.h>
+
+using namespace ordlidar;
+
+static OrdlidarDriver *oradar_device = nullptr;
+
 // MS200 default: 230400 baud.
-static const char *opt_oradar_port = "/dev/ttyUSB0";
 static const int   opt_oradar_baudrate = 230400;
 
 void Oradar_S2L_Init_Lidar(void){
     oradar_device = new OrdlidarDriver(ORADAR_TYPE_SERIAL, ORADAR_MS200);
-    oradar_device->SetSerialPort(opt_oradar_port, opt_oradar_baudrate);
+    oradar_device->SetSerialPort(lidar_port("/dev/ttyUSB0"), opt_oradar_baudrate);
 
     while (oradar_terminating == 0 && !oradar_device->Connect()){
         printf("Oradar lidar connect failed, retrying...\n");
@@ -49,6 +168,16 @@ void *Oradar_S2L_Lidar_Writer_Thread(void *arg){
     return NULL;
 }
 
+void Oradar_S2L_Close(void){
+    if(oradar_device){
+        oradar_device->Disconnect();
+        delete oradar_device;
+        oradar_device = nullptr;
+    }
+}
+
+#endif
+
 void Oradar_S2L_Get_Buffer(float *buffer){
     for(int i = 0; i < 360; i++){
         buffer[i] = oradar_shared_buffer[i];
@@ -57,14 +186,6 @@ void Oradar_S2L_Get_Buffer(float *buffer){
 
 void Oradar_S2L_Set_Terminating(void){
     oradar_terminating = 1;
-}
-
-void Oradar_S2L_Close(void){
-    if(oradar_device){
-        oradar_device->Disconnect();
-        delete oradar_device;
-        oradar_device = nullptr;
-    }
 }
 
 float Oradar_S2L_Radians_To_Degrees(float radians){

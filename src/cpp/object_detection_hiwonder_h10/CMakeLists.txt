@@ -156,17 +156,51 @@ add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
 )
 
 # ============================================================
-# Oradar SDK (MS200/MS2000)
+# Lidar: Oradar MS200 (robot H10) o RPLidar S2L (robot Hailo-8)
+#   cmake ... -DWRO_LIDAR=RPLIDAR_S2L
+# Los dos drivers llenan el mismo buffer con la orientacion del Oradar; ver
+# Oradar_S2L.cpp.
 # ============================================================
-set(ORADAR_SDK_DIR
-    "${CMAKE_CURRENT_SOURCE_DIR}/../object_detection_original_h10/oradar_sdk")
-if(NOT EXISTS "${ORADAR_SDK_DIR}/CMakeLists.txt")
-    message(FATAL_ERROR
-        "Oradar SDK not found at ${ORADAR_SDK_DIR}. "
-        "Keep this variant next to object_detection_original_h10.")
+set(WRO_LIDAR "ORADAR" CACHE STRING "Lidar del robot: ORADAR o RPLIDAR_S2L")
+set_property(CACHE WRO_LIDAR PROPERTY STRINGS ORADAR RPLIDAR_S2L)
+message(STATUS "Lidar: ${WRO_LIDAR}")
+
+if(WRO_LIDAR STREQUAL "RPLIDAR_S2L")
+    # SDK de Slamtec compilado aparte (make en su raiz), mismo commit 99478e5
+    # que el submodulo src/ondevice/rplidar_sdk.
+    set(RPLIDAR_SDK_DIR "$ENV{HOME}/rplidar_sdk" CACHE PATH "Raiz del rplidar_sdk de Slamtec")
+    set(RPLIDAR_LIB "${RPLIDAR_SDK_DIR}/output/Linux/Release/libsl_lidar_sdk.a")
+    if(NOT EXISTS "${RPLIDAR_LIB}")
+        message(FATAL_ERROR
+            "No existe ${RPLIDAR_LIB}. Clona https://github.com/Slamtec/rplidar_sdk "
+            "en ${RPLIDAR_SDK_DIR} y compila con make, o pasa -DRPLIDAR_SDK_DIR=...")
+    endif()
+    # Montaje del S2L en el robot: angulo del lidar que mira al frente y sentido.
+    set(RPLIDAR_FRONT_DEG 0 CACHE STRING "Angulo del RPLidar que apunta al frente del robot")
+    set(RPLIDAR_CLOCKWISE 1 CACHE STRING "1 si el angulo del RPLidar crece en sentido horario visto desde arriba")
+    set(LIDAR_INCLUDE_DIRS "${RPLIDAR_SDK_DIR}/sdk/include" "${RPLIDAR_SDK_DIR}/sdk/src")
+    set(LIDAR_LIBS "${RPLIDAR_LIB}")
+    set(LIDAR_DEFINITIONS
+        WRO_LIDAR_RPLIDAR_S2L
+        RPLIDAR_FRONT_DEG=${RPLIDAR_FRONT_DEG}
+        RPLIDAR_CLOCKWISE=${RPLIDAR_CLOCKWISE})
+elseif(WRO_LIDAR STREQUAL "ORADAR")
+    set(ORADAR_SDK_DIR
+        "${CMAKE_CURRENT_SOURCE_DIR}/../object_detection_original_h10/oradar_sdk")
+    if(NOT EXISTS "${ORADAR_SDK_DIR}/CMakeLists.txt")
+        message(FATAL_ERROR
+            "Oradar SDK not found at ${ORADAR_SDK_DIR}. "
+            "Keep this variant next to object_detection_original_h10.")
+    endif()
+    set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+    add_subdirectory("${ORADAR_SDK_DIR}" "${CMAKE_BINARY_DIR}/_deps/oradar_sdk")
+    set(LIDAR_INCLUDE_DIRS "${ORADAR_SDK_DIR}")
+    set(LIDAR_LIBS oradar_sdk)
+    set(LIDAR_DEFINITIONS "")
+else()
+    message(FATAL_ERROR "WRO_LIDAR debe ser ORADAR o RPLIDAR_S2L, no '${WRO_LIDAR}'")
 endif()
-set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-add_subdirectory("${ORADAR_SDK_DIR}" "${CMAKE_BINARY_DIR}/_deps/oradar_sdk")
+target_compile_definitions(${PROJECT_NAME} PRIVATE ${LIDAR_DEFINITIONS})
 
 # ============================================================
 # Include dirs
@@ -177,7 +211,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/utils
     ${CMAKE_CURRENT_SOURCE_DIR}/hiwonder/include
     "${CMAKE_CURRENT_SOURCE_DIR}/../common"
-    "${ORADAR_SDK_DIR}"
+    ${LIDAR_INCLUDE_DIRS}
 )
 
 # ============================================================
@@ -206,7 +240,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     ${OpenCV_LIBS}
     yaml-cpp
     CURL::libcurl
-    oradar_sdk
+    ${LIDAR_LIBS}
     gpiod
 )
 

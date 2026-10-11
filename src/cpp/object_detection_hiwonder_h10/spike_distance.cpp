@@ -16,7 +16,7 @@ extern "C" void Spike_Advance_For_distance(int speed, int distance,
     if (!std::isfinite(degrees) ||
         degrees < static_cast<double>(std::numeric_limits<int>::min()) ||
         degrees > static_cast<double>(std::numeric_limits<int>::max())) {
-        throw std::out_of_range("distancia fuera del rango de M1");
+        throw std::out_of_range("distancia fuera del rango del motor de posición");
     }
     Spike_Advance_For_Degrees(speed, static_cast<int>(std::lround(degrees)),
                               reference);
