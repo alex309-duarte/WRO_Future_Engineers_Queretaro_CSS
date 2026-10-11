@@ -29,18 +29,18 @@ ni se pulsa.
 
 ## Compilar
 
-`WRO_LIDAR` elige el lidar (`ORADAR` por defecto). Robot H10:
+Por defecto compila con el RPLidar S2L (robot Hailo-8):
 
 ```bash
-cmake -S . -B build/h10_hiwonder -DCMAKE_BUILD_TYPE=Release
-make -C build/h10_hiwonder -j"$(nproc)"
+cmake -S . -B build/h8_s2l -DCMAKE_BUILD_TYPE=Release
+make -C build/h8_s2l -j"$(nproc)"
 ```
 
-Robot Hailo-8 con RPLidar S2L:
+Robot H10 con Oradar MS200:
 
 ```bash
-cmake -S . -B build/h8_s2l -DCMAKE_BUILD_TYPE=Release -DWRO_LIDAR=RPLIDAR_S2L
-make -C build/h8_s2l -j"$(nproc)"
+cmake -S . -B build/h10_hiwonder -DCMAKE_BUILD_TYPE=Release -DWRO_LIDAR=ORADAR
+make -C build/h10_hiwonder -j"$(nproc)"
 ```
 
 Después de configurar una vez, basta `make -C build/<nombre>`. El SDK Oradar

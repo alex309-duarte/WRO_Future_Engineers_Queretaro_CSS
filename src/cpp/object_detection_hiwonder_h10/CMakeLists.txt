@@ -156,12 +156,12 @@ add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
 )
 
 # ============================================================
-# Lidar: Oradar MS200 (robot H10) o RPLidar S2L (robot Hailo-8)
-#   cmake ... -DWRO_LIDAR=RPLIDAR_S2L
+# Lidar: RPLidar S2L por defecto (robot Hailo-8). El robot H10 con Oradar
+# MS200 lo pide con: cmake ... -DWRO_LIDAR=ORADAR
 # Los dos drivers llenan el mismo buffer con la orientacion del Oradar; ver
 # Oradar_S2L.cpp.
 # ============================================================
-set(WRO_LIDAR "ORADAR" CACHE STRING "Lidar del robot: ORADAR o RPLIDAR_S2L")
+set(WRO_LIDAR "RPLIDAR_S2L" CACHE STRING "Lidar del robot: ORADAR o RPLIDAR_S2L")
 set_property(CACHE WRO_LIDAR PROPERTY STRINGS ORADAR RPLIDAR_S2L)
 message(STATUS "Lidar: ${WRO_LIDAR}")
 
