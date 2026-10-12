@@ -14,6 +14,8 @@
 #include <chrono>
 #include <cmath>
 #include <algorithm>
+#include <filesystem>
+#include <atomic>
 
 struct traffic_lights_struct{
     float  middle_point_x;
@@ -30,6 +32,13 @@ static traffic_lights_struct traffic_lights;
 static bool g_no_display = false;
 // Enabled only by the separate terminal-run demo binary/service.
 static bool g_fusion_demo_mode = false;
+
+// Dataset capture: set once the start button is pressed (robot starts moving); from then
+// on preprocess_callback saves the raw full-resolution camera frame (before any resize,
+// so the full aspect ratio/field of view is kept) as a JPEG every DATASET_CAPTURE_PERIOD.
+static std::atomic<bool> g_capture_images{false};
+static const std::string DATASET_CAPTURE_DIR = "/home/maker/WRO_Future_Engineers_Queretaro_CSS/other/additionalMedia/OctoberDataset";
+static constexpr auto DATASET_CAPTURE_PERIOD = std::chrono::milliseconds(500); // 2 pictures per second
 
 pthread_t writer;
 pthread_t Main_Actions;
@@ -257,6 +266,36 @@ void preprocess_callback(const std::vector<cv::Mat>& org_frames,
                          std::vector<cv::Mat>& preprocessed_frames,
                          uint32_t target_width, uint32_t target_height)
 {
+    // Dataset capture (only called from the preprocess thread, so plain statics are safe).
+    // Files are prefixed with the run's start time so a new run never overwrites the last.
+    if (g_capture_images.load() && !org_frames.empty() && !org_frames[0].empty()) {
+        static std::string run_prefix;
+        static int capture_index = 0;
+        static Clock::time_point next_capture_time;
+        const auto now = Clock::now();
+        if (run_prefix.empty()) {
+            std::error_code ec;
+            fs::create_directories(DATASET_CAPTURE_DIR, ec);
+            if (ec) std::cerr << "-W- Could not create " << DATASET_CAPTURE_DIR << ": " << ec.message() << "\n";
+            char time_buf[32];
+            time_t t = time(nullptr);
+            struct tm tm_info;
+            localtime_r(&t, &tm_info);
+            strftime(time_buf, sizeof(time_buf), "%Y%m%d_%H%M%S", &tm_info);
+            run_prefix = time_buf;
+            next_capture_time = now;
+        }
+        if (now >= next_capture_time) {
+            char name_buf[64];
+            snprintf(name_buf, sizeof(name_buf), "/%s_%05d.jpeg", run_prefix.c_str(), capture_index++);
+            if (!cv::imwrite(DATASET_CAPTURE_DIR + name_buf, org_frames[0], {cv::IMWRITE_JPEG_QUALITY, 95})) {
+                std::cerr << "-W- Failed to save dataset image " << name_buf << "\n";
+            }
+            next_capture_time += DATASET_CAPTURE_PERIOD;
+            if (next_capture_time < now) next_capture_time = now + DATASET_CAPTURE_PERIOD; // don't burst after a stall
+        }
+    }
+
     preprocessed_frames.clear();
     preprocessed_frames.reserve(org_frames.size());
 
@@ -775,6 +814,8 @@ void *Obstacle_Challenge_Thread(void *arg){
 
     Spike_Reset_Gyro(0);
     Rasp_Gpio_Wait_For_Button();
+    g_capture_images = true; // robot starts moving: begin saving dataset pictures
+
     if (g_fusion_demo_mode) {
         constexpr auto demo_duration = std::chrono::seconds(120);
         constexpr auto maneuver_reserve = std::chrono::seconds(12);
@@ -966,7 +1007,7 @@ void *Obstacle_Challenge_Thread(void *arg){
         cubo_temp = Desicion(cubo_temp, is_middle_case);
         cubo_temp = Corner_Case(cubo_temp, &is_middle_case,true);
         cubo_temp = Desicion(cubo_temp, is_middle_case,true);
-        if(cubo_temp == light_red){ /* lo hace bien */ 
+        if(cubo_temp == light_red){ 
             Oradar_S2L_Advance_Until_Distance(50, 0, 950, Hold);
             Spike_Turn_For_Degrees(left, 60,90,45, true);
             Spike_Center_Vehicle();
@@ -976,7 +1017,7 @@ void *Obstacle_Challenge_Thread(void *arg){
             Spike_Turn_For_Degrees(right, 50, 90, 45, true);
             Spike_Center_Vehicle();
         }else if(cubo_temp == light_green){/* muchos problemas */ /* rojo verde caso ideal */
-            Spike_Turn_For_Degrees(left, 60,10,45, true);
+          Spike_Turn_For_Degrees(left, 60,10,45, true);
             Spike_Center_Vehicle();
             float lidar_buffer[360];
             Oradar_S2L_Get_Buffer(&lidar_buffer[0]);
@@ -1072,8 +1113,8 @@ void *Obstacle_Challenge_Thread(void *arg){
             Spike_Center_Vehicle();
         }
         
-        float slope_final = Slope(front);
-        /*float slope_final = Slope(right);
+        //float slope_final = Slope(front);
+        float slope_final = Slope(right);
         printf("reset angle before %f\n", slope);
         if(slope_final > 0){
             slope_final = slope_final - 90;
@@ -1084,7 +1125,7 @@ void *Obstacle_Challenge_Thread(void *arg){
             Spike_Reset_Gyro(slope_final);
         }else{
             Spike_Reset_Gyro(0);
-        }*/
+        }
         usleep(100000);
         float distance_to_right = 1000;
         distance_to_right = lidar_shared_buffer[0];;
@@ -1114,10 +1155,11 @@ void *Obstacle_Challenge_Thread(void *arg){
         usleep(100000);
         Spike_Turn_For_Degrees(right, 40, -15, 45, true);
         Spike_Center_Vehicle();
+        
+    }
 
         
 
-    }
 
     }
 
