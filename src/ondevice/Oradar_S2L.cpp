@@ -1,5 +1,4 @@
 #include "Oradar_S2L.h"
-#include <ord_lidar_driver.h>
 #include "spike.h"
 #include <cstdio>
 #include <cstdlib>
@@ -10,26 +9,177 @@
 #include <unordered_map>
 #include <pthread.h>
 
-using namespace ordlidar;
-
 struct DistanceAccumulator{
     float distance_sum;
     int sample_count;
 };
 
-static OrdlidarDriver *oradar_device = nullptr;
 static pthread_mutex_t oradar_buffer_mutex = PTHREAD_MUTEX_INITIALIZER;
 static volatile int oradar_terminating = 0;
 static volatile float oradar_shared_buffer[360] = {0};
 static volatile unsigned long oradar_scan_seq = 0; // incremented every time a new full scan is written
 
+// El driver se elige al compilar (Makefile: WRO_LIDAR=RPLIDAR_S2L|ORADAR, por
+// defecto el RPLidar S2L de este robot). Los dos llenan el mismo buffer de 360
+// con la orientacion del Oradar (derecha=0, atras=90, izquierda=180,
+// frente=270), la que usan los algoritmos de abajo via RP_TO_ORADAR_IDX; asi
+// la mision no cambia con el lidar.
+
+// WRO_LIDAR_PORT cambia el puerto sin recompilar.
+static const char *lidar_port(const char *fallback){
+    const char *port = std::getenv("WRO_LIDAR_PORT");
+    return (port != nullptr && *port != '\0') ? port : fallback;
+}
+
+#if defined(WRO_LIDAR_RPLIDAR_S2L)
+
+#include <sl_lidar.h>
+#include <sl_lidar_driver.h>
+
+using namespace sl;
+
+// RPLidar S2L: 1 Mbaud. Su angulo crece en sentido horario desde la marca
+// frontal del lidar. RPLIDAR_FRONT_DEG es el angulo del lidar que apunta al
+// frente del robot y RPLIDAR_CLOCKWISE=0 invierte el sentido (lidar boca
+// abajo). El driver S2L anterior de este programa usaba 0=frente, 90=derecha,
+// 270=izquierda: FRONT_DEG 0 y sentido horario.
+#ifndef RPLIDAR_FRONT_DEG
+#define RPLIDAR_FRONT_DEG 0
+#endif
+#ifndef RPLIDAR_CLOCKWISE
+#define RPLIDAR_CLOCKWISE 1
+#endif
+
+static ILidarDriver *rplidar_device = nullptr;
+static IChannel *rplidar_channel = nullptr;
+
+// Angulo del lidar -> indice del buffer en la orientacion del Oradar.
+static int rplidar_to_buffer_index(float lidar_deg){
+    const int raw = ((int)lidar_deg % 360 + 360) % 360;
+    const int robot_cw = RPLIDAR_CLOCKWISE ? raw - RPLIDAR_FRONT_DEG : RPLIDAR_FRONT_DEG - raw;
+    return RP_TO_ORADAR_IDX(robot_cw);
+}
+
+const char *Oradar_S2L_Port(void){
+    return lidar_port("/dev/ttyUSB0");
+}
+
+// Lo mismo que Oradar_S2L_Close() con el SDK: stop() y setMotorSpeed(0). El
+// S2L controla el motor por rpm (SL_LIDAR_CMD_HQ_MOTOR_SPEED_CTRL) y stop() no
+// lo apaga. Trama: A5, cmd, tamano, datos, XOR de todos los bytes anteriores.
+int Oradar_S2L_Stop_Frames(unsigned char *buf, int max){
+    static const unsigned char frames[] = {
+        0xA5, 0x25,                          // SL_LIDAR_CMD_STOP
+        0xA5, 0xA8, 0x02, 0x00, 0x00, 0x0F,  // motor a 0 rpm
+    };
+    if(max < (int)sizeof(frames)) return 0;
+    memcpy(buf, frames, sizeof(frames));
+    return (int)sizeof(frames);
+}
+
+void Oradar_S2L_Init_Lidar(void){
+    const char *port = Oradar_S2L_Port();
+    sl_lidar_response_device_info_t devinfo;
+
+    while (oradar_terminating == 0) {
+        rplidar_device = *createLidarDriver();
+        rplidar_channel = *createSerialPortChannel(port, 1000000);
+        if (SL_IS_OK(rplidar_device->connect(rplidar_channel)) &&
+            SL_IS_OK(rplidar_device->getDeviceInfo(devinfo))) {
+            break;
+        }
+        printf("RPLidar S2L connect failed on %s, retrying...\n", port);
+        rplidar_device->disconnect();
+        delete rplidar_device;
+        delete rplidar_channel;
+        rplidar_device = nullptr;
+        rplidar_channel = nullptr;
+        usleep(1000000);
+    }
+    if (rplidar_device == nullptr) return;
+
+    rplidar_device->setMotorSpeed(DEFAULT_MOTOR_SPEED);
+    usleep(200000);
+    rplidar_device->startScan(false, true);
+    printf("RPLidar S2L connect successful on %s\n", port);
+}
+
+void *Oradar_S2L_Lidar_Writer_Thread(void *arg){
+    (void)arg;
+    static sl_lidar_response_measurement_node_hq_t nodes[8192];
+    float sum[360];
+    int count_per_index[360];
+
+    while(oradar_terminating == 0 && rplidar_device != nullptr){
+        size_t count = sizeof(nodes) / sizeof(nodes[0]);
+        if (SL_IS_OK(rplidar_device->grabScanDataHq(nodes, count))) {
+            rplidar_device->ascendScanData(nodes, count);
+            for (int i = 0; i < 360; i++) {
+                sum[i] = 0.0f;
+                count_per_index[i] = 0;
+            }
+            // Promedio por grado de los puntos con medida. No se filtra por
+            // calidad: este S2L la reporta entre 10 y 18, y el filtro "> 20"
+            // de la variante H10 (o "== 47" del driver anterior) descartaba
+            // el barrido entero y el buffer se quedaba en 0.
+            for (size_t pos = 0; pos < count; ++pos) {
+                const float distance = nodes[pos].dist_mm_q2 / 4.0f;
+                if (distance > 0.0f) {
+                    const int idx = rplidar_to_buffer_index(nodes[pos].angle_z_q14 * 90.f / 16384.f);
+                    sum[idx] += distance;
+                    count_per_index[idx]++;
+                }
+            }
+            pthread_mutex_lock(&oradar_buffer_mutex);
+            for (int i = 0; i < 360; i++) {
+                if (count_per_index[i] > 0) {
+                    oradar_shared_buffer[i] = sum[i] / count_per_index[i];
+                }
+            }
+            oradar_scan_seq++;
+            pthread_mutex_unlock(&oradar_buffer_mutex);
+        }
+    }
+    return NULL;
+}
+
+void Oradar_S2L_Close(void){
+    if(rplidar_device){
+        rplidar_device->stop();
+        rplidar_device->setMotorSpeed(0);
+        rplidar_device->disconnect();
+        delete rplidar_device;
+        rplidar_device = nullptr;
+    }
+    delete rplidar_channel;
+    rplidar_channel = nullptr;
+}
+
+#else  // Oradar MS200
+
+const char *Oradar_S2L_Port(void){
+    return lidar_port("/dev/ttyUSB0");
+}
+
+// El SDK del MS200 no expone tramas de parada en crudo.
+int Oradar_S2L_Stop_Frames(unsigned char *buf, int max){
+    (void)buf;
+    (void)max;
+    return 0;
+}
+
+#include <ord_lidar_driver.h>
+
+using namespace ordlidar;
+
+static OrdlidarDriver *oradar_device = nullptr;
+
 // MS200 default: 230400 baud.
-static const char *serial_port_path = "/dev/ttyUSB0";
 static const int   serial_baudrate = 230400;
 
 void Oradar_S2L_Init_Lidar(void){
     oradar_device = new OrdlidarDriver(ORADAR_TYPE_SERIAL, ORADAR_MS200);
-    oradar_device->SetSerialPort(serial_port_path, serial_baudrate);
+    oradar_device->SetSerialPort(lidar_port("/dev/ttyUSB0"), serial_baudrate);
 
     while (oradar_terminating == 0 && !oradar_device->Connect()){
         printf("Oradar lidar connect failed, retrying...\n");
@@ -74,6 +224,16 @@ void *Oradar_S2L_Lidar_Writer_Thread(void *arg){
     }
     return NULL;
 }
+
+void Oradar_S2L_Close(void){
+    if(oradar_device){
+        oradar_device->Disconnect();
+        delete oradar_device;
+        oradar_device = nullptr;
+    }
+}
+
+#endif
 
 float Oradar_S2L_Radians_To_Degrees(float radians){
     double degrees = ((radians * 180.f)/ M_PI);
@@ -464,8 +624,10 @@ struct Oradar_S2L_WallSelection{
 // ruidosos/cortos, y entre los que califican elige el de mayor extension
 // fisica (desempate por el ajuste mas limpio). Tambien recuerda la ultima
 // pared seguida por cada lado (centroide+orientacion) para no saltar a una
-// pared vecina de una llamada a otra.
-static Oradar_S2L_WallSelection Oradar_S2L_Select_Wall(int middle_point){
+// pared vecina de una llamada a otra. Con update_track=false consulta ese
+// seguimiento pero no lo actualiza: asi la ventana del lidar no cambia la
+// pared que sigue el robot.
+static Oradar_S2L_WallSelection Oradar_S2L_Select_Wall(int middle_point, bool update_track = true){
     Oradar_S2L_WallSelection result;
 
     const int point = 70;
@@ -631,7 +793,7 @@ static Oradar_S2L_WallSelection Oradar_S2L_Select_Wall(int middle_point){
     Vec2 final_centroid{0.0f, 0.0f};
     for(int idx : chosen_indices) final_centroid = Vec2_Add(final_centroid, pts[idx]);
     final_centroid = Vec2_Scale(final_centroid, 1.0f / (float)chosen_indices.size());
-    {
+    if(update_track){
         pthread_mutex_lock(&wall_track_mutex);
         wall_track_by_side[middle_point] = WallTrackState{true, final_centroid, Oradar_S2L_Fit_Line_Orientation(pts, chosen_indices)};
         pthread_mutex_unlock(&wall_track_mutex);
@@ -658,18 +820,34 @@ int Oradar_S2L_Wall_Slope(int middle_point){
     return p;
 }
 
+// La misma pared que Oradar_S2L_Wall_Slope, sin imprimir ni tocar el
+// seguimiento, para la ventana del lidar. Los puntos van en el sistema "RP"
+// (0=frente, 90=derecha); la distancia es perpendicular a la recta ajustada.
+Oradar_S2L_Wall_Info Oradar_S2L_Get_Wall_Info(int middle_point){
+    Oradar_S2L_Wall_Info info;
+    Oradar_S2L_WallSelection sel = Oradar_S2L_Select_Wall(middle_point, false);
+    if(!sel.found) return info;
+
+    info.found = true;
+    info.orientation_deg = Oradar_S2L_Fit_Line_Orientation(sel.pts, sel.chosen_indices);
+    const float theta_rad = Oradar_S2L_Degrees_To_Radians(info.orientation_deg);
+    Vec2 centroid{0.0f, 0.0f};
+    for(int idx : sel.chosen_indices){
+        centroid = Vec2_Add(centroid, sel.pts[idx]);
+        info.x_mm.push_back(sel.pts[idx].x);
+        info.y_mm.push_back(sel.pts[idx].y);
+    }
+    centroid = Vec2_Scale(centroid, 1.0f / (float)sel.chosen_indices.size());
+    info.centroid_x_mm = centroid.x;
+    info.centroid_y_mm = centroid.y;
+    info.distance_mm = fabsf(centroid.x * sinf(theta_rad) - centroid.y * cosf(theta_rad));
+    return info;
+}
+
 int Oradar_S2L_Average(int arg_1, int arg_2){
     int average = (arg_1 + arg_2)/2;
     printf("correcion: %d\n",average);
     return average;
-}
-
-void Oradar_S2L_Close(void){
-    if(oradar_device){
-        oradar_device->Disconnect();
-        delete oradar_device;
-        oradar_device = nullptr;
-    }
 }
 
 void Oradar_S2L_Set_Terminating(void){

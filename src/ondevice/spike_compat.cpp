@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <chrono>
 #include <cmath>
+#include <cstdlib>
 #include <stdexcept>
 #include <thread>
 
@@ -15,6 +16,14 @@ bool g_attached = false;
 
 /* Estado del PD, equivalente al "global error" del script del hub. */
 double g_prev_error = 0.0;
+
+/* Ganancias tomadas literalmente de spike.cpp (funciones da / apd / ag). */
+constexpr double kForwardKp = 0.05;
+constexpr double kForwardKd = 0.0;
+constexpr double kFollowKp  = 0.08;
+constexpr double kFollowKd  = 0.7;
+constexpr double kAdvanceKp = 0.02;
+constexpr double kAdvanceKd = 0.05;
 
 hiwonder::Brick &brick() {
     if (!g_attached || g_brick == nullptr) {
@@ -36,11 +45,6 @@ void require_speed_calibration() {
     if (g_config.rps_at_speed_100 <= 0.0) {
         throw std::logic_error("spike_compat: rps_at_speed_100 sin calibrar");
     }
-    if (g_config.traction_direction != 1.0 &&
-        g_config.traction_direction != -1.0) {
-        throw std::logic_error(
-            "spike_compat: traction_direction debe ser +1 o -1");
-    }
 }
 
 double clamp_unit(double v) { return std::max(-1.0, std::min(1.0, v)); }
@@ -49,8 +53,7 @@ double clamp_unit(double v) { return std::max(-1.0, std::min(1.0, v)); }
 float speed_to_rps(int speed) {
     require_speed_calibration();
     const double rps =
-        (static_cast<double>(speed) / 100.0) * g_config.rps_at_speed_100 *
-        g_config.traction_direction;
+        (static_cast<double>(speed) / 100.0) * g_config.rps_at_speed_100;
     const double limit = static_cast<double>(g_config.max_rps_limit);
     return static_cast<float>(std::max(-limit, std::min(limit, rps)));
 }
@@ -62,31 +65,45 @@ double to_decidegrees(double degrees) { return degrees * 10.0; }
 
 /* Un paso del PD original:  error = s1 - s2;  et = kp*error + kd*(error - ea).
    Aplica dirección y, si se pide, velocidad. Devuelve el error, y lo guarda
-   como hacía "global error" en el hub. */
+   como hacía "global error" en el hub. output_sign = -1 en reversa: la
+   dirección actúa al revés sobre el rumbo cuando el robot va hacia atrás. */
 double pd_step(double s1, double s2, int speed, double kp, double kd,
-               bool drive_motor) {
+               bool drive_motor, double deadband = 0.0, double output_sign = 1.0) {
     /* Validar toda la calibracion ANTES de tocar hardware: si no, se movia la
        direccion y solo despues fallaba por la velocidad, dejando el robot a
        medio actuar. */
     require_steering_calibration();
     if (drive_motor) require_speed_calibration();
-    const double error = s1 - s2;
+    const double error = spike_compat::apply_deadband(s1 - s2, deadband);
     const double et = (kp * error) + (kd * (error - g_prev_error));
     g_prev_error = error;
 
-    brick().set_steering(clamp_unit(et * g_config.pd_output_to_steering),
+    brick().set_steering(clamp_unit(output_sign * et * g_config.pd_output_to_steering),
                          g_config.steering);
     if (drive_motor) {
-        brick().set_motor_speed(0, speed_to_rps(speed));
+        brick().set_motor_speed(brick().position_motor_id(),
+                                speed_to_rps(speed));
     }
     return error;
 }
 
-void sleep_control_period() {
-    std::this_thread::sleep_for(g_config.control_period);
+/* Siguiente paso del lazo: espera una muestra NUEVA del IMU (20 Hz). Con un
+   periodo fijo, el PD a veces veía el mismo yaw dos veces (D = 0) y otras un
+   salto doble (D x2). Si el IMU no llega, no bloquea más de 5 periodos. */
+void wait_control_step() {
+    brick().wait_for_imu(g_config.control_period * 5);
 }
 
+/* Banda muerta del rumbo en las unidades del PD (decigrados). */
+double heading_deadband() { return g_config.heading_deadband_deg * 10.0; }
+
 }  // namespace detail
+
+double apply_deadband(double error, double band) {
+    if (!(band > 0.0)) return error;
+    if (std::fabs(error) <= band) return 0.0;
+    return error > 0.0 ? error - band : error + band;
+}
 
 void Spike_Attach(hiwonder::Brick *brick_ptr, const Config &config) {
     detail::g_brick = brick_ptr;
@@ -104,6 +121,96 @@ void Spike_Detach() noexcept {
 bool Spike_Is_Attached() noexcept { return detail::g_attached; }
 
 const Config &Spike_Get_Config() { return detail::g_config; }
+
+void Spike_Update_Config(const Config &config) {
+    detail::g_config = config;
+    detail::g_prev_error = 0.0;
+}
+
+void Steer_Tire_Turn(int direction, int tire_turn) {
+    auto &b = detail::brick();
+    if (detail::g_config.tire_turn_to_steering == 0.0) {
+        throw std::logic_error(
+            "spike_compat: tire_turn_to_steering sin calibrar");
+    }
+    b.set_steering(detail::clamp_unit(static_cast<double>(tire_turn) *
+                                      detail::g_config.tire_turn_to_steering *
+                                      static_cast<double>(direction)),
+                   detail::g_config.steering);
+}
+
+/* Original ag()/ag_u(): reseteaba la posición relativa del motor B, lo
+   empujaba a ciclo de trabajo constante (con el signo de speed) y vigilaba en
+   bucle hasta alcanzar |degrees|, corrigiendo rumbo con el PD; luego COAST.
+
+   Aquí la distancia la controla el lazo de posición del STM32
+   (MOVE_RELATIVE, validado en banco 2026-08-22), y el host sólo corrige rumbo.
+   Es más preciso que el original, pero DIFIERE: no se manda velocidad a la
+   propulsión (motor de posición, M4) durante el avance, porque
+   set_motor_speed cancelaría el movimiento posicional en el firmware.
+   "speed" pasa a ser el tope de velocidad; su signo, el sentido de marcha
+   (el firmware sólo admite un tope positivo, el sentido va en los ticks). */
+bool Advance_For_Degrees_Until(int speed, int degrees, int reference,
+                               const std::function<bool()> &stop) {
+    auto &b = detail::brick();
+    detail::require_steering_calibration();
+    detail::require_speed_calibration();
+    const bool reversa = speed < 0;
+    const double sentido = reversa ? -1.0 : 1.0;
+    const auto ticks = static_cast<std::int32_t>(std::llround(
+        sentido * std::fabs(static_cast<double>(degrees)) *
+        detail::g_config.spike_degrees_to_ticks));
+    const float max_rps = std::fabs(detail::speed_to_rps(speed));
+    /* ag_u(): en reversa la dirección actúa al revés y con menos ganancia. */
+    const double kp = reversa ? detail::kAdvanceKp * detail::g_config.reverse_kp_factor
+                              : detail::kAdvanceKp;
+    const double kd = reversa ? detail::kAdvanceKd * detail::g_config.reverse_kd_factor
+                              : detail::kAdvanceKd;
+    const double signo_salida = reversa ? -1.0 : 1.0;
+
+    if (ticks == 0) {
+        /* ag(speed, 0) en el hub no se movía; el firmware rechaza un delta de
+           0 ticks (pasa cuando la misión resta más de lo que mide, p. ej.
+           hipotenusa - 400 = 0). */
+        Spike_Coast_Motors();
+        return false;
+    }
+
+    b.zero_motor_position();
+    b.move_motor_relative(ticks, max_rps,
+                          detail::g_config.position_tolerance_ticks,
+                          detail::g_config.position_timeout_ms);
+
+    const auto deadline = std::chrono::steady_clock::now() +
+                          std::chrono::milliseconds(detail::g_config.position_timeout_ms);
+    bool detenido = false;
+    for (;;) {
+        if (stop && stop()) {
+            b.cancel_motor_position();
+            detenido = true;
+            break;
+        }
+        detail::pd_step(detail::to_decidegrees(b.imu().yaw_deg),
+                        detail::to_decidegrees(static_cast<double>(reference)),
+                        speed, kp, kd, false, detail::heading_deadband(), signo_salida);
+        const auto status = b.motor_position_status();
+        if (status.valid && !status.active) break;
+        if (status.valid && detail::g_config.advance_finish_ticks > 0 &&
+            std::abs(status.error_ticks) <= detail::g_config.advance_finish_ticks) {
+            /* Ya llegó salvo el asentamiento fino. Si la cancelación no se
+               confirma, la parada de abajo también cancela el movimiento. */
+            try {
+                b.cancel_motor_position();
+            } catch (const std::runtime_error &) {
+            }
+            break;
+        }
+        if (std::chrono::steady_clock::now() > deadline) break;
+        detail::wait_control_step();
+    }
+    Spike_Coast_Motors();
+    return detenido;
+}
 
 }  // namespace spike_compat
 
@@ -162,10 +269,22 @@ void Spike_Center_Vehicle_Short(void) { Spike_Center_Vehicle(); }
 
 void Spike_Coast_Motors(void) { sd::brick().stop_all(); }
 
-/* El SPIKE frenaba en HOLD posicional. M1 no tiene equivalente: el lazo de
-   posición declara "reached" y suelta. Se mapea a parada; documentado como
-   diferencia de comportamiento en WRO_MIGRACION.md. */
-void Spike_Hold_Motors(void) { sd::brick().stop_all(); }
+/* Original: motor.stop(port.F, stop=HOLD) y motor.stop(port.B, stop=HOLD).
+   Aquí: HOLD de posición del firmware (MOTOR_EXT v3) en el motor de
+   propulsión; el servo de dirección ya sostiene su posición por sí mismo. Si
+   el firmware no admite HOLD (anterior a pos-v8), parada como antes. */
+void Spike_Hold_Motors(void) {
+    auto &b = sd::brick();
+    const auto &cfg = sd::g_config;
+    try {
+        const auto status = b.hold_motor_position(
+            cfg.hold_max_rps, cfg.hold_tolerance_ticks, cfg.hold_max_pulse);
+        if (status.state == hiwonder::MotorPositionState::holding) return;
+    } catch (const std::runtime_error &) {
+        /* sin respuesta: se cae a la parada */
+    }
+    b.stop_all();
+}
 
 /* --- Giroscopio ---------------------------------------------------------- */
 
@@ -183,7 +302,8 @@ float Spike_Get_Gyro(void) {
 void Spike_Forward(int speed, int reference) {
     sd::pd_step(sd::to_decidegrees(sd::brick().imu().yaw_deg),
                 sd::to_decidegrees(static_cast<double>(reference)),
-                speed, sd::g_config.forward_kp, sd::g_config.forward_kd, true);
+                speed, sd::kForwardKp, sd::kForwardKd, true,
+                sd::heading_deadband());
 }
 
 void Spike_Follow_Reference(int speed, float reference_1, float reference_2) {
@@ -191,45 +311,15 @@ void Spike_Follow_Reference(int speed, float reference_1, float reference_2) {
        lidar), no ángulos: no se convierten a decigrados. */
     sd::pd_step(static_cast<double>(reference_1),
                 static_cast<double>(reference_2),
-                speed, sd::g_config.follow_kp, sd::g_config.follow_kd, true);
+                speed, sd::kFollowKp, sd::kFollowKd, true);
 }
 
 /* --- Bloqueantes --------------------------------------------------------- */
 
-/* Original: reseteaba la posición relativa del motor B, lo empujaba a ciclo de
-   trabajo constante y vigilaba en bucle hasta alcanzar los grados, corrigiendo
-   rumbo con el PD; luego COAST.
-
-   Aquí la distancia la controla el lazo de posición del STM32
-   (MOVE_RELATIVE, validado en banco 2026-08-22), y el host sólo corrige rumbo.
-   Es más preciso que el original, pero DIFIERE: no se manda velocidad a M1
-   durante el avance, porque set_motor_speed cancelaría el movimiento
-   posicional en el firmware. "speed" pasa a ser el tope de velocidad. */
+/* Ver spike_compat::Advance_For_Degrees_Until: mismo avance, sin condición de
+   paro. */
 void Spike_Advance_For_Degrees(int speed, int degrees, int reference) {
-    auto &b = sd::brick();
-    sd::require_steering_calibration();
-    sd::require_speed_calibration();
-    const auto ticks = static_cast<std::int32_t>(std::llround(
-        static_cast<double>(degrees) * sd::g_config.spike_degrees_to_ticks));
-
-    b.zero_motor_position();
-    b.move_motor_relative(ticks, sd::speed_to_rps(speed),
-                          sd::g_config.position_tolerance_ticks,
-                          sd::g_config.position_timeout_ms);
-
-    const auto deadline = std::chrono::steady_clock::now() +
-                          std::chrono::milliseconds(sd::g_config.position_timeout_ms);
-    for (;;) {
-        sd::pd_step(sd::to_decidegrees(b.imu().yaw_deg),
-                    sd::to_decidegrees(static_cast<double>(reference)),
-                    speed, sd::g_config.advance_kp,
-                    sd::g_config.advance_kd, false);
-        const auto status = b.motor_position_status();
-        if (status.valid && !status.active) break;
-        if (std::chrono::steady_clock::now() > deadline) break;
-        sd::sleep_control_period();
-    }
-    Spike_Coast_Motors();
+    spike_compat::Advance_For_Degrees_Until(speed, degrees, reference, {});
 }
 
 namespace {
@@ -246,11 +336,8 @@ void turn_impl(int direction, int speed, float degrees, int tire_turn,
             "spike_compat: tire_turn_to_steering sin calibrar");
     }
     sd::require_speed_calibration();  /* antes de mover la direccion */
-    const double steer = sd::clamp_unit(static_cast<double>(tire_turn) *
-                                        sd::g_config.tire_turn_to_steering *
-                                        static_cast<double>(direction));
-    b.set_steering(steer, sd::g_config.steering);
-    b.set_motor_speed(0, sd::speed_to_rps(speed));
+    spike_compat::Steer_Tire_Turn(direction, tire_turn);
+    b.set_motor_speed(b.position_motor_id(), sd::speed_to_rps(speed));
 
     const auto deadline = std::chrono::steady_clock::now() +
                           std::chrono::milliseconds(sd::g_config.position_timeout_ms);
@@ -262,7 +349,7 @@ void turn_impl(int direction, int speed, float degrees, int tire_turn,
             : !(std::fabs(static_cast<double>(degrees)) > std::fabs(yaw));
         if (done) break;
         if (std::chrono::steady_clock::now() > deadline) break;
-        sd::sleep_control_period();
+        sd::wait_control_step();
     }
     Spike_Coast_Motors();
     Spike_Hold_Motors();

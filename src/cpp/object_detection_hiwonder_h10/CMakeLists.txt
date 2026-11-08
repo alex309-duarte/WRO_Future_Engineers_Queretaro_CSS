@@ -1,12 +1,17 @@
 cmake_minimum_required(VERSION 3.16)
 project(object_detection LANGUAGES C CXX)
 
+# Reto 2 (obstacle challenge) sobre la placa Hiwonder. La capa de la placa, la
+# calibración y el driver del lidar son los del reto 1 (src/ondevice, rama
+# reto1-hiwonder): se compilan desde ahí, no se copian, para que ajustar la
+# calibración en un reto valga para el otro. Ver README.md.
+
 # ============================================================
 # Settings
 # ============================================================
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_CXX_EXTENSIONS ON)   # los fuentes del reto 1 se compilan con gnu++17
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Option: allow advanced users to use system/vcpkg instead of submodules
@@ -23,8 +28,7 @@ message(STATUS "Found OpenCV includes: ${OpenCV_INCLUDE_DIRS}")
 
 # ============================================================
 # Third-party directory (submodules live here in this repo)
-# <repo>/hailo_apps/cpp/object_detection
-# <repo>/hailo_apps/cpp/external/{yaml-cpp,curl}
+# <repo>/src/cpp/external/{yaml-cpp,curl}
 # ============================================================
 set(THIRD_PARTY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../external")
 
@@ -116,17 +120,34 @@ if(NOT TARGET CURL::libcurl)
 endif()
 
 # ============================================================
+# Capa Hiwonder y lidar del reto 1 (src/ondevice, rama reto1-hiwonder)
+# ============================================================
+set(ONDEVICE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../ondevice")
+foreach(archivo
+        spike_hiwonder.cpp parada_emergencia.cpp hiwonder_config.h Oradar_S2L.cpp
+        hiwonder/src/hiwonder_brick.cpp spike_compat.cpp
+        hiwonder/include/spike_compat/spike_compat.h)
+    if(NOT EXISTS "${ONDEVICE_DIR}/${archivo}")
+        message(FATAL_ERROR
+            "Falta ${ONDEVICE_DIR}/${archivo}: el reto 2 compila la capa Hiwonder "
+            "del reto 1 (rama reto1-hiwonder). Haz checkout de esa rama.")
+    endif()
+endforeach()
+
+# ============================================================
 # Sources
 # ============================================================
 set(SOURCES
     "${CMAKE_CURRENT_SOURCE_DIR}/object_detection.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Oradar_S2L.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/spike_reto2.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/lidar_reto2.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/rasp_gpio.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/hiwonder_runtime.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/spike_distance.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/hiwonder/src/hiwonder_brick.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/hiwonder/src/spike_compat.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/utils/utils.cpp"
+    "${ONDEVICE_DIR}/Oradar_S2L.cpp"
+    "${ONDEVICE_DIR}/spike_hiwonder.cpp"
+    "${ONDEVICE_DIR}/parada_emergencia.cpp"
+    "${ONDEVICE_DIR}/hiwonder/src/hiwonder_brick.cpp"
+    "${ONDEVICE_DIR}/spike_compat.cpp"
 )
 list(APPEND SOURCES
     "${CMAKE_CURRENT_SOURCE_DIR}/toolbox.cpp"
@@ -136,8 +157,8 @@ list(APPEND SOURCES
 
 add_executable(${PROJECT_NAME} ${SOURCES})
 
-# Copy repo-level YAML (hailo-apps/config/...) next to the built executable
-set(HAILO_APPS_ROOT "${CMAKE_CURRENT_LIST_DIR}/../..")  # object_detection -> hailo-apps
+# Copy repo-level YAML (src/config/...) next to the built executable
+set(HAILO_APPS_ROOT "${CMAKE_CURRENT_LIST_DIR}/../..")  # object_detection -> src
 set(RESOURCES_YAML_SRC "${HAILO_APPS_ROOT}/config/resources_config.yaml")
 
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
@@ -156,17 +177,53 @@ add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
 )
 
 # ============================================================
-# Oradar SDK (MS200/MS2000)
+# Lidar: RPLidar S2L por defecto (robot Hailo-8). Un robot con Oradar MS200 lo
+# pide con: cmake ... -DWRO_LIDAR=ORADAR
+# Los dos drivers (src/ondevice/Oradar_S2L.cpp) llenan el mismo buffer con la
+# orientacion del Oradar.
 # ============================================================
-set(ORADAR_SDK_DIR
-    "${CMAKE_CURRENT_SOURCE_DIR}/../object_detection_original_h10/oradar_sdk")
-if(NOT EXISTS "${ORADAR_SDK_DIR}/CMakeLists.txt")
-    message(FATAL_ERROR
-        "Oradar SDK not found at ${ORADAR_SDK_DIR}. "
-        "Keep this variant next to object_detection_original_h10.")
+set(WRO_LIDAR "RPLIDAR_S2L" CACHE STRING "Lidar del robot: ORADAR o RPLIDAR_S2L")
+set_property(CACHE WRO_LIDAR PROPERTY STRINGS ORADAR RPLIDAR_S2L)
+message(STATUS "Lidar: ${WRO_LIDAR}")
+
+if(WRO_LIDAR STREQUAL "RPLIDAR_S2L")
+    # SDK de Slamtec compilado aparte (make en su raiz), mismo commit 99478e5
+    # que el submodulo src/ondevice/rplidar_sdk.
+    set(RPLIDAR_SDK_DIR "$ENV{HOME}/rplidar_sdk" CACHE PATH "Raiz del rplidar_sdk de Slamtec")
+    set(RPLIDAR_LIB "${RPLIDAR_SDK_DIR}/output/Linux/Release/libsl_lidar_sdk.a")
+    if(NOT EXISTS "${RPLIDAR_LIB}")
+        message(FATAL_ERROR
+            "No existe ${RPLIDAR_LIB}. Clona https://github.com/Slamtec/rplidar_sdk "
+            "en ${RPLIDAR_SDK_DIR} y compila con make, o pasa -DRPLIDAR_SDK_DIR=...")
+    endif()
+    # Montaje del S2L en el robot: angulo del lidar que mira al frente y
+    # sentido. Los mismos valores con los que el reto 1 corrio en pista
+    # (src/ondevice/Makefile sin LIDAR_FLAGS).
+    set(RPLIDAR_FRONT_DEG 0 CACHE STRING "Angulo del RPLidar que apunta al frente del robot")
+    set(RPLIDAR_CLOCKWISE 1 CACHE STRING "1 si el angulo del RPLidar crece en sentido horario visto desde arriba")
+    set(LIDAR_INCLUDE_DIRS "${RPLIDAR_SDK_DIR}/sdk/include" "${RPLIDAR_SDK_DIR}/sdk/src")
+    set(LIDAR_LIBS "${RPLIDAR_LIB}")
+    set(LIDAR_DEFINITIONS
+        WRO_LIDAR_RPLIDAR_S2L
+        RPLIDAR_FRONT_DEG=${RPLIDAR_FRONT_DEG}
+        RPLIDAR_CLOCKWISE=${RPLIDAR_CLOCKWISE})
+elseif(WRO_LIDAR STREQUAL "ORADAR")
+    set(ORADAR_SDK_DIR
+        "${CMAKE_CURRENT_SOURCE_DIR}/../object_detection_original_h10/oradar_sdk")
+    if(NOT EXISTS "${ORADAR_SDK_DIR}/CMakeLists.txt")
+        message(FATAL_ERROR
+            "Oradar SDK not found at ${ORADAR_SDK_DIR}. "
+            "Keep this variant next to object_detection_original_h10.")
+    endif()
+    set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+    add_subdirectory("${ORADAR_SDK_DIR}" "${CMAKE_BINARY_DIR}/_deps/oradar_sdk")
+    set(LIDAR_INCLUDE_DIRS "${ORADAR_SDK_DIR}" "${ORADAR_SDK_DIR}/src")
+    set(LIDAR_LIBS oradar_sdk)
+    set(LIDAR_DEFINITIONS "")
+else()
+    message(FATAL_ERROR "WRO_LIDAR debe ser ORADAR o RPLIDAR_S2L, no '${WRO_LIDAR}'")
 endif()
-set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-add_subdirectory("${ORADAR_SDK_DIR}" "${CMAKE_BINARY_DIR}/_deps/oradar_sdk")
+target_compile_definitions(${PROJECT_NAME} PRIVATE ${LIDAR_DEFINITIONS})
 
 # ============================================================
 # Include dirs
@@ -175,9 +232,9 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     ${OpenCV_INCLUDE_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/utils
-    ${CMAKE_CURRENT_SOURCE_DIR}/hiwonder/include
+    "${ONDEVICE_DIR}/hiwonder/include"
     "${CMAKE_CURRENT_SOURCE_DIR}/../common"
-    "${ORADAR_SDK_DIR}"
+    ${LIDAR_INCLUDE_DIRS}
 )
 
 # ============================================================
@@ -206,7 +263,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     ${OpenCV_LIBS}
     yaml-cpp
     CURL::libcurl
-    oradar_sdk
+    ${LIDAR_LIBS}
     gpiod
 )
 
@@ -217,17 +274,20 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     endif()
 endif()
 
-# Prueba offline: no abre puertos ni toca actuadores y conserva sus
-# comprobaciones también en Release (-DNDEBUG).
+# Prueba offline del reto 2 contra la placa falsa del reto 1: no abre puertos
+# ni toca actuadores y conserva sus comprobaciones también en Release (-DNDEBUG).
 enable_testing()
-add_executable(spike_compat_test
-    "${CMAKE_CURRENT_SOURCE_DIR}/tests/spike_compat_test.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/hiwonder/src/hiwonder_brick.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/hiwonder/src/spike_compat.cpp"
+add_executable(reto2_test
+    "${CMAKE_CURRENT_SOURCE_DIR}/tests/reto2_test.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/spike_reto2.cpp"
+    "${ONDEVICE_DIR}/tests/fake_brick.cpp"
+    "${ONDEVICE_DIR}/spike_hiwonder.cpp"
+    "${ONDEVICE_DIR}/spike_compat.cpp"
 )
-target_include_directories(spike_compat_test PRIVATE
-    "${CMAKE_CURRENT_SOURCE_DIR}/hiwonder/include"
+target_include_directories(reto2_test PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    "${ONDEVICE_DIR}/hiwonder/include"
 )
-target_link_libraries(spike_compat_test PRIVATE Threads::Threads)
-target_compile_options(spike_compat_test PRIVATE -Wall -Wextra -Wpedantic)
-add_test(NAME spike_compat_test COMMAND spike_compat_test)
+target_link_libraries(reto2_test PRIVATE Threads::Threads)
+target_compile_options(reto2_test PRIVATE -Wall -Wextra)
+add_test(NAME reto2_test COMMAND reto2_test)

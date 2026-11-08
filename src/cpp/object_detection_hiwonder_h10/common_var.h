@@ -4,6 +4,7 @@
 #include <pthread.h>
 #include <signal.h>
 
+// sig_atomic_t: lo escribe el manejador de Ctrl+C y lo leen los hilos.
 inline volatile sig_atomic_t terminating_main = 0;
 
 enum direction{
@@ -29,14 +30,16 @@ enum Cube_number{
 
 enum Cube_number_chr{
     CUBE_first = 1000,
-    CUBE_second = 1200
+    CUBE_second = 1300,
+    CUBE_middle = 1450
 
 };
 
 enum Brake_type{
     Hold = 1,
     Coast = 2,
-    No_brake = 3
+    No_brake = 3,
+    Brake = 4
 
 };
 
