@@ -14,6 +14,8 @@
 
 #include "hiwonder_brick/hiwonder_brick.hpp"
 
+#include <functional>
+
 namespace spike_compat {
 
 struct Config {
@@ -46,6 +48,11 @@ struct Config {
     float max_rps_limit = 1.0f;              // tope duro de velocidad
     std::uint16_t position_tolerance_ticks = 15;
     std::uint16_t position_timeout_ms = 20000;
+    // Advance termina cuando faltan como mucho estos ticks: cancela el
+    // movimiento y deja la propulsión en COAST, como ag() del hub, en vez de
+    // esperar a que el firmware se asiente dentro de la tolerancia (el último
+    // tramo va a 0.10 r/s y puede tardar ~1 s). 0 = esperar al firmware.
+    std::uint16_t advance_finish_ticks = 0;
     // Los lazos bloqueantes (Advance, Turn) esperan cada muestra NUEVA del IMU
     // (20 Hz) antes del siguiente paso, para que el término D vea un cambio de
     // rumbo real. Este valor sólo acota la espera si el IMU no llega (x5).
@@ -67,6 +74,15 @@ struct Config {
     std::uint16_t hold_tolerance_ticks = 8;    // ~2.2° del eje de salida
     std::uint16_t hold_max_pulse = 400;        // 40 % de PWM
 
+    // --- Reversa (Advance_For_Degrees con speed < 0) ------------------------
+    // Como ag_u() del hub: el signo de speed da el sentido de marcha. Al ir en
+    // reversa la dirección actúa al revés sobre el rumbo, así que el PD
+    // invierte el signo de su salida; el hub además usaba un kp 0.15 veces el
+    // de ag() (-0.03 frente a 0.2) y sin término D. Se conservan esas
+    // proporciones; AJUSTAR en pista (estacionamiento del reto 2).
+    double reverse_kp_factor = 0.15;
+    double reverse_kd_factor = 0.0;
+
     hiwonder::SteeringCalibration steering{};
 };
 
@@ -79,6 +95,19 @@ void Spike_Attach(hiwonder::Brick *brick, const Config &config);
 void Spike_Detach() noexcept;
 bool Spike_Is_Attached() noexcept;
 const Config &Spike_Get_Config();
+// Cambia la configuración sin reasociar la placa (p. ej. otra escala de
+// tire_turn para otra misión). Reinicia el estado del PD.
+void Spike_Update_Config(const Config &config);
+
+// Dirección a tire_turn (unidades del hub, con tire_turn_to_steering) sin
+// mover la propulsión: lo que turn_special() hacía con `await` antes de andar.
+void Steer_Tire_Turn(int direction, int tire_turn);
+
+// Como Spike_Advance_For_Degrees, pero consulta `stop` en cada paso del lazo;
+// si devuelve true, cancela el movimiento y para. Devuelve true si se detuvo
+// antes de completar los grados. `stop` vacío = sin condición.
+bool Advance_For_Degrees_Until(int speed, int degrees, int reference,
+                               const std::function<bool()> &stop);
 
 }  // namespace spike_compat
 
@@ -109,6 +138,8 @@ void  Spike_Hold_Motors(void);
 void  Spike_Reset_Gyro(float degrees);
 float Spike_Get_Gyro(void);
 void  Spike_Turn_For_Degrees(int direction, int speed, float degrees, int tire_turn);
+// Como ag()/ag_u() del hub: el signo de speed da el sentido (reversa si es
+// negativo) y degrees la magnitud.
 void  Spike_Advance_For_Degrees(int speed, int degrees, int reference);
 void  Spike_Forward(int speed, int reference);
 void  Spike_Follow_Reference(int speed, float reference_1, float reference_2);

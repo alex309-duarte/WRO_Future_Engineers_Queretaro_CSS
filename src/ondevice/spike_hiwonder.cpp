@@ -3,6 +3,7 @@
 
 #include "spike.h"
 #include "hiwonder_config.h"
+#include "parada_emergencia.h"
 
 #include <algorithm>
 #include <chrono>
@@ -33,8 +34,7 @@ hiwonder::Brick &placa() {
 
 // El firmware no tiene watchdog de comandos: si el programa termina con el
 // motor andando, sigue a la última velocidad. Esto lo para al salir y ante una
-// excepción no capturada. No cubre la muerte por señal (el segundo Ctrl+C,
-// que main.cpp deja en SIG_DFL).
+// excepción no capturada. Las señales las cubre parada_emergencia.cpp.
 void parar_motores() noexcept {
     try {
         if (g_brick && g_brick->is_open()) g_brick->stop_all();
@@ -73,6 +73,7 @@ int Spike_Hiwonder_Init(void) {
         cfg.pd_output_to_steering = kPdADireccion;
         cfg.tire_turn_to_steering = 1.0 / kGiroLlantaTope;
         cfg.spike_degrees_to_ticks = kGradosSpikeATicks;
+        cfg.advance_finish_ticks = kTicksFinAvance;
         // Los lazos esperan cada muestra nueva del IMU (20 Hz); el periodo sólo
         // acota esa espera. 50 ms, como en banco, para que el servo alcance
         // cada consigna antes de la siguiente.
@@ -84,18 +85,43 @@ int Spike_Hiwonder_Init(void) {
         cfg.steering.right = kDireccionDerecha;
         cfg.steering.duration_ms = kDireccionMs;
 
-        hiwonder::Config config_placa;
-        config_placa.device = HIWONDER_DISPOSITIVO;
-        g_brick = std::make_unique<hiwonder::Brick>(config_placa);
+        // Sin Config::device, la Brick descubre el puerto al abrir:
+        // HIWONDER_DEVICE o el único CH343 de Hiwonder en /dev/serial/by-id.
+        g_brick = std::make_unique<hiwonder::Brick>();
         g_brick->open();
         std::atexit(parar_motores);
         std::set_terminate(parar_y_abortar);
+        // Antes de mover nada: Ctrl+C (y kill, Ctrl+Z, caídas) para los
+        // motores en COAST y termina el proceso, aunque esté en un giro o un
+        // avance bloqueante.
+        Parada_Emergencia_Instalar(g_brick->device().c_str(), kServoDireccion,
+                                   kSoltarDireccionAlParar);
 
         const auto caps = g_brick->motor_position_capabilities();
         if (!caps.valid || !(caps.motor_mask & (1U << g_brick->position_motor_id()))) {
             throw std::runtime_error(
                 "el firmware no controla la posición de M4 (¿está cargado pos-v8?)");
         }
+
+        // Antes de mandar NINGUNA posición al servo: si no está ya dentro del
+        // recorrido de la dirección, centrarlo lo haría girar más allá del tope
+        // y rompería el varillaje (pasó con el centro en 500 y el servo armado en ~0).
+        const auto actual = g_brick->read_bus_servo_position(
+            kServoDireccion, std::chrono::milliseconds(800));
+        const int minimo = std::min(kDireccionDerecha, kDireccionIzquierda) - kDireccionMargenArranque;
+        const int maximo = std::max(kDireccionDerecha, kDireccionIzquierda) + kDireccionMargenArranque;
+        if (!actual.valid || actual.id != kServoDireccion) {
+            throw std::runtime_error("el servo de dirección no respondió; no se mueve nada");
+        }
+        if (actual.position < minimo || actual.position > maximo) {
+            throw std::runtime_error(
+                "el servo de dirección está en " + std::to_string(actual.position) +
+                ", fuera del recorrido permitido " + std::to_string(minimo) + ".." +
+                std::to_string(maximo) + ". Centrarlo lo llevaría contra el tope. "
+                "Revisa kDireccionCentro en hiwonder_config.h o el montaje del horn");
+        }
+        std::printf("Servo de dirección en %d (permitido %d..%d)\n",
+                    actual.position, minimo, maximo);
 
         // Centrar despacio ANTES de calibrar: el servo en movimiento sacude la IMU.
         g_brick->set_bus_servo_position(kServoDireccion, kDireccionCentro, 1000);
@@ -105,8 +131,8 @@ int Spike_Hiwonder_Init(void) {
         g_brick->calibrate_gyro(std::chrono::seconds(kSegundosCalibracionGiro));
 
         spike_compat::Spike_Attach(g_brick.get(), cfg);
-        std::printf("Placa Hiwonder lista; tope de velocidad %.2f r/s\n",
-                    cfg.max_rps_limit);
+        std::printf("Placa Hiwonder lista en %s; tope de velocidad %.2f r/s\n",
+                    g_brick->device().c_str(), cfg.max_rps_limit);
         return 0;
     } catch (const std::exception &error) {
         std::fprintf(stderr, "Placa Hiwonder: %s\n", error.what());

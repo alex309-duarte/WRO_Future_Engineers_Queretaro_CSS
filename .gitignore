@@ -21,3 +21,4 @@ other/additionalMedia/Videos/fpv.mp4
 
 # Binario de las pruebas del adaptador Hiwonder
 /src/ondevice/tests/spike_hiwonder_test
+.lidar_*

@@ -13,8 +13,14 @@
 
 namespace fake {
 
+// Puerto que "descubre" la placa falsa cuando Config::device viene vacío.
+constexpr const char *kDispositivoDescubierto =
+    "/dev/serial/by-id/usb-1a86_USB_Single_Serial_FAKE-if00";
+
 struct Estado {
     std::vector<std::string> eventos;  // "open", "servo 1 500 1000", "calibrate 5000"...
+    std::string dispositivo_config = "sin construir";  // Config::device recibido
+    std::string dispositivo_parada;    // puerto que abrió la parada de emergencia
     std::uint8_t motor_mask = 1U << 3; // capacidades: posición en M4
     double yaw_deg = 0.0;
     double ultima_direccion = 0.0;     // normalizada -1..1
@@ -24,6 +30,8 @@ struct Estado {
     std::int32_t ultimo_avance_ticks = 0;
     int paradas = 0;
     int holds = 0;
+    std::int16_t posicion_servo = 750;  // lo que lee read_bus_servo_position (= kDireccionCentro)
+    bool servo_responde = true;
 };
 
 Estado &estado();

@@ -3,10 +3,13 @@
 #include <algorithm>
 #include <cerrno>
 #include <cmath>
+#include <cstdlib>
 #include <cstring>
 #include <fcntl.h>
+#include <filesystem>
 #include <stdexcept>
 #include <sys/select.h>
+#include <system_error>
 #include <termios.h>
 #include <type_traits>
 #include <unistd.h>
@@ -65,10 +68,11 @@ void Brick::open() {
         return;
     }
 
-    const int fd = ::open(config_.device.c_str(),
-                          O_RDWR | O_NOCTTY | O_NONBLOCK);
+    const std::string device =
+        config_.device.empty() ? discover_device() : config_.device;
+    const int fd = ::open(device.c_str(), O_RDWR | O_NOCTTY | O_NONBLOCK);
     if (fd < 0) {
-        throw system_error("no se pudo abrir " + config_.device);
+        throw system_error("no se pudo abrir " + device);
     }
 
     termios options{};
@@ -91,12 +95,48 @@ void Brick::open() {
     {
         std::lock_guard<std::mutex> lock(state_mutex_);
         fd_ = fd;
+        device_ = device;
         running_ = true;
         imu_ = {};
         last_imu_time_ = {};
         rx_buffer_.clear();
     }
     reader_ = std::thread(&Brick::reader_loop, this);
+}
+
+std::string Brick::discover_device(const std::string &by_id_dir) {
+    if (const char *forced = std::getenv("HIWONDER_DEVICE");
+        forced != nullptr && *forced != '\0') {
+        return forced;
+    }
+    // El CH343 de la placa se anuncia como "USB Single Serial" de QinHeng
+    // (1a86); sólo cambia el número de serie. El lidar (CP2102N) y los CH340
+    // ("USB Serial") no coinciden con el prefijo.
+    static const std::string kPrefix = "usb-1a86_USB_Single_Serial_";
+    std::vector<std::string> found;
+    std::error_code error;
+    for (std::filesystem::directory_iterator it(by_id_dir, error), end;
+         !error && it != end; it.increment(error)) {
+        const std::string name = it->path().filename().string();
+        if (name.rfind(kPrefix, 0) == 0) {
+            found.push_back(it->path().string());
+        }
+    }
+    std::sort(found.begin(), found.end());
+    if (found.empty()) {
+        throw std::runtime_error(
+            "no se encontró la placa Hiwonder en " + by_id_dir +
+            " (¿está conectado el USB-C de UART2?); para forzar un puerto, "
+            "HIWONDER_DEVICE=/dev/...");
+    }
+    if (found.size() > 1) {
+        std::string list;
+        for (const auto &path : found) list += "\n  " + path;
+        throw std::runtime_error(
+            "hay varias placas Hiwonder conectadas; elige una con "
+            "HIWONDER_DEVICE:" + list);
+    }
+    return found.front();
 }
 
 void Brick::close() noexcept {

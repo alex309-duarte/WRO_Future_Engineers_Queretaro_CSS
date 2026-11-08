@@ -1,121 +1,126 @@
-# Object detection H10 + Hiwonder
+# Reto 2 (obstacle challenge) con la placa Hiwonder
 
-Variante nueva del programa
-`object_detection_original_h10`. Conserva Hailo10H, cámara, Oradar, detección
-YOLO y la lógica de misión, pero sustituye el REPL del LEGO SPIKE por la placa
-Hiwonder mediante `hiwonder::Brick` y `spike_compat`.
-
-El original no se modifica. Compila para dos robots:
+La misión del reto 2 de `../object_detection_original_h10` (la del nacional,
+con estacionamiento) corriendo sobre la placa Hiwonder en lugar del hub LEGO
+SPIKE, con la **misma capa que el reto 1 ya probó en pista** (`src/ondevice`,
+rama `reto1-hiwonder`). Cámara RPi, Hailo-8, RPLidar S2L, botón GPIO4.
 
 | Robot | Acelerador | Lidar | Build | Arranque |
 |---|---|---|---|---|
-| H10 | Hailo-10H | Oradar MS200 | `build/h10_hiwonder` | `run_hiwonder.sh` |
-| Hailo-8 | Hailo-8 HAT (26 TOPS) | RPLidar S2L | `build/h8_s2l` | `run_hiwonder_h8.sh` |
+| Hailo-8 (este) | Hailo-8 HAT, HailoRT 4.23 | RPLidar S2L | `build/h8_s2l` | `./run_hiwonder_h8.sh` |
+| Oradar MS200 | el que sea | Oradar MS200 | `cmake -DWRO_LIDAR=ORADAR` | `WRO_HIWONDER_BUILD_DIR=... ./run_hiwonder.sh` |
 
-## Seguridad de arranque
+## Qué hay en esta carpeta
 
-Sin `HIWONDER_ARM=1`, el programa sólo inicia cámara, Hailo y LiDAR. No abre el
-controlador Hiwonder ni crea el hilo de movimiento. En modo armado valida todos
-los parámetros antes de abrir el puerto y, sin mover actuadores, comprueba:
+| Archivo | Qué es |
+|---|---|
+| `object_detection.cpp` | La misión original con el arranque/apagado de la placa Hiwonder (cambios marcados `Hiwonder:`) |
+| `spike.h` | La API SPIKE de la misión, sobre `spike_compat` del reto 1 |
+| `spike_reto2.cpp` | `Spike_Reto2_Init`, giros con `await`, avance en milímetros |
+| `reto2_config.h` | Lo que el reto 1 no necesita: **diámetro de rueda**, escala de `tire_turn` |
+| `lidar_reto2.cpp` | `Oradar_S2L_Advance_Until_Distance` con tipo de freno |
+| `rasp_gpio.cpp` | Botón GPIO4 y LED GPIO3 (gpiochip0 de la Pi 5), sin relé |
+| `tests/reto2_test.cpp` | 31 comprobaciones offline contra la placa falsa del reto 1 |
 
-- `MOTOR_EXT` versión 2 o posterior (firmware `pos-v8` recomendado: HOLD);
-- control de posición en M4 y 1320 ticks por vuelta;
-- telemetría IMU;
-- calibración del bias del giroscopio (5 s, robot quieto).
+**No hay copia de la librería Hiwonder.** CMake compila directamente
+`../../ondevice/hiwonder/`, `spike_hiwonder.cpp`, `parada_emergencia.cpp` y
+`Oradar_S2L.cpp` del reto 1, y toda la calibración del robot (servo, PD de
+rumbo, velocidad, parada de emergencia) se lee de
+`../../ondevice/hiwonder_config.h`: lo que se ajuste ahí vale para los dos
+retos. Ver `ORIGEN.md`.
 
-Después arranca el pipeline Hailo y sólo entonces crea la misión. El movimiento
-sigue esperando el botón físico GPIO4. El relé GPIO2 del SPIKE no se solicita
-ni se pulsa.
-
-## Compilar
-
-Por defecto compila con el RPLidar S2L (robot Hailo-8):
+## Compilar y probar sin mover nada
 
 ```bash
 cmake -S . -B build/h8_s2l -DCMAKE_BUILD_TYPE=Release
 make -C build/h8_s2l -j"$(nproc)"
+./build/h8_s2l/reto2_test            # 31 comprobaciones, 0 fallos
+(cd ../../ondevice && make test)     # las 51 del reto 1 siguen pasando
+./run_hiwonder_h8.sh --solo-percepcion            # cámara + Hailo + lidar, la placa NO se abre
+./run_hiwonder_h8.sh --solo-percepcion --no-display   # lo mismo por SSH, sin ventanas
 ```
 
-Robot H10 con Oradar MS200:
+`--solo-percepcion` abre las ventanas de la cámara (cajas con color y
+confianza) y del lidar (paredes frente/derecha/izquierda/atrás detectadas). Es
+la forma de comprobar el modelo y la orientación del lidar antes de armar.
+
+## Correr el reto
 
 ```bash
-cmake -S . -B build/h10_hiwonder -DCMAKE_BUILD_TYPE=Release -DWRO_LIDAR=ORADAR
-make -C build/h10_hiwonder -j"$(nproc)"
+WRO_MAX_RPS=1.5 ./run_hiwonder_h8.sh   # primeras pruebas, despacio
+./run_hiwonder_h8.sh                   # velocidad de competencia (5.7 r/s)
+./run_hiwonder_h8.sh --no-display      # por SSH / como servicio
 ```
 
-Después de configurar una vez, basta `make -C build/<nombre>`. El SDK Oradar
-se reutiliza de sólo lectura desde `object_detection_original_h10/oradar_sdk`.
-El de Slamtec se toma ya compilado de `~/rplidar_sdk` (otra ruta:
-`-DRPLIDAR_SDK_DIR=...`).
+Al arrancar: abre la placa, instala la parada de emergencia, comprueba que el
+servo de dirección está dentro de su recorrido, lo **centra despacio** y
+**calibra el giroscopio 5 s con el robot quieto**; luego levanta cámara,
+Hailo y lidar, y la misión queda esperando el **botón** (el LED parpadea). El
+sentido de la vuelta lo decide el lidar al salir del cajón (`distancia_derecha
+> 600` = horario), como en el original.
 
-El mismo HailoRT 4.23 sirve para los dos binarios, pero cada acelerador
-necesita su HEF: `run_hiwonder_h8.sh` usa
-`src/HailoModels/yolov8n_wro_hailo8.hef` (clases greenbox, redbox, xparking,
-en el orden de `common_var.h`).
+**Ctrl+C detiene el robot en cualquier momento** (también `kill`, cerrar la
+terminal o una caída): motores en COAST, servo sin par y fin del proceso. Es la
+`parada_emergencia` del reto 1; no cubre `kill -9` ni un corte de energía de la
+Pi (ahí: switch de motores o cortar los 12 V).
 
-## Orientación del RPLidar S2L
+## Antes de la primera corrida: calibrar
 
-El driver del S2L llena el buffer con la orientación del Oradar (derecha 0,
-atrás 90, izquierda 180, frente 270), así que la misión no cambia. Supone el
-S2L con su marca frontal hacia el frente del robot y boca arriba. Si se monta
-de otra forma, se ajusta al configurar:
+Con las ruedas levantadas, en este orden. Las herramientas del reto 1 valen
+(`~/Jetson_cerebro/robotica/hiwonder_brick/hiwonder-analisis-estatico/tools/`).
 
-- `-DRPLIDAR_FRONT_DEG=N`: ángulo del S2L que mira al frente del robot.
-- `-DRPLIDAR_CLOCKWISE=0`: si está boca abajo.
+1. **Lo del reto 1** (signo del yaw, lado de la dirección): ya probado en
+   pista; si se cambia `hiwonder_config.h`, cambia para los dos retos.
+2. **Diámetro de rueda** (`kDiametroRuedaMm` en `reto2_config.h`, hoy 65 mm sin
+   medir). Es lo único nuevo que hay que medir: con él
+   `Spike_Advance_For_distance(…, mm, …)` recorre milímetros reales y los
+   "grados del hub" del estacionamiento (`Spike_Advance_For_Degrees(-50, 2250, …)`)
+   se convierten a la misma distancia que recorría el LEGO. Comprobación:
+   `Spike_Advance_For_distance(50, 1000, 0)` debe recorrer 1000 mm; si recorre
+   L mm, multiplicar el diámetro por L/1000.
+3. **Giros con `tire_turn` parcial**. La misión gira con `tire_turn` 40 (0.96
+   del tope), 45 (tope), 30 (0.72) y 15 (0.36): `Spike_Reto2_Init` escala el
+   factor del reto 1 por los 4.29° por unidad de `turn()` del hub
+   (`kGradosMotorPorTireTurn`). Los radios de giro cambian con el varillaje
+   Ackermann, así que los ángulos de esquiva (`abs(angle_to_wall) ± 5`) y las
+   distancias restadas a la hipotenusa (`- 400`, `- 250`…) se afinan en pista
+   igual que se afinaron con el LEGO.
+4. **Reversa** (estacionamiento). `Spike_Advance_For_Degrees` y los giros con
+   `speed < 0` van hacia atrás; al reversear la corrección de rumbo invierte el
+   signo y usa 0.15 del kp (como `ag_u()` del hub, sin término D):
+   `reverse_kp_factor` / `reverse_kd_factor` en `spike_compat::Config`. Probar
+   primero `Spike_Advance_For_Degrees(-50, 400, 0)` en una recta.
 
-**Verificar antes de armar**, con el programa parado y un obstáculo a ~30 cm
-delante del robot:
+## Diferencias respecto al original (SPIKE)
 
-```bash
-~/rplidar_sdk/output/Linux/Release/ultra_simple --channel --serial /dev/ttyUSB0 1000000
-```
+- `Spike_Forward` y `Spike_Follow_Reference` ejecutan un paso de PD por
+  llamada; los bucles del lidar los llaman cada 1 ms y el IMU llega a 20 Hz
+  (el término D sólo ve cambio en 1 de cada ~50 llamadas). Si la dirección
+  vibra en las rectas, es por esto.
+- Avances por el lazo de posición del STM32 (más exactos que el `set_duty_cycle`
+  del hub) y con timeout; `speed` es el tope de velocidad.
+- `Spike_Hold_Motors` usa el HOLD de posición del firmware `pos-v8`;
+  `Spike_Break_Motors` para la propulsión (el servo ya sostiene).
+- `Advance_For_distance_Especial` (avance vigilado por el lidar): una lectura 0
+  en el rayo vigilado ya no aborta el avance (el original la tomaba como
+  "menos de 370 mm").
+- Tres esperas que podían no salir nunca ahora tienen salida: la del cubo en
+  `estacionamiento_*` (declaraba otra variable adentro: 3 s de espera y sigue),
+  la de "pared válida" al calcular el ángulo de esquiva, y el cierre del
+  barrido en la visualización (375° → 360°).
+- Sin relé GPIO2 ni REPL: Ctrl+C antes de abrir la placa corta el pipeline
+  limpiamente; después es parada de emergencia.
 
-El ángulo (`theta`) que lee ~300 mm es `RPLIDAR_FRONT_DEG`. Mueve el obstáculo
-a la derecha del robot: si `theta` aumenta, el sentido es horario
-(`RPLIDAR_CLOCKWISE=1`).
+## Verificación realizada (2026-10-18, en el robot)
 
-## Probar percepción sin motores
-
-```bash
-./run_hiwonder.sh
-```
-
-Equivale al comando original con el mismo modelo y `--input rpi`, pero deja
-`HIWONDER_ARM=0`.
-
-## Armar, sólo después de calibrar
-
-```bash
-cp hiwonder.env.example hiwonder.env
-# Editar y medir todos los campos vacíos.
-./run_hiwonder.sh --arm
-```
-
-`--arm` habilita la conexión, no inicia el movimiento: todavía hay que pulsar
-el botón físico. Si falta un valor, el firmware no tiene posición en M4, no llega IMU o
-el puerto es ambiguo, el proceso termina antes de crear la misión.
-
-## Diferencias inevitables respecto al SPIKE
-
-- `Spike_Forward` y `Spike_Follow_Reference` ejecutan un paso de PD por llamada.
-- Avance y giros conservan su semántica bloqueante y añaden timeout.
-- `Spike_Hold_Motors` usa el HOLD de posición del firmware `pos-v8`; con
-  firmware anterior, para el motor.
-- `Spike_Advance_For_distance` usa diámetro real de rueda y un factor de
-  distancia configurable, no la constante de la rueda LEGO.
-- Los factores y ganancias del LEGO no se reutilizan automáticamente.
-
-La placa debe tener `pos-v8` (control de posición en M4, límite 5.7 r/s, HOLD).
-
-La librería de `hiwonder/` es la de `~/Jetson_cerebro/robotica/hiwonder_brick`
-del 2026-10-04, más dos cosas propias de esta variante en `spike_compat`:
-ganancias del PD configurables y `traction_direction`.
-
-## Verificación realizada
-
-En la Raspberry Pi 5 se configuró y compiló la variante completa con GCC 14.2.
-Una ejecución desarmada de 10 segundos confirmó cámara RPi, Hailo10H y Oradar
-simultáneos, sin abrir Hiwonder, con aproximadamente 29.95 FPS y salida limpia
-al recibir `SIGINT`. Una ejecución con `HIWONDER_ARM=1`, sin placa ni
-calibración, terminó antes de cargar el modelo y antes de crear el hilo de
-misión, como exige la guarda de seguridad.
+- Compila en la Pi 5 (GCC 14.2, HailoRT 4.23, OpenCV 4.10) sólo con los
+  warnings que ya tenía el original.
+- `reto2_test`: 31 comprobaciones, 0 fallos. `make test` del reto 1: 51, 0 fallos.
+  El reto 1 (`my_lidar_app`) sigue compilando con la capa compartida.
+- `--solo-percepcion --no-display` 20 s: RPLidar en `/dev/ttyUSB0` (frente
+  1848 mm, derecha 629, izquierda 258), cámara 800x600, Hailo-8 a 29.97 FPS,
+  salida limpia con Ctrl+C.
+- Armado 30 s: servo leído en 854 (dentro de 625..875), centrado, giroscopio
+  calibrado, `tire_turn 40 = 0.96`, lidar listo, pipeline arriba, esperando el
+  botón; Ctrl+C → "Parada de emergencia: motores en COAST", proceso terminado y
+  puerto de la placa libre. **Falta la prueba en pista con el botón.**

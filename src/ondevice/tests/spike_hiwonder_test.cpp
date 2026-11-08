@@ -54,6 +54,49 @@ void test_arranque_rechaza_firmware_sin_posicion() {
           "y no llega a calibrar ni a mover nada");
 }
 
+bool movio_el_servo() {
+    for (const auto &e : fake::estado().eventos) {
+        if (e.rfind("servo ", 0) == 0 || e == "centrar") return true;
+    }
+    return false;
+}
+
+void test_arranque_rechaza_servo_fuera_de_recorrido() {
+    // Lo que rompió la dirección: el servo en ~17 y el centro lejos (500).
+    for (const int pos : {17, -49, 0, 1000,
+                          kDireccionDerecha - kDireccionMargenArranque - 1,
+                          kDireccionIzquierda + kDireccionMargenArranque + 1}) {
+        fake::reiniciar();
+        unsetenv("WRO_MAX_RPS");
+        fake::estado().posicion_servo = static_cast<std::int16_t>(pos);
+        const std::string que = "servo en " + std::to_string(pos);
+        check(Spike_Hiwonder_Init() != 0, (que + ": el arranque falla").c_str());
+        check(!movio_el_servo(), (que + ": y no manda ninguna posición al servo").c_str());
+    }
+    fake::reiniciar();
+    fake::estado().servo_responde = false;
+    check(Spike_Hiwonder_Init() != 0, "servo sin respuesta: el arranque falla");
+    check(!movio_el_servo(), "servo sin respuesta: no se mueve");
+}
+
+void test_arranque_acepta_servo_en_el_borde() {
+    for (const int pos : {kDireccionDerecha - kDireccionMargenArranque,
+                          kDireccionIzquierda + kDireccionMargenArranque,
+                          static_cast<int>(kDireccionCentro)}) {
+        fake::reiniciar();
+        unsetenv("WRO_MAX_RPS");
+        fake::estado().posicion_servo = static_cast<std::int16_t>(pos);
+        check(Spike_Hiwonder_Init() == 0,
+              ("servo en " + std::to_string(pos) + ": arranca").c_str());
+    }
+}
+
+void test_recorrido_de_25_grados() {
+    check(kDireccionIzquierda - kDireccionCentro <= 25.0 / 0.24 &&
+          kDireccionCentro - kDireccionDerecha <= 25.0 / 0.24,
+          "la dirección no pasa de ±25° desde el centro");
+}
+
 void test_arranque_rechaza_tope_invalido() {
     check(arrancar("9") != 0, "WRO_MAX_RPS=9 supera el firmware: falla");
     check(arrancar("abc") != 0, "WRO_MAX_RPS=abc: falla");
@@ -65,9 +108,17 @@ void test_arranque_rechaza_tope_invalido() {
 void test_arranque_ok() {
     check(arrancar(nullptr) == 0, "arranque correcto con la placa falsa");
     const auto &ev = fake::estado().eventos;
-    const int centrar = posicion(ev, "servo 1 500 1000");
+    const int centrar = posicion(ev, "servo 1 " + std::to_string(kDireccionCentro) + " 1000");
     const int calibrar = posicion(ev, "calibrate " + std::to_string(kSegundosCalibracionGiro * 1000));
+    const int parada = posicion(ev, std::string("parada_emergencia 1") +
+                                        (kSoltarDireccionAlParar ? " soltar" : " sostener"));
     check(posicion(ev, "open") == 0, "abre la placa primero");
+    check(fake::estado().dispositivo_config.empty(),
+          "no fija el puerto: la Brick lo descubre, así sirve cualquier placa");
+    check(fake::estado().dispositivo_parada == fake::kDispositivoDescubierto,
+          "la parada de emergencia abre el mismo puerto que la placa");
+    check(parada == 1, "instala la parada de emergencia justo después de abrir");
+    check(centrar > parada, "y antes de mover el servo");
     check(centrar > 0, "centra la dirección despacio (1 s)");
     check(calibrar > centrar, "calibra el giroscopio DESPUÉS de centrar");
     check(spike_compat::Spike_Is_Attached(), "deja la capa asociada");
@@ -127,6 +178,9 @@ int main() {
     std::printf("Pruebas del adaptador Hiwonder (placa falsa)\n");
     test_arranque_rechaza_firmware_sin_posicion();
     test_arranque_rechaza_tope_invalido();
+    test_arranque_rechaza_servo_fuera_de_recorrido();
+    test_arranque_acepta_servo_en_el_borde();
+    test_recorrido_de_25_grados();
     test_arranque_ok();
     test_reset_gyro_en_decigrados();
     test_giro_a_tope(1, kDireccionDerecha, "derecha");

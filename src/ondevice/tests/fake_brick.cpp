@@ -1,4 +1,5 @@
 #include "fake_brick.h"
+#include "../parada_emergencia.h"
 
 #include <string>
 
@@ -16,15 +17,26 @@ void reiniciar() { g_estado = Estado{}; }
 
 }  // namespace fake
 
+// La real abre el puerto e instala manejadores de señal: aquí sólo se registra.
+void Parada_Emergencia_Instalar(const char *dispositivo, std::uint8_t servo, bool soltar) {
+    fake::estado().dispositivo_parada = dispositivo != nullptr ? dispositivo : "";
+    fake::estado().eventos.push_back("parada_emergencia " + std::to_string(servo) +
+                                     (soltar ? " soltar" : " sostener"));
+}
+
 namespace hiwonder {
 
 using fake::estado;
 
-Brick::Brick(Config config) : config_(config) {}
+Brick::Brick(Config config) : config_(config) {
+    estado().dispositivo_config = config_.device;
+}
 Brick::~Brick() { close(); }
 
 void Brick::open() {
     fd_ = 1;
+    // Como la real: sin Config::device, el puerto se descubre.
+    device_ = config_.device.empty() ? fake::kDispositivoDescubierto : config_.device;
     estado().eventos.push_back("open");
 }
 void Brick::close() noexcept { fd_ = -1; }
@@ -64,6 +76,15 @@ MotorPositionStatus Brick::zero_motor_position(std::chrono::milliseconds) {
     s.valid = true;
     return s;
 }
+// Lo usa spike_compat::Advance_For_Degrees_Until (reto 2) al cumplirse la
+// condición de paro; el reto 1 no lo llama.
+MotorPositionStatus Brick::cancel_motor_position(std::chrono::milliseconds) {
+    estado().eventos.push_back("cancel");
+    MotorPositionStatus s;
+    s.valid = true;
+    s.state = MotorPositionState::cancelled;
+    return s;
+}
 MotorPositionStatus Brick::hold_motor_position(float, std::uint16_t, std::uint16_t,
                                                std::chrono::milliseconds) {
     ++estado().holds;
@@ -77,6 +98,14 @@ void Brick::set_bus_servo_position(std::uint8_t servo_id, std::uint16_t position
                                    std::uint16_t duration_ms) {
     estado().eventos.push_back("servo " + std::to_string(servo_id) + " " +
                                std::to_string(position) + " " + std::to_string(duration_ms));
+}
+BusServoFeedback Brick::read_bus_servo_position(std::uint8_t servo_id,
+                                                std::chrono::milliseconds) const {
+    BusServoFeedback f;
+    f.id = servo_id;
+    f.position = estado().posicion_servo;
+    f.valid = estado().servo_responde;
+    return f;
 }
 void Brick::set_steering(double normalized, const SteeringCalibration &calibration) {
     estado().ultima_direccion = normalized;

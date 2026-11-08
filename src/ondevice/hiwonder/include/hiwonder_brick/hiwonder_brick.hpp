@@ -31,8 +31,10 @@ struct ImuSample {
 };
 
 struct Config {
-    std::string device =
-        "/dev/serial/by-id/usb-1a86_USB_Single_Serial_5C67041838-if00";
+    // Puerto de la placa. Vacío = descubrirlo al abrir con
+    // Brick::discover_device(), así sirve cualquier placa sin tocar el código
+    // (el número de serie del CH343 cambia de una placa a otra).
+    std::string device;
     // Tope del host. Coincide con el rps_limit del firmware (pos-v6): el motor
     // del proyecto da 5.76 r/s en vacío a 12 V con PWM al 100 %.
     float max_speed_rps = 5.7F;
@@ -112,6 +114,16 @@ public:
     void open();
     void close() noexcept;
     bool is_open() const noexcept;
+
+    // Puerto que abrió open(): Config::device o el descubierto. Vacío antes de
+    // abrir.
+    const std::string &device() const noexcept { return device_; }
+
+    // Busca la placa: HIWONDER_DEVICE si está definida y no vacía; si no, la
+    // única entrada usb-1a86_USB_Single_Serial_* (el CH343 de la placa) en
+    // by_id_dir. Lanza std::runtime_error si no hay ninguna o hay varias.
+    static std::string discover_device(
+        const std::string &by_id_dir = "/dev/serial/by-id");
 
     void set_motor_speed(std::uint8_t motor_id, float speed_rps);
     void stop_motor(std::uint8_t motor_id);
@@ -197,6 +209,7 @@ private:
                        const std::vector<std::uint8_t> &payload);
 
     Config config_;
+    std::string device_;
     int fd_ = -1;
     bool running_ = false;
     std::thread reader_;

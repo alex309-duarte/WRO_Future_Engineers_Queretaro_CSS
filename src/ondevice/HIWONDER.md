@@ -4,6 +4,11 @@ En la rama `reto1-hiwonder`, el reto abierto de `main.cpp` corre sobre la placa
 Hiwonder (STM32, firmware `pos-v8`) en lugar del hub SPIKE, sin relé. La lógica
 del reto, el lidar Oradar y el botón no cambian.
 
+El reto 2 (`src/cpp/object_detection_hiwonder_h10`) compila esta misma capa
+desde aquí (`hiwonder/`, `spike_hiwonder.cpp`, `parada_emergencia.cpp`,
+`Oradar_S2L.cpp`) y lee la misma calibración (`hiwonder_config.h`): lo que se
+ajuste aquí vale para los dos retos.
+
 ## Qué cambia
 
 | Archivo | Cambio |
@@ -11,6 +16,7 @@ del reto, el lidar Oradar y el botón no cambian.
 | `hiwonder_config.h` | **Toda la calibración del robot** |
 | `spike.h` | La API SPIKE del equipo, ahora sobre `spike_compat` |
 | `spike_hiwonder.cpp` | Arranque de la placa y traducciones del hub |
+| `parada_emergencia.cpp` | Ctrl+C: motores en COAST, servo sin par y fin del proceso |
 | `hiwonder/` | Copia de la librería `hiwonder_brick` (estado del 2026-10-04) |
 | `main.cpp` | Solo el arranque: `Spike_Hiwonder_Init()` en lugar del relé y el REPL |
 | `spike.cpp` | Sigue en el árbol, pero ya no se compila |
@@ -43,9 +49,9 @@ usan el mismo puerto, así que `my_lidar_app` no debe estar corriendo.
    derecha (sentido horario visto desde arriba): el yaw debe **bajar**, como en
    el hub. El reto depende de eso: tras girar a la derecha sigue con
    referencia -90.
-2. **Lado de la dirección.** Con `python3 servo_hx12h.py --goto 300 --si-quiero-mover`
+2. **Lado de la dirección.** Con `python3 servo_hx12h.py --goto 646 --si-quiero-mover`
    (la derecha de `hiwonder_config.h`), las ruedas deben apuntar a la
-   **derecha**. Vuelve al centro con `--goto 500`.
+   **derecha**. Vuelve al centro con `--goto 750` (180°).
 3. **Distancia.** `Spike_Advance_For_Degrees(100, 1350, 0)` debe recorrer lo
    mismo que con el hub. Si no, ajusta `kGradosSpikeATicks`.
 
@@ -75,13 +81,27 @@ causa es esta.
 
 ## Parada de emergencia
 
-El firmware **no tiene watchdog de comandos**: si el programa muere con el motor
-andando, el motor sigue a la última velocidad. El adaptador lo para al salir y
-ante una excepción, pero no si el proceso muere por una señal.
+El firmware **no tiene watchdog de comandos**: si el programa muere con el
+motor andando, el motor sigue a la última velocidad. Por eso
+`parada_emergencia.cpp` se instala en `Spike_Hiwonder_Init()`, justo después de
+abrir la placa y antes de mover nada.
 
-Ctrl+C **no detiene el robot**: corta los bucles del lidar, pero los giros y
-avances de `main.cpp` siguen a ciegas. Un segundo Ctrl+C mata el proceso con el
-motor como esté. Para pararlo:
+**Ctrl+C detiene el robot** en cualquier momento, también a mitad de un giro o
+de un avance:
+
+- los cuatro motores quedan en **COAST** (el firmware pone a 0 las dos
+  entradas del puente H; también cancela un HOLD de posición);
+- el servo de dirección queda **sin par**, para que no empuje el varillaje
+  contra un tope (`kSoltarDireccionAlParar` en `hiwonder_config.h`);
+- el programa termina con código 130 sin volver a `main.cpp`, así ningún bucle
+  manda otra velocidad después de la parada.
+
+Lo mismo ocurre con `kill`, al cerrar la terminal o la sesión SSH, con Ctrl+Z
+(que antes suspendía el proceso con el motor andando) y si el programa se cae
+(segfault, abort). Antes de `Spike_Hiwonder_Init()`, Ctrl+C sigue cortando la
+espera del lidar como siempre.
+
+No cubre `kill -9` ni un corte de energía de la Raspberry. Para esos casos:
 
 ```bash
 python3 ~/Jetson_cerebro/robotica/hiwonder_brick/hiwonder-analisis-estatico/tools/motor_move.py --stop
