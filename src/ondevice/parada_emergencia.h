@@ -1,29 +1,34 @@
 #ifndef PARADA_EMERGENCIA_H
 #define PARADA_EMERGENCIA_H
 
-// Parada de emergencia por señal (Ctrl+C, kill, cierre de la terminal, Ctrl+Z
-// y caídas). El firmware no tiene watchdog de comandos: si el programa muere
-// con el motor andando, sigue a la última velocidad. Al recibir la señal, el
-// manejador manda a la placa la parada de los cuatro motores (en COAST: el
-// firmware pone a 0 las dos entradas del puente H) y, si se pide, quita el par
-// al servo de dirección. Luego termina el proceso sin volver al programa, así
-// ningún bucle a medias puede mandar otra velocidad después de la parada.
+// Emergency stop on signals (Ctrl+C, kill, terminal closed, Ctrl+Z and
+// crashes), used by the Open and Obstacle Challenge programs. The Hiwonder
+// board firmware has no command watchdog: if the program dies while the motor
+// is running, the motor keeps the last speed. On a signal the handler sends
+// the board a stop for all four motors (COAST: the firmware sets both H-bridge
+// inputs to 0) and, if requested, turns off the torque of the steering servo.
+// It then ends the process without returning to the program, so no
+// half-finished loop can send another speed after the stop.
 
 #include <cstddef>
 #include <cstdint>
 
-// Abre un segundo descriptor del puerto de la placa (la Brick ya lo configuró
-// a 1 Mbaud) y prepara las tramas. Instalar después de Brick::open().
-// Lanza std::runtime_error si no puede abrir el puerto.
+// Opens a second file descriptor on the board's serial port (hiwonder::Brick
+// has already configured it at 1 Mbaud) and pre-builds the stop frames.
+// dispositivo: serial device path; servo_direccion: bus ID of the steering
+// servo; soltar_direccion: also turn off the steering servo torque.
+// Call after Brick::open(). Throws std::runtime_error if the port cannot be
+// opened.
 void Parada_Emergencia_Instalar(const char *dispositivo, std::uint8_t servo_direccion,
                                 bool soltar_direccion);
 
-// Otro puerto que también hay que parar (el lidar: si el proceso termina sin
-// pararlo, su motor sigue girando). Abre un segundo descriptor de
-// "dispositivo" (ya configurado por su driver) y copia "tramas", que el
-// manejador escribe después de las de la placa. Instala el manejador si
-// todavía no lo estaba, así cubre también el arranque antes de la placa.
-// Lanza std::runtime_error si no puede abrir el puerto.
+// Registers another port that must also be stopped (the lidar: if the
+// process ends without stopping it, its motor keeps spinning). Opens a second
+// descriptor on "dispositivo" (already configured by its driver) and copies
+// "tramas" (largo bytes), which the handler writes after the board frames.
+// Installs the handler if it is not installed yet, so it also covers the
+// start-up phase before the board is opened.
+// Throws std::runtime_error if the port cannot be opened.
 void Parada_Emergencia_Agregar_Puerto(const char *dispositivo, const unsigned char *tramas,
                                       std::size_t largo);
 

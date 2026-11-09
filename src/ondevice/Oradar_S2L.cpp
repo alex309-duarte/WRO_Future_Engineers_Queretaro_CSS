@@ -1,3 +1,11 @@
+// Lidar driver and wall-following primitives of the Open Challenge program
+// (also linked by the Obstacle Challenge program for its lidar buffer).
+// Design v7 uses the Slamtec RPLidar S2L (1 Mbaud, 10 Hz); the Oradar MS200
+// branch is kept for the design v6 robot. A writer thread fills a 360-entry
+// distance buffer (mm, one entry per degree); the mission functions read it
+// and drive the robot through the SPIKE-compatible API (spike.h) on top of
+// the Hiwonder board.
+
 #include "Oradar_S2L.h"
 #include "spike.h"
 #include <cstdio>
@@ -9,23 +17,28 @@
 #include <unordered_map>
 #include <pthread.h>
 
+// Per-degree accumulator used to average all returns of one scan.
 struct DistanceAccumulator{
     float distance_sum;
     int sample_count;
 };
 
+// Shared scan state. The writer thread updates the buffer under the mutex;
+// the simple driving loops read single entries directly (one float read),
+// while the line fits take a full copy under the mutex.
 static pthread_mutex_t oradar_buffer_mutex = PTHREAD_MUTEX_INITIALIZER;
-static volatile int oradar_terminating = 0;
-static volatile float oradar_shared_buffer[360] = {0};
+static volatile int oradar_terminating = 0;               // 1 = stop thread and loops
+static volatile float oradar_shared_buffer[360] = {0};   // distance in mm per degree, 0 = no return yet
 static volatile unsigned long oradar_scan_seq = 0; // incremented every time a new full scan is written
 
-// El driver se elige al compilar (Makefile: WRO_LIDAR=RPLIDAR_S2L|ORADAR, por
-// defecto el RPLidar S2L de este robot). Los dos llenan el mismo buffer de 360
-// con la orientacion del Oradar (derecha=0, atras=90, izquierda=180,
-// frente=270), la que usan los algoritmos de abajo via RP_TO_ORADAR_IDX; asi
-// la mision no cambia con el lidar.
+// The driver is chosen at build time (WRO_LIDAR=RPLIDAR_S2L|ORADAR, default
+// the RPLidar S2L of this robot). Both fill the same 360-entry buffer with
+// the Oradar layout (right=0, back=90, left=180, front=270), which the
+// algorithms below use through RP_TO_ORADAR_IDX, so the mission does not
+// change with the lidar.
 
-// WRO_LIDAR_PORT cambia el puerto sin recompilar.
+// The WRO_LIDAR_PORT environment variable overrides the serial port without
+// recompiling; otherwise "fallback" is used.
 static const char *lidar_port(const char *fallback){
     const char *port = std::getenv("WRO_LIDAR_PORT");
     return (port != nullptr && *port != '\0') ? port : fallback;
@@ -38,11 +51,11 @@ static const char *lidar_port(const char *fallback){
 
 using namespace sl;
 
-// RPLidar S2L: 1 Mbaud. Su angulo crece en sentido horario desde la marca
-// frontal del lidar. RPLIDAR_FRONT_DEG es el angulo del lidar que apunta al
-// frente del robot y RPLIDAR_CLOCKWISE=0 invierte el sentido (lidar boca
-// abajo). El driver S2L anterior de este programa usaba 0=frente, 90=derecha,
-// 270=izquierda: FRONT_DEG 0 y sentido horario.
+// RPLidar S2L: 1 Mbaud. Its angle grows clockwise from the front mark of the
+// lidar. RPLIDAR_FRONT_DEG is the lidar angle that points to the front of the
+// robot, and RPLIDAR_CLOCKWISE=0 reverses the direction (lidar mounted upside
+// down). The previous S2L driver of this program used 0=front, 90=right,
+// 270=left: FRONT_DEG 0 and clockwise.
 #ifndef RPLIDAR_FRONT_DEG
 #define RPLIDAR_FRONT_DEG 0
 #endif
@@ -53,7 +66,7 @@ using namespace sl;
 static ILidarDriver *rplidar_device = nullptr;
 static IChannel *rplidar_channel = nullptr;
 
-// Angulo del lidar -> indice del buffer en la orientacion del Oradar.
+// Lidar angle (deg) -> buffer index in the Oradar layout.
 static int rplidar_to_buffer_index(float lidar_deg){
     const int raw = ((int)lidar_deg % 360 + 360) % 360;
     const int robot_cw = RPLIDAR_CLOCKWISE ? raw - RPLIDAR_FRONT_DEG : RPLIDAR_FRONT_DEG - raw;
@@ -64,19 +77,23 @@ const char *Oradar_S2L_Port(void){
     return lidar_port("/dev/ttyUSB0");
 }
 
-// Lo mismo que Oradar_S2L_Close() con el SDK: stop() y setMotorSpeed(0). El
-// S2L controla el motor por rpm (SL_LIDAR_CMD_HQ_MOTOR_SPEED_CTRL) y stop() no
-// lo apaga. Trama: A5, cmd, tamano, datos, XOR de todos los bytes anteriores.
+// Raw equivalent of Oradar_S2L_Close() with the SDK: stop() and
+// setMotorSpeed(0). The S2L controls its motor by rpm
+// (SL_LIDAR_CMD_HQ_MOTOR_SPEED_CTRL) and stop() does not switch it off.
+// Frame: A5, cmd, size, payload, XOR of all the previous bytes.
 int Oradar_S2L_Stop_Frames(unsigned char *buf, int max){
     static const unsigned char frames[] = {
         0xA5, 0x25,                          // SL_LIDAR_CMD_STOP
-        0xA5, 0xA8, 0x02, 0x00, 0x00, 0x0F,  // motor a 0 rpm
+        0xA5, 0xA8, 0x02, 0x00, 0x00, 0x0F,  // motor to 0 rpm (16-bit little-endian)
     };
     if(max < (int)sizeof(frames)) return 0;
     memcpy(buf, frames, sizeof(frames));
     return (int)sizeof(frames);
 }
 
+// Connects at 1 Mbaud and reads the device info; on failure it releases the
+// driver and retries every 1 s until it works or termination is requested.
+// Then starts the motor at its default speed and the standard scan mode.
 void Oradar_S2L_Init_Lidar(void){
     const char *port = Oradar_S2L_Port();
     sl_lidar_response_device_info_t devinfo;
@@ -104,6 +121,10 @@ void Oradar_S2L_Init_Lidar(void){
     printf("RPLidar S2L connect successful on %s\n", port);
 }
 
+// Writer thread: for every full 360 deg scan, averages the distances that
+// fall in each 1 deg bucket and publishes them under the mutex. A bucket with
+// no return in this scan keeps its previous value. Increments oradar_scan_seq
+// once per scan.
 void *Oradar_S2L_Lidar_Writer_Thread(void *arg){
     (void)arg;
     static sl_lidar_response_measurement_node_hq_t nodes[8192];
@@ -118,10 +139,11 @@ void *Oradar_S2L_Lidar_Writer_Thread(void *arg){
                 sum[i] = 0.0f;
                 count_per_index[i] = 0;
             }
-            // Promedio por grado de los puntos con medida. No se filtra por
-            // calidad: este S2L la reporta entre 10 y 18, y el filtro "> 20"
-            // de la variante H10 (o "== 47" del driver anterior) descartaba
-            // el barrido entero y el buffer se quedaba en 0.
+            // Per-degree average of the points with a measurement. There is
+            // no quality filter: this S2L reports quality between 10 and 18,
+            // and the "> 20" filter of the H10 variant (or "== 47" of the
+            // previous driver) discarded the whole scan, leaving the buffer
+            // at 0. dist_mm_q2 is mm * 4; angle_z_q14 is deg * 16384 / 90.
             for (size_t pos = 0; pos < count; ++pos) {
                 const float distance = nodes[pos].dist_mm_q2 / 4.0f;
                 if (distance > 0.0f) {
@@ -143,6 +165,7 @@ void *Oradar_S2L_Lidar_Writer_Thread(void *arg){
     return NULL;
 }
 
+// Stops the scan and the motor, then releases the driver and the channel.
 void Oradar_S2L_Close(void){
     if(rplidar_device){
         rplidar_device->stop();
@@ -161,7 +184,7 @@ const char *Oradar_S2L_Port(void){
     return lidar_port("/dev/ttyUSB0");
 }
 
-// El SDK del MS200 no expone tramas de parada en crudo.
+// The MS200 SDK does not expose raw stop frames.
 int Oradar_S2L_Stop_Frames(unsigned char *buf, int max){
     (void)buf;
     (void)max;
@@ -177,6 +200,7 @@ static OrdlidarDriver *oradar_device = nullptr;
 // MS200 default: 230400 baud.
 static const int   serial_baudrate = 230400;
 
+// Opens the MS200 serial port and retries the connection every 1 s.
 void Oradar_S2L_Init_Lidar(void){
     oradar_device = new OrdlidarDriver(ORADAR_TYPE_SERIAL, ORADAR_MS200);
     oradar_device->SetSerialPort(lidar_port("/dev/ttyUSB0"), serial_baudrate);
@@ -188,6 +212,7 @@ void Oradar_S2L_Init_Lidar(void){
     printf("Oradar lidar connect successful\n");
 }
 
+// Writer thread for the MS200: same per-degree averaging as the S2L branch.
 void *Oradar_S2L_Lidar_Writer_Thread(void *arg){
 
     full_scan_data_st scan_data;
@@ -233,7 +258,7 @@ void Oradar_S2L_Close(void){
     }
 }
 
-#endif
+#endif  // WRO_LIDAR_RPLIDAR_S2L
 
 float Oradar_S2L_Radians_To_Degrees(float radians){
     double degrees = ((radians * 180.f)/ M_PI);
@@ -245,6 +270,14 @@ float Oradar_S2L_Degrees_To_Radians(float degrees){
     return radians;
 }
 
+// Start of the Open Challenge: drives forward holding heading "reference"
+// (deg) at "speed" (%) until the robot reaches the first corner, then tells
+// the driving direction from the side where the wall disappears.
+// The corridor is 1000 mm wide (or narrower), so a side distance above
+// 1350 mm (or no return at all) means the inner wall ends there: that is the
+// side to turn to. The front distance must also be <= 1100 mm, so the opening
+// is the corner ahead and not a gap seen too early.
+// Returns right (clockwise run), left (counter-clockwise) or invalid.
 direction Oradar_S2L_Advance_And_Detect_Side(int speed, int reference){
 
     float front_distance;
@@ -264,10 +297,10 @@ direction Oradar_S2L_Advance_And_Detect_Side(int speed, int reference){
         back_distance = oradar_shared_buffer[RP_TO_ORADAR_IDX(BACK)];
         Spike_Forward(speed,reference);
         usleep(1000);
-        //printf("dsitancia derecha : %f\n", right_distance);
-        //printf("dsitancia izquierda : %f\n", left_distance);
-        //printf("dsitancia frente : %f\n", front_distance);
-        //printf("dsitancia atras : %f\n", back_distance);
+        //printf("right distance : %f\n", right_distance);
+        //printf("left distance : %f\n", left_distance);
+        //printf("front distance : %f\n", front_distance);
+        //printf("back distance : %f\n", back_distance);
     }
 
     if(right_distance > 1350 || right_distance == 0 ){
@@ -283,6 +316,11 @@ direction Oradar_S2L_Advance_And_Detect_Side(int speed, int reference){
 
 }
 
+// Drives forward (heading "reference", "speed" %) along a counter-clockwise
+// lap until the next corner: stops when the front wall is <= 1100 mm and
+// either the left wall has disappeared (>= 1350 mm, the inner wall ended) or
+// the front wall is already <= 500 mm. A front reading of 0 (no return yet)
+// never stops the loop. Leaves the motor running at the last speed command.
 void Oradar_S2L_Advance_Until_Left_Gap(int speed, int reference){
 
     float front_distance;
@@ -297,11 +335,12 @@ void Oradar_S2L_Advance_Until_Left_Gap(int speed, int reference){
         Spike_Forward(speed,reference);
         usleep(2000);
         printf("dsitancia izquierda : %f\n", left_distance);
-        //printf("dsitancia frente : %f\n", front_distance);
+        //printf("front distance : %f\n", front_distance);
     }
 
 }
 
+// Clockwise-lap mirror of Oradar_S2L_Advance_Until_Left_Gap (right wall).
 void Oradar_S2L_Advance_Until_Right_Gap(int speed, int reference){
 
     float front_distance;
@@ -310,20 +349,24 @@ void Oradar_S2L_Advance_Until_Right_Gap(int speed, int reference){
     front_distance = oradar_shared_buffer[RP_TO_ORADAR_IDX(FRONT)];
     right_distance = oradar_shared_buffer[RP_TO_ORADAR_IDX(RIGHT)];
 
-    //printf("dsitancia derecha : %f\n", right_distance);
-    //printf("dsitancia frente : %f\n", front_distance);
+    //printf("right distance : %f\n", right_distance);
+    //printf("front distance : %f\n", front_distance);
 
     while((oradar_terminating == 0) && (((right_distance < 1350) && (front_distance > 500))  || (front_distance > 1100) || (front_distance == 0.0 ))){
         front_distance = oradar_shared_buffer[RP_TO_ORADAR_IDX(FRONT)];
         right_distance = oradar_shared_buffer[RP_TO_ORADAR_IDX(RIGHT)];
         Spike_Forward(speed,reference);
-        //printf("dsitancia derecha : %f\n", right_distance);
-        //printf("dsitancia frente : %f\n", front_distance);
+        //printf("right distance : %f\n", right_distance);
+        //printf("front distance : %f\n", front_distance);
         usleep(2000);
     }
 
 }
 
+// Measures the robot angle to the left wall: reads the left distance, drives
+// "degrees" motor degrees (blocking), reads it again. The travel is taken as
+// 175 mm per 360 motor degrees, so angle = atan(distance change / travel).
+// Returns the angle in tenths of a degree (the unit of Spike_Reset_Gyro).
 int Oradar_S2L_Advance_And_Measure_Left_Slope(int speed, int degrees, int reference){
     float y1 = oradar_shared_buffer[RP_TO_ORADAR_IDX(LEFT)];
 
@@ -337,6 +380,7 @@ int Oradar_S2L_Advance_And_Measure_Left_Slope(int speed, int degrees, int refere
     return slope;
 }
 
+// Same as the left version with the right wall (sign reversed).
 int Oradar_S2L_Advance_And_Measure_Right_Slope(int speed, int degrees, int reference){
     float y1 = oradar_shared_buffer[RP_TO_ORADAR_IDX(RIGHT)];
 
@@ -350,6 +394,9 @@ int Oradar_S2L_Advance_And_Measure_Right_Slope(int speed, int degrees, int refer
     return slope;
 }
 
+// Drives forward until the front wall is at <= target_distance mm (a 0
+// reading, no return, keeps driving), then holds the motor. Used at the end of
+// the Open Challenge to stop inside the starting section.
 void Oradar_S2L_Advance_Until_Distance(int speed, int reference, int target_distance){
     float front_distance;
 
@@ -358,13 +405,15 @@ void Oradar_S2L_Advance_Until_Distance(int speed, int reference, int target_dist
     while((oradar_terminating == 0) && ((front_distance > target_distance) || (front_distance == 0))){
         front_distance = oradar_shared_buffer[RP_TO_ORADAR_IDX(FRONT)];
         Spike_Forward(speed,reference);
-        //printf("dsitancia frente : %f\n", front_distance);
+        //printf("front distance : %f\n", front_distance);
         usleep(1000);
     }
 
     Spike_Hold_Motors();
 }
 
+// Opposite condition: drives until the front distance is >= target_distance
+// mm (e.g. moving away from a wall), then holds the motor.
 void Oradar_S2L_Advance_Until_Distance_R(int speed, int reference, int target_distance){
     float front_distance;
 
@@ -373,13 +422,17 @@ void Oradar_S2L_Advance_Until_Distance_R(int speed, int reference, int target_di
     while((oradar_terminating == 0) && ((front_distance < target_distance) || (front_distance == 0))){
         front_distance = oradar_shared_buffer[RP_TO_ORADAR_IDX(FRONT)];
         Spike_Forward(speed,reference);
-        //printf("dsitancia frente : %f\n", front_distance);
+        //printf("front distance : %f\n", front_distance);
         usleep(1000);
     }
 
     Spike_Hold_Motors();
 }
 
+// Robot angle to the left wall from two rays: CA at 90 deg left and H at
+// "degree" deg further. The law of cosines gives the wall segment between the
+// two hit points and then the angle between CA and the wall; a robot parallel
+// to the wall gives 90 deg. Returns (90 - angle) in tenths of a degree.
 int Oradar_S2L_Correction_For_Triangles_Left(int degree){
     float H = oradar_shared_buffer[RP_TO_ORADAR_IDX(LEFT + degree)];
     float CA = oradar_shared_buffer[RP_TO_ORADAR_IDX(LEFT)];
@@ -393,6 +446,7 @@ int Oradar_S2L_Correction_For_Triangles_Left(int degree){
 
 }
 
+// Right-wall mirror of Oradar_S2L_Correction_For_Triangles_Left.
 int Oradar_S2L_Correction_For_Triangles_Right(int degree){
     float CA = oradar_shared_buffer[RP_TO_ORADAR_IDX(RIGHT)];
     float H = oradar_shared_buffer[RP_TO_ORADAR_IDX(RIGHT - degree)];
@@ -401,11 +455,14 @@ int Oradar_S2L_Correction_For_Triangles_Right(int degree){
     float correction_angle = (pow(CA,2) + pow(missing_side,2) - pow(H,2))/(2*CA*missing_side);
     float computed_angle = Oradar_S2L_Radians_To_Degrees(acos(correction_angle));
     float final_correction = computed_angle - 90;
-    //printf("H: %f, CA: %f, lado_faltante: %f, angulo_correcion: %f, comparacion: %f, correcion_final: %f\n", H, CA, missing_side, correction_angle, computed_angle, final_correction);
+    //printf("H: %f, CA: %f, missing_side: %f, correction_angle: %f, computed_angle: %f, final_correction: %f\n", H, CA, missing_side, correction_angle, computed_angle, final_correction);
     return (int)(final_correction*10);
 
 }
 
+// Combines three angle readings: if b agrees with a or c (within 30, i.e.
+// 3 deg in tenths), b is returned; if only a and c agree, their mean;
+// otherwise b.
 int Oradar_S2L_Reconcile_Readings(int reading_a, int reading_b, int reading_c){
     if(((abs(reading_a - reading_b)) < 30) || ((abs(reading_b - reading_c)) < 30)){
         return reading_b;
@@ -419,16 +476,16 @@ int Oradar_S2L_Reconcile_Readings(int reading_a, int reading_b, int reading_c){
     }
 }
 
-// Distancia maxima (mm) que una lectura puede alejarse de la mediana del
-// grupo antes de considerarse ruido (reflejo multipath, retorno rasante,
-// esquina/objeto distinto a la pared) y descartarse del ajuste de recta.
+// Maximum distance (mm) a reading may differ from the median of the group
+// before it is treated as noise (multipath reflection, grazing return,
+// corner or object other than the wall) and dropped from the line fit.
 #define SLOPE_OUTLIER_TOLERANCE_MM 200.0f
 
-// Toma un snapshot consistente (bajo mutex, para no mezclar dos scans
-// distintos a mitad de lectura) de las distancias alrededor de middle_point,
-// descarta los buckets sin retorno de lidar (distancia <= 0) y los que se
-// alejan demasiado de la mediana del grupo antes de convertirlos a
-// coordenadas x,y. Devuelve cuantos puntos validos quedaron.
+// Takes a consistent snapshot (under the mutex, so two different scans are
+// not mixed half-way) of the "point" distances just below RP angle
+// middle_point, drops the buckets without a lidar return (distance <= 0) and
+// those too far from the group median, and converts the rest to x,y (mm).
+// Returns how many valid points were written to x_point / y_point.
 static int Oradar_S2L_Collect_Slope_Points(const int point, const int middle_point, float *x_point, float *y_point){
     float dis[point];
     int angle[point];
@@ -455,10 +512,10 @@ static int Oradar_S2L_Collect_Slope_Points(const int point, const int middle_poi
         return 0;
     }
 
-    // Los puntos con lecturas ruidosas suelen ser los que mas se alejan del
-    // resto del grupo; como ademas caen en los extremos de la ventana
-    // (angulos mas rasantes), tienen mas peso en la regresion y son la
-    // principal fuente de variacion grande en la pendiente calculada.
+    // Noisy readings are usually the ones furthest from the rest of the
+    // group; since they also fall at the ends of the window (the most grazing
+    // angles), they weigh more in the regression and are the main source of
+    // large swings in the computed slope.
     float sorted[point];
     memcpy(sorted, valid_dis, valid_count * sizeof(float));
     std::sort(sorted, sorted + valid_count);
@@ -476,6 +533,9 @@ static int Oradar_S2L_Collect_Slope_Points(const int point, const int middle_poi
     return n;
 }
 
+// Ordinary least-squares line y = m*x + b through the filtered points of
+// the window; returns atan(m) in tenths of a degree, or 0 if there are fewer
+// than 3 valid points or all x are equal.
 int Oradar_S2L_Slope(const int point, const int middle_point){
     double sum_x = 0, sum_y = 0, sum_xy = 0, sum_x2 = 0;
     float x_point[point];
@@ -506,14 +566,15 @@ int Oradar_S2L_Slope(const int point, const int middle_point){
 
 }
 
-// --- Deteccion de paredes por segmentacion de la nube de puntos del lidar,
-// adaptada de object_detection.cpp (Select_Wall/Fit_Line_Orientation) en
-// object_detection_original_h10. A diferencia de Oradar_S2L_Slope (que ajusta
-// una recta directamente a una ventana angular fija), esto agrupa los puntos
-// en segmentos por huecos de distancia y por esquinas, descarta los
-// segmentos ruidosos/cortos/objetos-no-pared, y sigue la misma pared entre
-// llamadas -- mucho mas resistente al ruido puntual que causaba la
-// variacion grande en el angulo calculado.
+// --- Wall detection by segmenting the lidar point cloud, adapted from
+// object_detection.cpp (Select_Wall/Fit_Line_Orientation) in the Obstacle
+// Challenge program (object_detection_original_h10). Unlike
+// Oradar_S2L_Slope (which fits a line directly to a fixed angular window),
+// this groups the points into segments by distance gaps and by corners,
+// drops noisy, short and non-wall segments, and tracks the same wall between
+// calls -- much more robust to the single-point noise that caused large
+// swings in the computed angle.
+// Minimal 2D vector in mm (lidar frame) and its helpers.
 struct Vec2{
     float x = 0.0f;
     float y = 0.0f;
@@ -525,9 +586,9 @@ static inline Vec2 Vec2_Scale(const Vec2 &a, float s){ return {a.x * s, a.y * s}
 static inline float Vec2_Norm(const Vec2 &a){ return sqrtf(a.x * a.x + a.y * a.y); }
 static inline float Vec2_Cross(const Vec2 &a, const Vec2 &b){ return a.x * b.y - a.y * b.x; }
 
-// Ajusta una recta a los puntos indicados por regresion ortogonal (PCA /
-// Deming, la misma formula que ya usaba Oradar_S2L_Slope2) y devuelve su
-// orientacion en grados.
+// Fits a line to the selected points by orthogonal regression (PCA /
+// Deming, the same formula as RPLidar_S2L_Slope2) and returns its
+// orientation in degrees: theta = 0.5 * atan2(2*Sxy, Sxx - Syy).
 static float Oradar_S2L_Fit_Line_Orientation(const std::vector<Vec2> &pts, const std::vector<int> &indices){
     double mean_x = 0, mean_y = 0;
     for(int idx : indices){ mean_x += pts[idx].x; mean_y += pts[idx].y; }
@@ -545,8 +606,8 @@ static float Oradar_S2L_Fit_Line_Orientation(const std::vector<Vec2> &pts, const
     return Oradar_S2L_Radians_To_Degrees((float)(0.5 * atan2(2.0 * sxy, sxx - syy)));
 }
 
-// Distancia perpendicular RMS de los puntos a su propia recta ajustada: mide
-// que tan disperso/ruidoso esta el segmento (bajo = alineado, alto = ruidoso).
+// RMS perpendicular distance (mm) of the points to their own fitted line:
+// measures how scattered the segment is (low = straight, high = noisy).
 static float Oradar_S2L_Line_Fit_Residual_Mm(const std::vector<Vec2> &pts, const std::vector<int> &indices){
     if(indices.size() < 2) return 0.0f;
     float theta_rad = Oradar_S2L_Degrees_To_Radians(Oradar_S2L_Fit_Line_Orientation(pts, indices));
@@ -565,11 +626,12 @@ static float Oradar_S2L_Line_Fit_Residual_Mm(const std::vector<Vec2> &pts, const
     return (float)sqrt(sum_sq / indices.size());
 }
 
-// Divide recursivamente un segmento en su punto de maxima desviacion
-// perpendicular respecto a la recta que une sus extremos (Iterative
-// End-Point Fit). Detecta esquinas que un corte solo-por-hueco no ve: dos
-// paredes que se encuentran en una esquina no tienen salto de distancia
-// entre puntos consecutivos, solo un cambio de orientacion.
+// Recursively splits a segment at its point of maximum perpendicular
+// deviation from the line joining its end points (Iterative End-Point Fit).
+// It finds corners that a gap-only split misses: two walls meeting at a
+// corner have no distance jump between consecutive points, only a change of
+// orientation. corner_margin_points points on each side of the split are
+// dropped because they belong to neither wall.
 static void Oradar_S2L_Split_Segment_At_Corners(const std::vector<Vec2> &points_mm,
                                                  const std::vector<int> &indices,
                                                  float threshold_mm,
@@ -611,25 +673,30 @@ static void Oradar_S2L_Split_Segment_At_Corners(const std::vector<Vec2> &points_
     }
 }
 
+// Result of Oradar_S2L_Select_Wall: all filtered points and the indices of the chosen wall.
 struct Oradar_S2L_WallSelection{
     bool found = false;
     std::vector<Vec2> pts;
     std::vector<int> chosen_indices;
 };
 
-// Encuentra la mejor pared real dentro de una ventana angular centrada en
-// middle_point (mismo sistema de angulos "RP" que Oradar_S2L_Slope: las
-// constantes FRONT/RIGHT/BACK/LEFT de common_var.h). Segmenta la nube de
-// puntos por huecos de distancia y por esquinas, descarta segmentos
-// ruidosos/cortos, y entre los que califican elige el de mayor extension
-// fisica (desempate por el ajuste mas limpio). Tambien recuerda la ultima
-// pared seguida por cada lado (centroide+orientacion) para no saltar a una
-// pared vecina de una llamada a otra. Con update_track=false consulta ese
-// seguimiento pero no lo actualiza: asi la ventana del lidar no cambia la
-// pared que sigue el robot.
+// Finds the best real wall inside an angular window centred on middle_point
+// (same "RP" angle frame as Oradar_S2L_Slope: the FRONT/RIGHT/BACK/LEFT
+// constants of common_var.h). It segments the point cloud by distance gaps
+// and by corners, drops noisy/short segments, and among those that qualify
+// picks the one with the largest physical extent (ties broken by the cleaner
+// fit). It also remembers the last wall followed on each side
+// (centroid + orientation) so it does not jump to a neighbouring wall from
+// one call to the next. With update_track=false it reads that track but does
+// not update it, so the lidar viewer does not change the wall the robot
+// follows. Thread-safe (the track is protected by its own mutex).
 static Oradar_S2L_WallSelection Oradar_S2L_Select_Wall(int middle_point, bool update_track = true){
     Oradar_S2L_WallSelection result;
 
+    // Window: 70 deg centred on middle_point, padded by 15 deg on each side
+    // so segments that cross the window edge keep their neighbours for the
+    // outlier filter; the 3 central degrees and returns closer than 150 mm
+    // (the robot itself) are skipped.
     const int point = 70;
     const int middle_exclusion_deg = 1;
     const float min_range_mm = 150.0f;
@@ -660,9 +727,10 @@ static Oradar_S2L_WallSelection Oradar_S2L_Select_Wall(int middle_point, bool up
         return result;
     }
 
-    // Radius Outlier Removal: descarta puntos con pocos vecinos cerca. Sin
-    // esto, un punto ruidoso aislado dispara un falso hueco/esquina y parte
-    // una pared real larga en varios fragmentos pequenos.
+    // Radius Outlier Removal: drops points with few close neighbours. Without
+    // it, an isolated noisy point triggers a false gap/corner and splits a
+    // long real wall into several small fragments. Only points inside the
+    // 70 deg core window are kept; the padding only counts as neighbours.
     const float ror_radius_mm = 300.0f;
     const int ror_min_neighbors = 3;
     {
@@ -689,6 +757,7 @@ static Oradar_S2L_WallSelection Oradar_S2L_Select_Wall(int middle_point, bool up
         return result;
     }
 
+    // Split into segments where consecutive points are more than 60 mm apart.
     const float gap_threshold_mm = 60.0f;
     std::vector<std::vector<int>> segments;
     std::vector<int> current_segment = {0};
@@ -701,6 +770,7 @@ static Oradar_S2L_WallSelection Oradar_S2L_Select_Wall(int middle_point, bool up
     }
     segments.push_back(current_segment);
 
+    // Then split each segment at corners (deviation > 40 mm).
     const float corner_split_threshold_mm = 40.0f;
     const int corner_margin_points = 2;
     std::vector<std::vector<int>> wall_segments;
@@ -708,6 +778,9 @@ static Oradar_S2L_WallSelection Oradar_S2L_Select_Wall(int middle_point, bool up
         Oradar_S2L_Split_Segment_At_Corners(pts, seg, corner_split_threshold_mm, corner_margin_points, wall_segments);
     }
 
+    // Score the segments: a wall needs >= 6 points and >= 200 mm of extent;
+    // it "qualifies" if its RMS fit residual is <= 15 mm. Sort: qualifying
+    // first, then longest, then lowest residual.
     const float max_wall_residual_mm = 15.0f;
     const int min_wall_points = 6;
     const float min_wall_extent_mm = 200.0f;
@@ -739,6 +812,10 @@ static Oradar_S2L_WallSelection Oradar_S2L_Select_Wall(int middle_point, bool up
         return result;
     }
 
+    // Wall tracking per side (key = middle_point): prefer the qualifying
+    // segment closest to the last tracked wall (centroid within 300 mm,
+    // orientation within 20 deg), unless it is shorter than 70 % of the
+    // longest candidate. Line orientations are compared modulo 180 deg.
     struct WallTrackState{ bool valid = false; Vec2 centroid; float orientation_deg = 0.0f; };
     static std::unordered_map<int, WallTrackState> wall_track_by_side;
     static pthread_mutex_t wall_track_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -771,6 +848,9 @@ static Oradar_S2L_WallSelection Oradar_S2L_Select_Wall(int middle_point, bool up
         pthread_mutex_unlock(&wall_track_mutex);
     }
 
+    // Merge the best-ranked other segment into the chosen wall when it is
+    // collinear (orientation within 12 deg and centroid within 150 mm of the
+    // line): the same wall split in two by a gap.
     const float max_merge_angle_diff_deg = 12.0f;
     const float max_merge_perp_offset_mm = 150.0f;
     std::vector<int> chosen_indices = wall_segments[scores[best_idx].seg_idx];
@@ -790,6 +870,7 @@ static Oradar_S2L_WallSelection Oradar_S2L_Select_Wall(int middle_point, bool up
         }
     }
 
+    // Store the final wall as the new track for this side.
     Vec2 final_centroid{0.0f, 0.0f};
     for(int idx : chosen_indices) final_centroid = Vec2_Add(final_centroid, pts[idx]);
     final_centroid = Vec2_Scale(final_centroid, 1.0f / (float)chosen_indices.size());
@@ -805,10 +886,12 @@ static Oradar_S2L_WallSelection Oradar_S2L_Select_Wall(int middle_point, bool up
     return result;
 }
 
-// Reemplaza a Oradar_S2L_Slope2: en vez de ajustar una recta a los puntos
-// crudos de una ventana fija, detecta la pared real (segmentacion +
-// puntuacion + seguimiento entre llamadas) y devuelve su orientacion. Mucho
-// mas resistente al ruido puntual/esquinas que causaban la variacion grande.
+// Wall angle used by the Open Challenge after each turn. Instead of fitting
+// a line to the raw points of a fixed window (RPLidar_S2L_Slope2), it detects
+// the real wall (segmentation + scoring + tracking between calls) and
+// returns its orientation in tenths of a degree, ready for
+// Spike_Reset_Gyro(). Much more robust to single-point noise and corners.
+// Returns 0 if no valid wall is found.
 int Oradar_S2L_Wall_Slope(int middle_point){
     Oradar_S2L_WallSelection sel = Oradar_S2L_Select_Wall(middle_point);
     if(!sel.found){
@@ -820,9 +903,9 @@ int Oradar_S2L_Wall_Slope(int middle_point){
     return p;
 }
 
-// La misma pared que Oradar_S2L_Wall_Slope, sin imprimir ni tocar el
-// seguimiento, para la ventana del lidar. Los puntos van en el sistema "RP"
-// (0=frente, 90=derecha); la distancia es perpendicular a la recta ajustada.
+// The same wall as Oradar_S2L_Wall_Slope, without printing or touching the
+// track, for the lidar viewer. The points are in the "RP" frame (0=front,
+// 90=right); the distance is from the lidar perpendicular to the fitted line.
 Oradar_S2L_Wall_Info Oradar_S2L_Get_Wall_Info(int middle_point){
     Oradar_S2L_Wall_Info info;
     Oradar_S2L_WallSelection sel = Oradar_S2L_Select_Wall(middle_point, false);
@@ -844,16 +927,19 @@ Oradar_S2L_Wall_Info Oradar_S2L_Get_Wall_Info(int middle_point){
     return info;
 }
 
+// Integer mean of two readings (prints it).
 int Oradar_S2L_Average(int arg_1, int arg_2){
     int average = (arg_1 + arg_2)/2;
     printf("correcion: %d\n",average);
     return average;
 }
 
+// Makes the writer thread and every blocking loop return.
 void Oradar_S2L_Set_Terminating(void){
     oradar_terminating = 1;
 }
 
+// Copies the whole 360-entry buffer (mm) under the mutex.
 void Oradar_S2L_Get_Buffer(float *buffer){
     pthread_mutex_lock(&oradar_buffer_mutex);
     for(int i = 0; i < 360; i++){
@@ -862,6 +948,7 @@ void Oradar_S2L_Get_Buffer(float *buffer){
     pthread_mutex_unlock(&oradar_buffer_mutex);
 }
 
+// Number of full scans published so far; 0 means no lidar data yet.
 unsigned long Oradar_S2L_Get_Scan_Seq(void){
     return oradar_scan_seq;
 }

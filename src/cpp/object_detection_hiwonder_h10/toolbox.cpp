@@ -1,3 +1,11 @@
+// hailo_utils toolbox: generic helpers for the Hailo object-detection
+// pipeline used by the Obstacle Challenge (reto 2) program. Provides
+// command-line parsing, input detection (image / directory / video / USB or
+// Raspberry Pi camera via libcamera + GStreamer), the preprocess -> async
+// Hailo inference -> postprocess thread stages connected by bounded queues,
+// display / video writing, and visualization-config loading.
+// The camera frame loop also stops when terminating_main (common_var.h) is set.
+
 #include "toolbox.hpp"
 #include "common_var.h"
 #include "hailo_infer.hpp"
@@ -32,6 +40,8 @@ const std::unordered_map<std::string, std::pair<int,int>> RESOLUTION_MAP = {
     {"fhd", {1920, 1080}}
 };
 
+// Loads visualization_params (score_thresh, max_boxes_to_draw and the
+// optional mask_thresh / mask_alpha) from a YAML file. Throws on error.
 VisualizationParams load_visualization_params(const std::string &path)
 {
     YAML::Node root;
@@ -80,6 +90,8 @@ VisualizationParams load_visualization_params(const std::string &path)
 }
 
 
+// Checks value ranges ([0,1] thresholds, non-negative box count) and the
+// fields required by the given application mode. Throws on error.
 void validate_visualization_params(const VisualizationParams &vis, AppVisMode mode)
 {
     // basic required fields
@@ -105,6 +117,9 @@ void validate_visualization_params(const VisualizationParams &vis, AppVisMode mo
     }
 }
 
+// GStreamer pipeline for the Raspberry Pi camera: libcamera NV12 frames of
+// w x h pixels at fps, converted to BGR; appsink keeps only the newest frame
+// (max-buffers=1 drop=true) to minimise latency.
 static std::string make_rpi_gst_pipeline(int w, int h, int fps)
 {
     return "libcamerasrc ! "
@@ -117,6 +132,7 @@ static std::string make_rpi_gst_pipeline(int w, int h, int fps)
 }
 
 
+// True if /proc/device-tree/model names a Raspberry Pi.
 static bool is_raspberry_pi()
 {
 #ifdef _WIN32
@@ -137,6 +153,9 @@ static bool is_raspberry_pi()
 }
 
 
+// Waits for the pipeline threads (3, optionally 4) in order, prints any
+// failure or exception with the thread name, and returns the first
+// non-success status (HAILO_SUCCESS if all succeeded). Blocks.
 hailo_status wait_and_check_threads(
     std::future<hailo_status> &f1, const std::string &name1,
     std::future<hailo_status> &f2, const std::string &name2,
@@ -213,6 +232,9 @@ bool is_directory_of_images(const std::string& path, size_t &entry_count, size_t
 }
 
 
+// Parses --output-resolution / -or: a preset (sd, hd, fhd) or "<width> <height>".
+// Returns "WxH", or "" if the option is absent; exits the program on an
+// invalid value.
 std::string parse_output_resolution_arg(int argc, char **argv)
 {
     for (int i = 1; i < argc; ++i) {
@@ -311,6 +333,8 @@ std::string getCmdOptionWithShortFlag(int argc, char *argv[], const std::string 
     return cmd;
 }
 
+// Reads all supported command-line options into CommandLineArgs
+// (defaults: batch size 1, framerate 30 fps).
 CommandLineArgs parse_command_line_arguments(int argc, char** argv) {
 
     std::string batch_str = getCmdOptionWithShortFlag(argc, argv, "--batch-size", "-b");
@@ -334,6 +358,8 @@ CommandLineArgs parse_command_line_arguments(int argc, char** argv) {
     };
 }
 
+// Handles --list-models / --list-inputs (prints and exits) and resolves the
+// --net and --input names through the ResourcesManager. Exits on error.
 void post_parse_args(const std::string &app, CommandLineArgs &args, int argc, char **argv)
 {
     try {
@@ -376,6 +402,7 @@ std::string get_model_meta_value(const std::string &app,
     }
 }
 
+// Returns the first /dev/videoN whose sysfs device path is on USB, or "".
 static std::string find_usb_camera()
 {
     namespace fs = std::filesystem;
@@ -412,6 +439,9 @@ static bool is_digits_only(const std::string &s)
                                     [](unsigned char c){ return std::isdigit(c); });
 }
 
+// Classifies input_path (image, image directory, video file, camera index,
+// /dev/videoX, "usb" or "rpi") and opens the capture when needed, filling the
+// frame size and frame count. Throws for unsupported inputs.
 InputType determine_input_type(const std::string& input_path,
                                cv::VideoCapture &capture,
                                double &org_height,
@@ -574,6 +604,10 @@ void init_video_writer(const std::string &output_path, cv::VideoWriter &video, d
     }
 }
 
+// Opens a video file or camera. Cameras default to 640x480 at 30 fps (or the
+// sd/hd/fhd preset); the "rpi" camera is opened through GStreamer at 800x600.
+// Fills org_width/org_height and frame_count (0 for cameras). Throws if the
+// capture cannot be opened.
 cv::VideoCapture open_video_capture(const std::string &input_path,
     cv::VideoCapture &capture,
     double &org_height,
@@ -652,6 +686,10 @@ cv::VideoCapture open_video_capture(const std::string &input_path,
 }
 
 
+// Producer thread for video / camera input: reads frames (paced to
+// framerate if > 0), groups them into batches, preprocesses each batch to the
+// model input size and pushes (original, preprocessed) pairs to the queue.
+// Stops at end of stream or when terminating_main is set, then closes the queue.
 void preprocess_video_frames(cv::VideoCapture &capture,
                              uint32_t &width, uint32_t &height,
                              size_t &batch_size, double &framerate,
@@ -708,6 +746,7 @@ void preprocess_video_frames(cv::VideoCapture &capture,
 }
 
 
+// Producer for a single image: preprocesses it, pushes it and closes the queue.
 void preprocess_image_frames(const std::string &input_path,
                           uint32_t &width, uint32_t &height, size_t &batch_size,
                           std::shared_ptr<BoundedTSQueue<std::pair<std::vector<cv::Mat>, std::vector<cv::Mat>>>> preprocessed_batch_queue,
@@ -721,6 +760,8 @@ void preprocess_image_frames(const std::string &input_path,
     preprocessed_batch_queue->stop();
 }
 
+// Producer for a directory of images: pushes full batches of preprocessed
+// images, then closes the queue.
 void preprocess_directory_of_images(const std::string &input_path,
                                 uint32_t &width, uint32_t &height, size_t &batch_size,
                                 std::shared_ptr<BoundedTSQueue<std::pair<std::vector<cv::Mat>, std::vector<cv::Mat>>>> preprocessed_batch_queue,
@@ -831,6 +872,8 @@ void preprocess_frames(const std::vector<cv::Mat>& org_frames,
     }
 }
 
+// Scales src to fit target_w x target_h keeping the aspect ratio and centres
+// it on a black canvas (letterbox).
 cv::Mat resize_with_letterbox(const cv::Mat &src, int target_w, int target_h)
 {
     if (src.empty()) {
@@ -861,6 +904,10 @@ cv::Mat resize_with_letterbox(const cv::Mat &src, int target_w, int target_h)
 }
 
 
+// Consumer thread: pops inference results, runs postprocess_callback on each
+// original frame (draws detections), then shows and/or records stream frames
+// or saves processed images. 'q' or Esc in the window stops it. Releases the
+// capture, writer and windows when done.
 hailo_status run_post_process(
     InputType &input_type,
     double &org_height,
@@ -988,6 +1035,11 @@ hailo_status run_post_process(
 }
 
 
+// Inference thread: pops one preprocessed batch per model input, submits an
+// asynchronous Hailo inference job, and in the completion callback splits the
+// outputs per frame and pushes InferenceResult items to results_queue. Ends
+// when an input queue is closed; waits for the last job, closes results_queue
+// and reports the elapsed time in inference_time.
 hailo_status run_inference_async(HailoInfer& model,
                             std::chrono::duration<double>& inference_time,
                             ModelInputQueuesMap &named_input_queues,
@@ -1052,6 +1104,8 @@ done:
     return HAILO_SUCCESS;
 }
 
+// Prints the network banner and runs the producer that matches the input
+// type, at the model's input width and height.
 hailo_status run_preprocess(const std::string& input_path,
         const std::string& hef_path,
         HailoInfer &model,
@@ -1078,6 +1132,8 @@ hailo_status run_preprocess(const std::string& input_path,
     return HAILO_SUCCESS;
 }
 
+// Releases capture, writer and windows (for streams) and stops both queues
+// so that every waiting thread wakes up.
 void release_resources(cv::VideoCapture &capture, cv::VideoWriter &video, InputType &input_type,
                       bool no_display,
                       std::shared_ptr<BoundedTSQueue<std::pair<std::vector<cv::Mat>, std::vector<cv::Mat>>>> preprocessed_batch_queue,

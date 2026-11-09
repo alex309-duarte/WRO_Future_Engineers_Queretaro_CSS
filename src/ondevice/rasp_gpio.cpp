@@ -1,9 +1,13 @@
+// GPIO driver for the Open Challenge (libgpiod v2): start button on GPIO4,
+// its LED on GPIO3 and the SPIKE hub power relay on GPIO2 (design v6).
+
 #include "rasp_gpio.h"
 
 unsigned int intput_GPIO[] = {GPIO_BUTTON};
 unsigned int outputs_GPIO[] = {GPIO_LED_BUTTON, GPIO_RELE};
-const char *chip_path = "/dev/gpiochip4";
+const char *chip_path = "/dev/gpiochip4";  // Raspberry Pi 5 header GPIOs (older Raspberry Pi OS images)
 
+// libgpiod handles, kept for the whole run and freed by Rasp_Gpio_Clean().
 struct gpiod_chip *chip;
 struct gpiod_line_settings *settings_input;
 struct gpiod_line_settings *settings_outputs;
@@ -11,6 +15,9 @@ struct gpiod_line_config *line_cfg;
 struct gpiod_request_config *req_cfg;
 struct gpiod_line_request *request;
 
+// Configures the button as input with pull-up and the two outputs as
+// low (inactive), then requests all three lines in one request.
+// Returns 0 on success, EXIT_FAILURE if the GPIO chip cannot be opened.
 int Rasp_Gpio_Init(void){
     chip = gpiod_chip_open(chip_path);
     if (!chip) {
@@ -49,6 +56,9 @@ void Rasp_Gpio_Clean(void){
     printf("Pines liberados correctamente.\n");
 }
 
+// Blocks until the start button is pressed. The input reads ACTIVE (high,
+// pull-up) while released; the LED blinks at 10 Hz (50 ms on / 50 ms off) to
+// show that the robot is ready, and is switched off when the button is pressed.
 void Rasp_Gpio_Wait_For_Button(void){
     while(gpiod_line_request_get_value(request, intput_GPIO[0]) == GPIOD_LINE_VALUE_ACTIVE){
         gpiod_line_request_set_value(request, outputs_GPIO[0], GPIOD_LINE_VALUE_ACTIVE);
@@ -59,9 +69,11 @@ void Rasp_Gpio_Wait_For_Button(void){
     gpiod_line_request_set_value(request, outputs_GPIO[0], GPIOD_LINE_VALUE_INACTIVE);
 }
 
+// Design v6: closes the relay for 500 ms (like pressing the hub button) to
+// power on the LEGO SPIKE hub. Not used with the Hiwonder board.
 void Rasp_Gpio_Power_On_Spike(void){
     gpiod_line_request_set_value(request, outputs_GPIO[1], GPIOD_LINE_VALUE_ACTIVE);
     usleep(500000);
     gpiod_line_request_set_value(request, outputs_GPIO[1], GPIOD_LINE_VALUE_INACTIVE);
-    usleep(1000000); //one second waiting for spikr initialization 
+    usleep(1000000); // one second for the SPIKE hub to boot
 }

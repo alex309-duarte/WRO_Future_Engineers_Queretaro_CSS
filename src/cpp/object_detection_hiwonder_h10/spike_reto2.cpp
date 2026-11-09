@@ -1,7 +1,8 @@
-// Reto 2 sobre la placa Hiwonder: las funciones de la API SPIKE de la misión
-// que spike_compat no tiene con la misma firma (ver spike.h). El arranque de
-// la placa es el del reto 1 (Spike_Hiwonder_Init); aquí sólo se cambian las
-// escalas que la misión del reto 2 usa de otra forma.
+// Obstacle Challenge (reto 2) on the Hiwonder controller board: the SPIKE API
+// functions used by the mission that spike_compat does not provide with the
+// same signature (see spike.h). Board start-up is the Open Challenge one
+// (Spike_Hiwonder_Init); this file only changes the scale factors that the
+// Obstacle Challenge mission uses differently.
 
 #include "spike.h"
 #include "reto2_config.h"
@@ -11,16 +12,20 @@
 #include <cstdio>
 #include <thread>
 
+// Initialises the board through Spike_Hiwonder_Init (blocks during the gyro
+// calibration), then rescales the spike_compat configuration for the
+// Obstacle Challenge mission and prints the resulting factors.
+// Returns 0 on success, -1 if the board init fails.
 int Spike_Reto2_Init(void) {
     if (Spike_Hiwonder_Init() != 0) {
         return -1;
     }
     spike_compat::Config cfg = spike_compat::Spike_Get_Config();
-    // El reto 1 pasa tire_turn = 179 (el tope, en grados del motor del hub);
-    // la misión del reto 2 pasa las unidades de turn() (40 ≈ tope): misma
-    // escala multiplicada por los 4.29 grados por unidad.
+    // The Open Challenge passes tire_turn = 179 (full lock, in hub motor
+    // degrees); the Obstacle Challenge mission passes turn() units (40 = almost
+    // full lock): same scale multiplied by the 4.29 degrees per unit.
     cfg.tire_turn_to_steering *= kGradosMotorPorTireTurn;
-    // Grados del motor del hub -> mm (geometría LEGO) -> ticks de M4 (rueda real).
+    // Hub motor degrees -> mm (LEGO geometry) -> M4 encoder ticks (real wheel).
     cfg.spike_degrees_to_ticks =
         kMmPorGradoSpike / (M_PI * kDiametroRuedaMm) *
         static_cast<double>(hiwonder::EncoderCalibration{}.ticks_per_output_revolution);
@@ -35,9 +40,10 @@ int Spike_Reto2_Init(void) {
 
 namespace {
 
-// await = true: la dirección llega a su posición antes de mover la
-// propulsión (turn_special / turns_special). El giro de spike_compat vuelve a
-// mandar la misma posición, así que es inofensivo repetirla.
+// await = true: the steering reaches its position before the drive motor
+// moves (hub turn_special / turns_special). Commands the steering servo and
+// sleeps kEsperaDireccionAwaitMs (ms). The spike_compat turn sends the same
+// position again afterwards, so repeating it is harmless.
 void esperar_direccion(int direction, int tire_turn, bool await) {
     if (!await) return;
     spike_compat::Steer_Tire_Turn(direction, tire_turn);
@@ -46,19 +52,23 @@ void esperar_direccion(int direction, int tire_turn, bool await) {
 
 }  // namespace
 
+// Overload with `await`: optional steering wait, then the 4-argument
+// spike_compat turn (blocks until the gyro has turned `degrees`).
 void Spike_Turn_For_Degrees(int direction, int speed, float degrees, int tire_turn, bool await) {
     esperar_direccion(direction, tire_turn, await);
     Spike_Turn_For_Degrees(direction, speed, degrees, tire_turn);
 }
 
+// Overload with `await`: optional steering wait, then the 4-argument
+// spike_compat small turn.
 void Spike_Small_Turn(int direction, int speed, float degrees, int tire_turn, bool await) {
     esperar_direccion(direction, tire_turn, await);
     Spike_Small_Turn(direction, speed, degrees, tire_turn);
 }
 
 void Spike_Advance_For_distance(int speed, int distance, int reference) {
-    // Igual que el hub: ag(speed, 1.4 * distance * 360 / 196.035, reference).
-    // El signo de speed da el sentido (reversa si es negativo).
+    // Same as the hub: ag(speed, 1.4 * distance * 360 / 196.035, reference).
+    // The sign of speed gives the direction (reverse if negative).
     Spike_Advance_For_Degrees(speed, static_cast<int>(std::lround(distance / kMmPorGradoSpike)),
                               reference);
 }

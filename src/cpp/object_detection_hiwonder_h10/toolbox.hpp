@@ -1,3 +1,8 @@
+// hailo_utils toolbox declarations: command-line arguments, input types, the
+// thread-safe bounded queue that links the preprocess, inference and
+// postprocess threads of the Hailo detection pipeline, and the visualization
+// parameters loaded from YAML. Implemented in toolbox.cpp.
+
 #ifndef _HAILO_COMMON_TOOLBOX_HPP_
 #define _HAILO_COMMON_TOOLBOX_HPP_
 
@@ -135,6 +140,9 @@ namespace hailo_utils {
         bool is_camera,
         const std::string &camera_resolution = "");
 
+    // Thread-safe FIFO with a maximum size: push() blocks while full, pop()
+    // blocks while empty. stop() wakes all waiters; after it push() drops
+    // items and pop() returns false once the queue is drained.
     template<typename T>
     class BoundedTSQueue {
     private:

@@ -255,7 +255,7 @@ Repositioning the battery pack and heavier components (Raspberry Pi 5, UPS shiel
 
 ### 4.2 Steering
 
-The Maker's steering uses a regular Ackermann linkage, which reached a maximum steering angle of **45.44°** in design v6 (see the v7 limit note below). This geometry ensures the inner and outer front wheels trace concentric arcs around a common turning center during a turn, minimizing tire scrub and keeping the front tires rolling rather than dragging through corners, a property that matters directly for both consistency and tire wear over a full run.
+The Maker's steering uses a regular Ackermann linkage, which reached a maximum steering angle of **45.44°** in the design v6 CAD. In design v7 the software limits the steering to **±35°** from center (see [D3](#d3)). This geometry ensures the inner and outer front wheels trace concentric arcs around a common turning center during a turn, minimizing tire scrub and keeping the front tires rolling rather than dragging through corners, a property that matters directly for both consistency and tire wear over a full run.
 
 <img src="other/additionalMedia/Others/Ackermann.jpg" alt="Plan view of the current Ackermann steering system CAD model" width="800">
 
@@ -283,7 +283,7 @@ After weighing both options, the team concluded that the regular Ackermann's sli
 | **What** | The LEGO SPIKE Small Angular Motor was replaced by a **Hiwonder HX-35H serial bus servo** driving the same Ackermann linkage. |
 | **Why** | With the SPIKE Hub removed ([D1](#d1)), the steering needed an actuator that the Hiwonder board can command. A bus servo holds its position on its own (closed loop inside the servo), reports its position, temperature and voltage, and runs directly from the 3S battery (9–12.6 V), so no extra regulator is needed. Its torque margin means the steering reaches its commanded angle at the same speed regardless of tire grip on the mat. |
 | **When** | Design v7, October 2026 (bench calibration on 2026-10-04). |
-| **How** | Positions 0–1000 map to 0–240° (0.24° per unit). Center (wheels straight) = 750; the linkage is assembled with the servo at that position. All steering commands pass through one function (`set_steering`) that clamps to the mechanical limit, so the wheel can never be driven into the chassis. At start-up the program refuses to move the servo if it is outside the allowed range, and on emergency stop the servo torque is released. Parameters: [`src/ondevice/hiwonder_config.h`](src/ondevice/hiwonder_config.h). |
+| **How** | Positions 0–1000 map to 0–240° (0.24° per unit). Center (wheels straight) = 750; the linkage is assembled with the servo at that position. All steering commands pass through one function (`set_steering`) that clamps to **±35°** (`kDireccionMaxGrados`: 35 / 0.24 = 145 units each side, positions 605–895), so the wheel can never be driven into the chassis. At start-up the program refuses to move the servo if it is outside the allowed range, and on emergency stop the servo torque is released. Parameters: [`src/ondevice/hiwonder_config.h`](src/ondevice/hiwonder_config.h). |
 | **What for** | Fast steering response (0.18 s/60° at 11.1 V) directly from battery voltage, with position feedback at start-up. |
 | **Alternatives** | A PWM hobby servo (no position feedback, needs a separate PWM output); keeping a LEGO motor through an adapter. |
 
@@ -297,11 +297,6 @@ After weighing both options, the team concluded that the regular Ackermann's sli
 | Interface | Serial bus (UART) |
 | Stall current | 3 A |
 | Mass | 52 g |
-
-> [!WARNING]
-> **PENDING:**
-> - **Steering limit.** The comments in `hiwonder_config.h` say the wheel hits the chassis beyond **±25°**, but `kDireccionMaxGrados` is set to **35.0** (35 / 0.24 = 145 units, not 104). Confirm the real mechanical limit, fix the constant or the comments, and state the v7 maximum steering angle here (v6: 45.44°).
-> - **Servo model in the code and CAD.** The code comments and the CAD part (`Servo xh12.SLDPRT`) say HX-12H, but the robot uses an HX-35H. Both use the same 0–1000 / 240° protocol, so the code works, but the names should be fixed.
 
 ### 4.3 Drivetrain
 

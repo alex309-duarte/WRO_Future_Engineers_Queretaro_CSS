@@ -1,17 +1,19 @@
 cmake_minimum_required(VERSION 3.16)
 project(object_detection LANGUAGES C CXX)
 
-# Reto 2 (obstacle challenge) sobre la placa Hiwonder. La capa de la placa, la
-# calibración y el driver del lidar son los del reto 1 (src/ondevice, rama
-# reto1-hiwonder): se compilan desde ahí, no se copian, para que ajustar la
-# calibración en un reto valga para el otro. Ver README.md.
+# Obstacle Challenge (reto 2) build on the Hiwonder controller board: camera +
+# Hailo-8 detection of traffic signs and parking markers, LiDAR and SPIKE-style
+# motion API. The board layer, the calibration and the LiDAR driver are the
+# Open Challenge ones (src/ondevice, branch reto1-hiwonder): they are compiled
+# from there, not copied, so a calibration change in one challenge also
+# applies to the other. See README.md.
 
 # ============================================================
 # Settings
 # ============================================================
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS ON)   # los fuentes del reto 1 se compilan con gnu++17
+set(CMAKE_CXX_EXTENSIONS ON)   # the Open Challenge sources are compiled as gnu++17
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Option: allow advanced users to use system/vcpkg instead of submodules
@@ -120,7 +122,8 @@ if(NOT TARGET CURL::libcurl)
 endif()
 
 # ============================================================
-# Capa Hiwonder y lidar del reto 1 (src/ondevice, rama reto1-hiwonder)
+# Hiwonder board layer and LiDAR from the Open Challenge (src/ondevice,
+# branch reto1-hiwonder); stop with a clear message if any file is missing
 # ============================================================
 set(ONDEVICE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../ondevice")
 foreach(archivo
@@ -177,18 +180,18 @@ add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
 )
 
 # ============================================================
-# Lidar: RPLidar S2L por defecto (robot Hailo-8). Un robot con Oradar MS200 lo
-# pide con: cmake ... -DWRO_LIDAR=ORADAR
-# Los dos drivers (src/ondevice/Oradar_S2L.cpp) llenan el mismo buffer con la
-# orientacion del Oradar.
+# LiDAR: RPLidar S2L by default (Hailo-8 robot). A robot with an Oradar MS200
+# selects it with: cmake ... -DWRO_LIDAR=ORADAR
+# Both drivers (src/ondevice/Oradar_S2L.cpp) fill the same 360-entry buffer
+# using the Oradar angle orientation.
 # ============================================================
 set(WRO_LIDAR "RPLIDAR_S2L" CACHE STRING "Lidar del robot: ORADAR o RPLIDAR_S2L")
 set_property(CACHE WRO_LIDAR PROPERTY STRINGS ORADAR RPLIDAR_S2L)
 message(STATUS "Lidar: ${WRO_LIDAR}")
 
 if(WRO_LIDAR STREQUAL "RPLIDAR_S2L")
-    # SDK de Slamtec compilado aparte (make en su raiz), mismo commit 99478e5
-    # que el submodulo src/ondevice/rplidar_sdk.
+    # Slamtec SDK built separately (make in its root), same commit 99478e5
+    # as the src/ondevice/rplidar_sdk submodule.
     set(RPLIDAR_SDK_DIR "$ENV{HOME}/rplidar_sdk" CACHE PATH "Raiz del rplidar_sdk de Slamtec")
     set(RPLIDAR_LIB "${RPLIDAR_SDK_DIR}/output/Linux/Release/libsl_lidar_sdk.a")
     if(NOT EXISTS "${RPLIDAR_LIB}")
@@ -196,9 +199,9 @@ if(WRO_LIDAR STREQUAL "RPLIDAR_S2L")
             "No existe ${RPLIDAR_LIB}. Clona https://github.com/Slamtec/rplidar_sdk "
             "en ${RPLIDAR_SDK_DIR} y compila con make, o pasa -DRPLIDAR_SDK_DIR=...")
     endif()
-    # Montaje del S2L en el robot: angulo del lidar que mira al frente y
-    # sentido. Los mismos valores con los que el reto 1 corrio en pista
-    # (src/ondevice/Makefile sin LIDAR_FLAGS).
+    # Mounting of the S2L on the robot: LiDAR angle (deg) that faces the
+    # front, and rotation sense. Same values the Open Challenge ran with on
+    # the track (src/ondevice/Makefile without LIDAR_FLAGS).
     set(RPLIDAR_FRONT_DEG 0 CACHE STRING "Angulo del RPLidar que apunta al frente del robot")
     set(RPLIDAR_CLOCKWISE 1 CACHE STRING "1 si el angulo del RPLidar crece en sentido horario visto desde arriba")
     set(LIDAR_INCLUDE_DIRS "${RPLIDAR_SDK_DIR}/sdk/include" "${RPLIDAR_SDK_DIR}/sdk/src")
@@ -274,8 +277,9 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     endif()
 endif()
 
-# Prueba offline del reto 2 contra la placa falsa del reto 1: no abre puertos
-# ni toca actuadores y conserva sus comprobaciones también en Release (-DNDEBUG).
+# Offline test of the Obstacle Challenge layer against the Open Challenge fake
+# board: opens no serial ports, drives no actuators, and keeps its checks
+# active in Release builds too (-DNDEBUG). Run with ctest or ./reto2_test.
 enable_testing()
 add_executable(reto2_test
     "${CMAKE_CURRENT_SOURCE_DIR}/tests/reto2_test.cpp"

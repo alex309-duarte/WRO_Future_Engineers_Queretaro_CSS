@@ -1,18 +1,26 @@
+// Original RPLidar S2L driver and mission helpers (see RPLidar_S2L.h). The
+// buffer is indexed directly by the lidar angle in degrees (0=front,
+// clockwise), so no RP_TO_ORADAR_IDX conversion is needed here.
+
 #include "RPLidar_S2L.h"
 #include "spike.h"
 
 using namespace sl;
 
-pthread_mutex_t rplidar_buffer_mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t rplidar_buffer_mutex = PTHREAD_MUTEX_INITIALIZER;  // protects the buffer writes
 
-const char * serial_port_path = "/dev/ttyUSB0";
+const char * serial_port_path = "/dev/ttyUSB0";  // USB-serial adapter of the lidar
 ILidarDriver * lidar_driver;
 IChannel * serial_channel;
 sl_result  op_result;
 
 static volatile int rplidar_terminating = 0;
-static volatile float rplidar_shared_buffer[360]; // Your shared buffer
+static volatile float rplidar_shared_buffer[360]; // distance in mm per degree of lidar angle
 
+// Creates the SDK driver, opens the serial channel at 1 Mbaud and reads the
+// device info, then starts the motor (default speed), waits 200 ms for it to
+// spin up and starts a standard scan. Exits the process (-2) if the driver
+// cannot be allocated.
 void RPLidar_S2L_Init_Lidar(void){
     lidar_driver = *createLidarDriver();
     if (!lidar_driver) {
@@ -20,7 +28,7 @@ void RPLidar_S2L_Init_Lidar(void){
         exit(-2);
     }
     sl_lidar_response_device_info_t devinfo;
-    //bool connectSuccess = false; //variable que no se utiliza
+    //bool connectSuccess = false; //unused variable
     serial_channel = (*createSerialPortChannel(serial_port_path, 1000000));
     if (SL_IS_OK((lidar_driver)->connect(serial_channel))) {
         op_result = lidar_driver->getDeviceInfo(devinfo);
@@ -43,6 +51,11 @@ void RPLidar_S2L_Init_Lidar(void){
     //lidar_driver->startScan(false, false);
 }
 
+// Writer thread: for every full scan, averages the returns that fall in each
+// 1 deg bucket and publishes them under the mutex. Only points whose quality
+// field (after the shift) equals 47 are used; a bucket with no such point
+// keeps its previous value. dist_mm_q2 is mm * 4 and angle_z_q14
+// is deg * 16384 / 90.
 void *RPLidar_S2L_Lidar_Writer_Thread(void *arg){
 
     float angle_deg = 0;
@@ -103,6 +116,10 @@ float RPLidar_S2L_Degrees_To_Radians(float degrees){
     return radians;
 }
 
+// Waits until a side opening (> 1350 mm) appears with the front wall
+// <= 1100 mm and returns that side (right = clockwise run), or invalid.
+// The drive command is commented out here, so this version only prints the
+// four distances while it waits.
 direction RPLidar_S2L_Advance_And_Detect_Side(int speed, int reference){
 
     float front_distance;
@@ -141,6 +158,9 @@ direction RPLidar_S2L_Advance_And_Detect_Side(int speed, int reference){
 
 }
 
+// Drives forward holding heading "reference" until the front wall is
+// <= 1100 mm and either the left wall is >= 1350 mm or the front wall is
+// <= 500 mm (the next corner of a counter-clockwise lap).
 void RPLidar_S2L_Advance_Until_Left_Gap(int speed, int reference){
 
     float front_distance;
@@ -154,12 +174,13 @@ void RPLidar_S2L_Advance_Until_Left_Gap(int speed, int reference){
         left_distance = rplidar_shared_buffer[LEFT];
         Spike_Forward(speed,reference);
         usleep(1000);
-        //printf("dsitancia izquierda : %f\n", left_distance);
-        //printf("dsitancia frente : %f\n", front_distance);
+        //printf("left distance : %f\n", left_distance);
+        //printf("front distance : %f\n", front_distance);
     }
 
 }
 
+// Clockwise-lap mirror of RPLidar_S2L_Advance_Until_Left_Gap (right wall).
 void RPLidar_S2L_Advance_Until_Right_Gap(int speed, int reference){
 
     float front_distance;
@@ -172,13 +193,16 @@ void RPLidar_S2L_Advance_Until_Right_Gap(int speed, int reference){
         front_distance = rplidar_shared_buffer[FRONT];
         right_distance = rplidar_shared_buffer[RIGHT];
         Spike_Forward(speed,reference);
-        //printf("dsitancia derecha : %f\n", right_distance);
-        //printf("dsitancia frente : %f\n", front_distance);
+        //printf("right distance : %f\n", right_distance);
+        //printf("front distance : %f\n", front_distance);
         usleep(1000);
     }
 
 }
 
+// Reads the left distance, drives "degrees" motor degrees (175 mm of travel
+// per 360 motor degrees) and reads it again; returns
+// atan(distance change / travel) in tenths of a degree.
 int RPLidar_S2L_Advance_And_Measure_Left_Slope(int speed, int degrees, int reference){
     float y1 = rplidar_shared_buffer[LEFT];
 
@@ -192,6 +216,7 @@ int RPLidar_S2L_Advance_And_Measure_Left_Slope(int speed, int degrees, int refer
     return slope;
 }
 
+// Same with the right wall (sign reversed).
 int RPLidar_S2L_Advance_And_Measure_Right_Slope(int speed, int degrees, int reference){
     float y1 = rplidar_shared_buffer[RIGHT];
 
@@ -205,6 +230,7 @@ int RPLidar_S2L_Advance_And_Measure_Right_Slope(int speed, int degrees, int refe
     return slope;
 }
 
+// Drives forward until the front wall is at <= target_distance mm.
 void RPLidar_S2L_Advance_Until_Distance(int speed, int reference, int target_distance){
     float front_distance;
 
@@ -213,11 +239,14 @@ void RPLidar_S2L_Advance_Until_Distance(int speed, int reference, int target_dis
     while((rplidar_terminating == 0) && (front_distance > target_distance)){
         front_distance = rplidar_shared_buffer[FRONT];
         Spike_Forward(speed,reference);
-        //printf("dsitancia frente : %f\n", front_distance);
+        //printf("front distance : %f\n", front_distance);
         usleep(1000);
     }
 }
 
+// Robot angle to the left wall from the ray at 270 deg (CA) and the ray
+// "degree" deg further (H), using the law of cosines; returns (90 - angle
+// between CA and the wall) in tenths of a degree, 0 when parallel.
 int RPLidar_S2L_Correction_For_Triangles_Left(int degree){
     float H = rplidar_shared_buffer[LEFT + degree];
     float CA = rplidar_shared_buffer[LEFT];
@@ -231,6 +260,7 @@ int RPLidar_S2L_Correction_For_Triangles_Left(int degree){
 
 }
 
+// Right-wall mirror of RPLidar_S2L_Correction_For_Triangles_Left.
 int RPLidar_S2L_Correction_For_Triangles_Right(int degree){
     float CA = rplidar_shared_buffer[RIGHT];
     float H = rplidar_shared_buffer[RIGHT - degree];
@@ -239,11 +269,13 @@ int RPLidar_S2L_Correction_For_Triangles_Right(int degree){
     float correction_angle = (pow(CA,2) + pow(missing_side,2) - pow(H,2))/(2*CA*missing_side);
     float computed_angle = RPLidar_S2L_Radians_To_Degrees(acos(correction_angle));
     float final_correction = computed_angle - 90;
-    //printf("H: %f, CA: %f, lado_faltante: %f, angulo_correcion: %f, comparacion: %f, correcion_final: %f\n", H, CA, missing_side, correction_angle, computed_angle, final_correction);
+    //printf("H: %f, CA: %f, missing_side: %f, correction_angle: %f, computed_angle: %f, final_correction: %f\n", H, CA, missing_side, correction_angle, computed_angle, final_correction);
     return (int)(final_correction*10);
 
 }
 
+// Returns b if it agrees (within 30) with a or c, else the mean of a and c
+// if those agree, else b.
 int RPLidar_S2L_Reconcile_Readings(int reading_a, int reading_b, int reading_c){
     if(((abs(reading_a - reading_b)) < 30) || ((abs(reading_b - reading_c)) < 30)){
         return reading_b;
@@ -257,6 +289,9 @@ int RPLidar_S2L_Reconcile_Readings(int reading_a, int reading_b, int reading_c){
     }
 }
 
+// Ordinary least-squares line through the "point" rays just below
+// middle_point (converted to x,y in mm); returns atan(slope) in tenths of a
+// degree, or 0 if all x are equal.
 int RPLidar_S2L_Slope(const int point, const int middle_point){
     double sum_x = 0, sum_y = 0, sum_xy = 0, sum_x2 = 0;
     float x_point[point] = {0};
@@ -293,6 +328,9 @@ int RPLidar_S2L_Slope(const int point, const int middle_point){
 
 }
 
+// Orthogonal regression (PCA) over the same window: minimises the
+// perpendicular distance, so it also works for walls parallel to the y axis.
+// Returns 0.5 * atan2(2*Sxy, Sxx - Syy) in tenths of a degree.
 int RPLidar_S2L_Slope2(const int point, const int middle_point){
     float x_point[point] = {0};
     float y_point[point] = {0};
@@ -331,12 +369,14 @@ int RPLidar_S2L_Slope2(const int point, const int middle_point){
     return (p);
 }
 
+// Integer mean of two readings (prints it).
 int RPLidar_S2L_Average(int arg_1, int arg_2){
     int average = (arg_1 + arg_2)/2;
     printf("correcion: %d\n",average);
     return average;
 }
 
+// Stops the scan, sets the motor speed to 0 and deletes the driver.
 void RPLidar_S2L_Close(void){
     lidar_driver->stop();
     if(lidar_driver){
@@ -346,10 +386,12 @@ void RPLidar_S2L_Close(void){
     }
 }
 
+// Makes the writer thread and every blocking loop return.
 void RPLidar_S2L_Set_Terminating(void){
     rplidar_terminating = 1;
 }
 
+// Copies the 360-entry buffer (mm).
 void RPLidar_S2L_Get_Buffer(float *buffer){
     for(int i = 0; i < 360; i++){
         buffer[i] = rplidar_shared_buffer[i];

@@ -27,6 +27,7 @@
 using namespace hailo_utils;
 // --------------------------- FUNCTION DECLARATIONS ---------------------------
 
+// One detection: normalised box (0..1) with score, plus its class id.
 struct NamedBbox {
     hailo_bbox_float32_t bbox;
     size_t class_id;

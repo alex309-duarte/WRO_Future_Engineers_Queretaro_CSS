@@ -1,10 +1,14 @@
+// GPIO driver for the Obstacle Challenge (libgpiod v2): start button on
+// GPIO4 and its LED on GPIO3.
+
 #include "rasp_gpio.h"
 #include "common_var.h"
 
 unsigned int intput_GPIO[] = {GPIO_BUTTON};
 unsigned int outputs_GPIO[] = {GPIO_LED_BUTTON};
-const char *chip_path = nullptr;
+const char *chip_path = nullptr;  // GPIO chip actually opened
 
+// libgpiod handles, kept for the whole run and freed by Rasp_Gpio_Clean().
 struct gpiod_chip *chip;
 struct gpiod_line_settings *settings_input;
 struct gpiod_line_settings *settings_outputs;
@@ -12,6 +16,9 @@ struct gpiod_line_config *line_cfg;
 struct gpiod_request_config *req_cfg;
 struct gpiod_line_request *request;
 
+// Opens the first available GPIO chip, configures the button as input with
+// pull-up and the LED as output (off), and requests both lines.
+// Returns 0 on success, EXIT_FAILURE if the chip or the lines are not available.
 int Rasp_Gpio_Init(void){
     // Raspberry Pi 5 (RP1) normally exposes header GPIOs on gpiochip0.
     // Keep gpiochip4 as a fallback for older Raspberry Pi OS images.
@@ -58,6 +65,7 @@ int Rasp_Gpio_Init(void){
     return 0;
 }
 
+// Releases every libgpiod object that was created and resets the handles.
 void Rasp_Gpio_Clean(void){
     if (request) gpiod_line_request_release(request);
     if (req_cfg) gpiod_request_config_free(req_cfg);
@@ -74,6 +82,9 @@ void Rasp_Gpio_Clean(void){
     printf("Pines liberados correctamente.\n");
 }
 
+// Blocks until the start button is pressed (input goes low) or Ctrl+C sets
+// terminating_main. The LED blinks at 10 Hz meanwhile to show the robot is
+// ready, and is switched off on exit.
 void Rasp_Gpio_Wait_For_Button(void){
     while((terminating_main == 0) &&
           (gpiod_line_request_get_value(request, intput_GPIO[0]) == GPIOD_LINE_VALUE_ACTIVE)){

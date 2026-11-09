@@ -1,9 +1,11 @@
-// Pruebas offline del reto 2 contra la placa falsa del reto 1
-// (src/ondevice/tests/fake_brick.cpp): sin puerto serie ni actuadores. Cubren
-// las traducciones que compilan igual aunque estén mal: la escala de tire_turn
-// del hub, la reversa (sentido y signo de la corrección de rumbo), el avance
-// en milímetros por la rueda real y el avance con condición de paro.
-// NO usan assert: desaparece con -DNDEBUG y la suite pasaría sin verificar.
+// Offline tests of the Obstacle Challenge (reto 2) layer against the Open
+// Challenge fake Hiwonder board (src/ondevice/tests/fake_brick.cpp): no serial
+// port and no actuators. They cover the translations that would still compile
+// if they were wrong: the hub tire_turn scale, reverse driving (direction and
+// sign of the heading correction), advancing in millimetres through the real
+// wheel, and advancing with a stop condition.
+// They do NOT use assert: it is compiled out with -DNDEBUG and the suite would
+// then pass without checking anything. Exit code 0 = all checks passed.
 
 #include "../spike.h"
 #include "../reto2_config.h"
@@ -22,6 +24,7 @@ namespace {
 int g_fallos = 0;
 int g_checks = 0;
 
+// Counts one check; prints the description and counts a failure if !ok.
 void check(bool ok, const char *que) {
     ++g_checks;
     if (!ok) {
@@ -30,19 +33,23 @@ void check(bool ok, const char *que) {
     }
 }
 
+// True if a and b differ by less than tol.
 bool cerca(double a, double b, double tol = 1e-6) { return std::fabs(a - b) < tol; }
 
+// Resets the fake board, clears the speed cap and runs Spike_Reto2_Init.
 int arrancar() {
     fake::reiniciar();
     unsetenv("WRO_MAX_RPS");
     return Spike_Reto2_Init();
 }
 
+// Number of "cancel" (motion cancelled) events recorded by the fake board.
 long cancelaciones() {
     const auto &ev = fake::estado().eventos;
     return std::count(ev.begin(), ev.end(), std::string("cancel"));
 }
 
+// Expected encoder ticks per hub degree (1320 ticks per wheel revolution).
 double ticks_por_grado_hub() {
     return kMmPorGradoSpike / (M_PI * kDiametroRuedaMm) * 1320.0;
 }
@@ -83,7 +90,7 @@ void test_giro_con_await() {
 void test_giro_sin_await_usa_la_misma_escala() {
     arrancar();
     Spike_Reset_Gyro(0);
-    Spike_Turn_For_Degrees(-1, 60, 30, 30);        // 4 argumentos: va directo a spike_compat
+    Spike_Turn_For_Degrees(-1, 60, 30, 30);        // 4 arguments: goes straight to spike_compat
     check(cerca(fake::estado().ultima_direccion, -30.0 * 4.29 / 179.0),
           "tire_turn 30 a la izquierda = -0.72 también sin await");
 }
@@ -91,7 +98,7 @@ void test_giro_sin_await_usa_la_misma_escala() {
 void test_giro_en_reversa() {
     arrancar();
     Spike_Reset_Gyro(0);
-    Spike_Turn_For_Degrees(-1, -40, 16, 45, true);  // estacionamiento_clockwise
+    Spike_Turn_For_Degrees(-1, -40, 16, 45, true);  // as in estacionamiento_clockwise (parking)
     const auto &e = fake::estado();
     check(cerca(e.ultima_direccion, -1.0), "tire_turn 45 a la izquierda = tope -1");
     check(std::fabs(e.yaw_deg) >= 16.0, "en reversa también termina cuando |yaw| >= grados");
@@ -100,7 +107,7 @@ void test_giro_en_reversa() {
 void test_small_turn_vuelve_al_rumbo() {
     arrancar();
     Spike_Reset_Gyro(0);
-    fake::estado().yaw_deg = 40.0;                  // tras esquivar por la izquierda
+    fake::estado().yaw_deg = 40.0;                  // after swerving left around a pillar
     Spike_Small_Turn(1, 60, 0, 40, false);
     check(fake::estado().yaw_deg <= 0.0, "small_turn a la derecha sigue hasta que yaw <= 0");
     check(fake::estado().holds > 0, "y sostiene al terminar");
@@ -108,7 +115,7 @@ void test_small_turn_vuelve_al_rumbo() {
 
 void test_avance_adelante() {
     arrancar();
-    fake::estado().yaw_deg = 5.0;                   // 5° a la izquierda de la referencia 0
+    fake::estado().yaw_deg = 5.0;                   // 5 deg to the left of reference 0
     Spike_Advance_For_Degrees(80, 1000, 0);
     const auto &e = fake::estado();
     check(e.ultimo_avance_ticks == std::lround(1000.0 * ticks_por_grado_hub()),
@@ -125,7 +132,7 @@ void test_avance_en_reversa() {
 
     arrancar();
     fake::estado().yaw_deg = 5.0;
-    Spike_Advance_For_Degrees(-50, 2250, 0);        // estacionamiento
+    Spike_Advance_For_Degrees(-50, 2250, 0);        // parking manoeuvre
     const auto &e = fake::estado();
     check(e.ultimo_avance_ticks == -std::lround(2250.0 * ticks_por_grado_hub()),
           "speed < 0: ticks negativos (reversa) con la magnitud de los grados");
@@ -150,7 +157,7 @@ void test_avance_de_cero_no_revienta() {
     arrancar();
     bool lanzo = false;
     try {
-        Spike_Advance_For_distance(80, 0, 0);      // hipotenusa - 400 puede dar 0
+        Spike_Advance_For_distance(80, 0, 0);      // the mission's "hypotenuse - 400" can be 0
         Spike_Advance_For_Degrees(80, 0, 0);
     } catch (const std::exception &) {
         lanzo = true;

@@ -1,3 +1,10 @@
+// Implementation of hiwonder::Brick: serial port setup (raw, 8N1, 1 Mbaud),
+// frame encoding/decoding for the Hiwonder ROS Robot Controller protocol,
+// request/reply commands for the motors (including the MOTOR_EXT position
+// controller of firmware pos-v8), the steering bus servo and the IMU, and the
+// reader thread that integrates the yaw used for heading control in both the
+// Open Challenge and the Obstacle Challenge.
+
 #include "hiwonder_brick/hiwonder_brick.hpp"
 
 #include <algorithm>
@@ -18,14 +25,18 @@
 namespace hiwonder {
 namespace {
 
+// Frame layout: 0xAA 0x55 | function | payload length | payload | CRC-8.
 constexpr std::uint8_t kHeader1 = 0xAA;
 constexpr std::uint8_t kHeader2 = 0x55;
-constexpr std::uint8_t kFunctionMotor = 3;
-constexpr std::uint8_t kFunctionMotorExt = 0x0B;
-constexpr std::uint8_t kFunctionBusServo = 5;
-constexpr std::uint8_t kFunctionImu = 7;
+// Function codes of the board protocol.
+constexpr std::uint8_t kFunctionMotor = 3;        // speed / stop of M1..M4
+constexpr std::uint8_t kFunctionMotorExt = 0x0B;  // extended firmware: position control
+constexpr std::uint8_t kFunctionBusServo = 5;     // serial bus servos
+constexpr std::uint8_t kFunctionImu = 7;          // IMU telemetry pushed by the board
 constexpr std::array<std::uint8_t, 2> kHeader{{kHeader1, kHeader2}};
 
+// Appends the raw little-endian bytes of `value` (the STM32 and the Pi are
+// both little-endian, so a byte copy is enough).
 template <typename T>
 void append_le(std::vector<std::uint8_t> &out, const T &value) {
     static_assert(std::is_trivially_copyable<T>::value,
@@ -34,6 +45,7 @@ void append_le(std::vector<std::uint8_t> &out, const T &value) {
     out.insert(out.end(), bytes, bytes + sizeof(T));
 }
 
+// Reads a little-endian float / integer from an unaligned buffer.
 float read_float_le(const std::uint8_t *data) {
     float value = 0.0F;
     std::memcpy(&value, data, sizeof(value));
@@ -49,6 +61,7 @@ T read_le(const std::uint8_t *data) {
     return value;
 }
 
+// Builds an exception that includes the current errno text.
 std::runtime_error system_error(const std::string &what) {
     return std::runtime_error(what + ": " + std::strerror(errno));
 }
@@ -75,6 +88,8 @@ void Brick::open() {
         throw system_error("no se pudo abrir " + device);
     }
 
+    // Raw 8N1 at 1 Mbaud, no flow control. VMIN = VTIME = 0 makes read()
+    // non-blocking; the reader thread waits with select() instead.
     termios options{};
     if (tcgetattr(fd, &options) != 0) {
         ::close(fd);
@@ -90,7 +105,7 @@ void Brick::open() {
         ::close(fd);
         throw system_error("no se pudo configurar el puerto a 1000000 baud");
     }
-    tcflush(fd, TCIFLUSH);
+    tcflush(fd, TCIFLUSH);   // drop stale bytes received before opening
 
     {
         std::lock_guard<std::mutex> lock(state_mutex_);
@@ -109,9 +124,9 @@ std::string Brick::discover_device(const std::string &by_id_dir) {
         forced != nullptr && *forced != '\0') {
         return forced;
     }
-    // El CH343 de la placa se anuncia como "USB Single Serial" de QinHeng
-    // (1a86); sólo cambia el número de serie. El lidar (CP2102N) y los CH340
-    // ("USB Serial") no coinciden con el prefijo.
+    // The board's CH343 enumerates as QinHeng (1a86) "USB Single Serial";
+    // only the serial number changes. The LiDAR adapter (CP2102N) and CH340
+    // adapters ("USB Serial") do not match this prefix.
     static const std::string kPrefix = "usb-1a86_USB_Single_Serial_";
     std::vector<std::string> found;
     std::error_code error;
@@ -139,6 +154,8 @@ std::string Brick::discover_device(const std::string &by_id_dir) {
     return found.front();
 }
 
+// Order matters: motors are stopped while the port is still open, then the
+// reader thread is stopped and joined, and only then is the fd closed.
 void Brick::close() noexcept {
     int fd = -1;
     {
@@ -181,6 +198,7 @@ void Brick::set_motor_speed(std::uint8_t motor_id, float speed_rps) {
         std::abs(speed_rps) > config_.max_speed_rps) {
         throw std::invalid_argument("speed_rps fuera del límite configurado");
     }
+    // Sub-command 0 = set speed: [0, motor, float rev/s].
     std::vector<std::uint8_t> payload{0, motor_id};
     append_le(payload, speed_rps);
     send_frame(kFunctionMotor, payload);
@@ -190,7 +208,7 @@ void Brick::stop_motor(std::uint8_t motor_id) {
     if (motor_id > 3) {
         throw std::invalid_argument("motor_id debe estar entre 0 y 3");
     }
-    send_frame(kFunctionMotor, {2, motor_id});
+    send_frame(kFunctionMotor, {2, motor_id});   // sub-command 2 = stop
 }
 
 void Brick::stop_all() {
@@ -199,6 +217,12 @@ void Brick::stop_all() {
     }
 }
 
+// All MOTOR_EXT requests follow the same pattern: remember the sequence
+// number of the last reply, send the request, then wait on
+// motor_position_cv_ until the reader thread stores a newer reply for the
+// same sub-command. The first payload byte is the sub-command:
+// 0x00 capabilities, 0x01 move relative, 0x02 cancel, 0x03 zero,
+// 0x04 status, 0x05 hold.
 MotorPositionCapabilities Brick::motor_position_capabilities(
     std::chrono::milliseconds timeout) {
     std::uint64_t initial = 0;
@@ -236,6 +260,8 @@ MotorPositionStatus Brick::move_motor_relative(
         std::lock_guard<std::mutex> lock(state_mutex_);
         initial = motor_position_status_.sequence;
     }
+    // [0x01, motor, int32 delta ticks, float max rev/s, uint16 tolerance,
+    //  uint16 timeout ms]
     std::vector<std::uint8_t> payload{0x01, config_.position_motor_id};
     append_le(payload, delta_ticks);
     append_le(payload, max_rps);
@@ -321,6 +347,7 @@ MotorPositionStatus Brick::hold_motor_position(
         std::lock_guard<std::mutex> lock(state_mutex_);
         initial = motor_position_status_.sequence;
     }
+    // [0x05, motor, float max rev/s, uint16 tolerance, uint16 max PWM pulse]
     std::vector<std::uint8_t> payload{0x05, config_.position_motor_id};
     append_le(payload, max_rps);
     append_le(payload, tolerance_ticks);
@@ -336,6 +363,7 @@ MotorPositionStatus Brick::hold_motor_position(
     return motor_position_status_;
 }
 
+// Polls the status until the firmware reports the move as inactive.
 MotorPositionStatus Brick::wait_motor_position(
     std::chrono::milliseconds timeout, std::chrono::milliseconds poll_period) {
     const auto deadline = std::chrono::steady_clock::now() + timeout;
@@ -357,14 +385,16 @@ void Brick::set_bus_servo_position(std::uint8_t servo_id,
         throw std::invalid_argument("servo_id debe estar entre 0 y 253");
     }
     if (position > 1000) {
-        throw std::invalid_argument("posición HX-12H debe estar entre 0 y 1000");
+        throw std::invalid_argument("posición HX-35H debe estar entre 0 y 1000");
     }
     if (duration_ms < 20 || duration_ms > 30000) {
         throw std::invalid_argument("duración debe estar entre 20 y 30000 ms");
     }
+    // Sub-command 0x01 = move: [0x01, uint16 duration ms, servo count,
+    // then per servo: id, uint16 position].
     std::vector<std::uint8_t> payload{0x01};
     append_le(payload, duration_ms);
-    payload.push_back(1);  // cantidad de servos
+    payload.push_back(1);  // number of servos
     payload.push_back(servo_id);
     append_le(payload, position);
     send_frame(kFunctionBusServo, payload);
@@ -374,6 +404,7 @@ void Brick::set_bus_servo_power(std::uint8_t servo_id, bool enabled) {
     if (servo_id > 253) {
         throw std::invalid_argument("servo_id debe estar entre 0 y 253");
     }
+    // 0x0C = torque on, 0x0B = torque off (unload).
     send_frame(kFunctionBusServo,
                {static_cast<std::uint8_t>(enabled ? 0x0C : 0x0B), servo_id});
 }
@@ -385,8 +416,8 @@ std::uint8_t Brick::read_bus_servo_id(
         std::lock_guard<std::mutex> lock(state_mutex_);
         initial = bus_servo_.sequence;
     }
-    // Consulta broadcast documentada por Hiwonder. Debe conectarse un solo
-    // bus-servo para evitar colisiones de respuestas.
+    // Broadcast query (ID 0xFE) documented by Hiwonder. Only one bus servo
+    // may be connected, otherwise the replies collide.
     const_cast<Brick *>(this)->send_frame(kFunctionBusServo, {0x12, 0xFE});
     std::unique_lock<std::mutex> lock(state_mutex_);
     const bool received = servo_cv_.wait_for(lock, timeout, [&] {
@@ -408,6 +439,8 @@ BusServoFeedback Brick::read_bus_servo_position(
         std::lock_guard<std::mutex> lock(state_mutex_);
         initial = bus_servo_.sequence;
     }
+    // 0x05 = read position. send_frame() is not const (it locks write_mutex_),
+    // but reading does not change the logical state of the Brick.
     const_cast<Brick *>(this)->send_frame(kFunctionBusServo, {0x05, servo_id});
     std::unique_lock<std::mutex> lock(state_mutex_);
     const bool received = servo_cv_.wait_for(lock, timeout, [&] {
@@ -428,6 +461,9 @@ void Brick::set_steering(double normalized,
         calibration.right > 1000) {
         throw std::invalid_argument("calibración de dirección fuera de 0..1000");
     }
+    // Linear interpolation on each side of the centre: negative values move
+    // toward `left`, positive toward `right`. The two halves may have
+    // different lengths if the calibration is asymmetric.
     const double target = normalized < 0.0
         ? calibration.center + (-normalized) *
               (static_cast<double>(calibration.left) - calibration.center)
@@ -455,6 +491,9 @@ bool Brick::wait_for_imu(std::chrono::milliseconds timeout) const {
     });
 }
 
+// Gyro bias estimation: average every new IMU sample received during
+// `duration` while the robot stands still. The bias is subtracted from gyro_z
+// when the yaw is integrated in process_frame().
 void Brick::calibrate_gyro(std::chrono::milliseconds duration) {
     if (duration < std::chrono::milliseconds(500)) {
         throw std::invalid_argument("la calibración debe durar al menos 500 ms");
@@ -488,6 +527,8 @@ void Brick::calibrate_gyro(std::chrono::milliseconds duration) {
     gyro_bias_[0] = sum[0] / static_cast<double>(count);
     gyro_bias_[1] = sum[1] / static_cast<double>(count);
     gyro_bias_[2] = sum[2] / static_cast<double>(count);
+    // Restart integration from 0 so drift accumulated during the
+    // calibration window is discarded.
     imu_.yaw_deg = 0.0;
     last_imu_time_ = std::chrono::steady_clock::now();
 }
@@ -522,8 +563,8 @@ double Brick::motor_ticks_to_degrees(
 }
 
 ImuSample Brick::decode_imu_payload(const std::uint8_t *payload) {
-    // ONE_G de QMI8658.c: el firmware multiplica por este valor, así que
-    // dividir por el mismo devuelve exactamente las cuentas en g.
+    // ONE_G from QMI8658.c: the firmware multiplies by this value, so
+    // dividing by the same value gives back exactly the reading in g.
     constexpr double kFirmwareOneG = 9.807;
     constexpr double kRadiansToDegrees = 57.29577951308232;
     ImuSample s;
@@ -533,6 +574,8 @@ ImuSample Brick::decode_imu_payload(const std::uint8_t *payload) {
     s.gyro_x_dps = static_cast<float>(read_float_le(payload + 12) * kRadiansToDegrees);
     s.gyro_y_dps = static_cast<float>(read_float_le(payload + 16) * kRadiansToDegrees);
     s.gyro_z_dps = static_cast<float>(read_float_le(payload + 20) * kRadiansToDegrees);
+    // Tilt from the gravity vector (valid only when the robot is not
+    // accelerating strongly).
     s.roll_deg = static_cast<float>(
         std::atan2(s.accel_y_g, s.accel_z_g) * kRadiansToDegrees);
     s.pitch_deg = static_cast<float>(
@@ -541,6 +584,7 @@ ImuSample Brick::decode_imu_payload(const std::uint8_t *payload) {
     return s;
 }
 
+// Bitwise CRC-8/MAXIM (Dallas 1-Wire): reflected polynomial 0x8C, init 0.
 std::uint8_t Brick::crc8_maxim(const std::uint8_t *data,
                                std::size_t size) noexcept {
     std::uint8_t crc = 0;
@@ -567,10 +611,14 @@ Brick::encode_frame(std::uint8_t function,
     frame.push_back(function);
     frame.push_back(static_cast<std::uint8_t>(payload.size()));
     frame.insert(frame.end(), payload.begin(), payload.end());
+    // The CRC covers function, length and payload (not the 0xAA 0x55 header).
     frame.push_back(crc8_maxim(frame.data() + 2, frame.size() - 2));
     return frame;
 }
 
+// Writes one complete frame. write_mutex_ keeps frames from different
+// threads from interleaving; the port is non-blocking, so partial writes and
+// EAGAIN are retried until the whole frame is out.
 void Brick::send_frame(std::uint8_t function,
                        const std::vector<std::uint8_t> &payload) {
     std::lock_guard<std::mutex> write_lock(write_mutex_);
@@ -593,9 +641,12 @@ void Brick::send_frame(std::uint8_t function,
             throw system_error("error escribiendo a la controladora");
         }
     }
-    tcdrain(fd);
+    tcdrain(fd);   // wait until the bytes have physically left the UART
 }
 
+// Reader thread body (started by open()). Waits up to 100 ms for data with
+// select() so it notices running_ = false promptly, and feeds every chunk to
+// the frame parser.
 void Brick::reader_loop() noexcept {
     std::array<std::uint8_t, 4096> buffer{};
     for (;;) {
@@ -622,12 +673,17 @@ void Brick::reader_loop() noexcept {
     }
 }
 
+// Stream parser: appends the new bytes, then extracts every complete frame.
+// Bytes before a header are discarded (resynchronisation after noise), and a
+// frame with a bad CRC is dropped as a whole.
 void Brick::consume_bytes(const std::uint8_t *data, std::size_t size) {
     rx_buffer_.insert(rx_buffer_.end(), data, data + size);
     for (;;) {
         const auto header = std::search(rx_buffer_.begin(), rx_buffer_.end(),
                                         kHeader.begin(), kHeader.end());
         if (header == rx_buffer_.end()) {
+            // Keep the last byte: it may be the 0xAA of a header split
+            // between two reads.
             if (rx_buffer_.size() > 1) {
                 rx_buffer_.erase(rx_buffer_.begin(), rx_buffer_.end() - 1);
             }
@@ -635,7 +691,7 @@ void Brick::consume_bytes(const std::uint8_t *data, std::size_t size) {
         }
         rx_buffer_.erase(rx_buffer_.begin(), header);
         if (rx_buffer_.size() < 5) {
-            return;
+            return;   // header, function, length and CRC not all here yet
         }
         const std::size_t payload_size = rx_buffer_[3];
         const std::size_t total = payload_size + 5;
@@ -653,8 +709,12 @@ void Brick::consume_bytes(const std::uint8_t *data, std::size_t size) {
     }
 }
 
+// Dispatches one valid frame (reader thread). Each reply type is stored under
+// state_mutex_ with an incremented sequence number and its condition variable
+// is notified, which wakes the request that is waiting for it.
 void Brick::process_frame(std::uint8_t function,
                           const std::vector<std::uint8_t> &payload) {
+    // MOTOR_EXT capabilities: [0x00, version, motor mask, -, uint32 ticks/rev].
     if (function == kFunctionMotorExt && payload.size() == 8 &&
         payload[0] == 0x00) {
         MotorPositionCapabilities capabilities;
@@ -669,6 +729,8 @@ void Brick::process_frame(std::uint8_t function,
         motor_position_cv_.notify_all();
         return;
     }
+    // MOTOR_EXT status (reply to sub-commands 0x01..0x05): [cmd, motor, state,
+    // active, int32 position, int32 target, int32 error, float rev/s].
     if (function == kFunctionMotorExt && payload.size() == 20 &&
         payload[0] >= 0x01 && payload[0] <= 0x05) {
         MotorPositionStatus status;
@@ -687,6 +749,7 @@ void Brick::process_frame(std::uint8_t function,
         motor_position_cv_.notify_all();
         return;
     }
+    // Bus servo ID reply: [0xFE, 0x12, status (0 = ok), id].
     if (function == kFunctionBusServo && payload.size() == 4 &&
         payload[0] == 0xFE && payload[1] == 0x12 &&
         static_cast<std::int8_t>(payload[2]) == 0) {
@@ -699,6 +762,7 @@ void Brick::process_frame(std::uint8_t function,
         servo_cv_.notify_all();
         return;
     }
+    // Bus servo position reply: [id, 0x05, status (0 = ok), int16 position].
     if (function == kFunctionBusServo && payload.size() == 5 &&
         payload[1] == 0x05 && static_cast<std::int8_t>(payload[2]) == 0) {
         BusServoFeedback feedback;
@@ -712,10 +776,16 @@ void Brick::process_frame(std::uint8_t function,
         servo_cv_.notify_all();
         return;
     }
+    // Anything else except a 24-byte IMU frame is ignored.
     if (function != kFunctionImu || payload.size() != 24) {
         return;
     }
     ImuSample next = decode_imu_payload(payload.data());
+
+    // Yaw integration with host timestamps: yaw += (gyro_z - bias) * dt. A gap
+    // of 0.1 s or more (twice the 20 Hz period, e.g. lost frames) is skipped
+    // instead of integrated, to avoid a jump; the very first sample only sets
+    // the timestamp.
 
     const auto now = std::chrono::steady_clock::now();
     std::lock_guard<std::mutex> lock(state_mutex_);

@@ -1,3 +1,7 @@
+// Fake implementation of hiwonder::Brick and Parada_Emergencia_Instalar for
+// the offline tests (linked instead of hiwonder_brick.cpp and
+// parada_emergencia.cpp). No hardware is touched; see fake_brick.h.
+
 #include "fake_brick.h"
 #include "../parada_emergencia.h"
 
@@ -7,8 +11,8 @@ namespace fake {
 
 namespace {
 Estado g_estado;
-std::uint64_t g_secuencia = 0;
-// Grados de yaw por muestra del IMU con dirección ±1 y 1 r/s.
+std::uint64_t g_secuencia = 0;   // IMU sample sequence number
+// Degrees of yaw per IMU sample with steering ±1 and 1 rev/s.
 constexpr double kGradosPorPaso = 2.0;
 }  // namespace
 
@@ -17,7 +21,8 @@ void reiniciar() { g_estado = Estado{}; }
 
 }  // namespace fake
 
-// La real abre el puerto e instala manejadores de señal: aquí sólo se registra.
+// The real one opens the port and installs signal handlers: here it is only
+// recorded.
 void Parada_Emergencia_Instalar(const char *dispositivo, std::uint8_t servo, bool soltar) {
     fake::estado().dispositivo_parada = dispositivo != nullptr ? dispositivo : "";
     fake::estado().eventos.push_back("parada_emergencia " + std::to_string(servo) +
@@ -35,7 +40,7 @@ Brick::~Brick() { close(); }
 
 void Brick::open() {
     fd_ = 1;
-    // Como la real: sin Config::device, el puerto se descubre.
+    // Like the real one: without Config::device, the port is discovered.
     device_ = config_.device.empty() ? fake::kDispositivoDescubierto : config_.device;
     estado().eventos.push_back("open");
 }
@@ -66,7 +71,7 @@ MotorPositionStatus Brick::move_motor_relative(std::int32_t delta_ticks, float, 
     return s;
 }
 MotorPositionStatus Brick::motor_position_status(std::chrono::milliseconds) {
-    MotorPositionStatus s;  // el avance termina en cuanto se consulta
+    MotorPositionStatus s;  // the advance finishes as soon as it is queried
     s.valid = true;
     s.active = false;
     return s;
@@ -76,8 +81,8 @@ MotorPositionStatus Brick::zero_motor_position(std::chrono::milliseconds) {
     s.valid = true;
     return s;
 }
-// Lo usa spike_compat::Advance_For_Degrees_Until (reto 2) al cumplirse la
-// condición de paro; el reto 1 no lo llama.
+// Used by spike_compat::Advance_For_Degrees_Until (Obstacle Challenge) when
+// the stop condition is met; the Open Challenge does not call it.
 MotorPositionStatus Brick::cancel_motor_position(std::chrono::milliseconds) {
     estado().eventos.push_back("cancel");
     MotorPositionStatus s;
@@ -124,8 +129,8 @@ ImuSample Brick::imu() const {
     return s;
 }
 bool Brick::wait_for_imu(std::chrono::milliseconds) const {
-    // Una muestra nueva: el robot avanza un paso con la dirección y velocidad
-    // vigentes. Derecha (+1) hace bajar el yaw.
+    // One new sample: the robot advances one step with the current steering
+    // and speed. Right (+1) makes the yaw decrease.
     estado().yaw_deg -= estado().ultima_direccion * estado().ultima_velocidad_rps *
                         fake::kGradosPorPaso;
     return true;

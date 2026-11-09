@@ -1,9 +1,20 @@
-// Reto 2 (obstacle challenge) sobre la placa Hiwonder. Es el
-// object_detection.cpp de object_detection_original_h10 (misión del nacional,
-// con estacionamiento) con el hub SPIKE sustituido por la capa que el reto 1
-// probó en pista (src/ondevice). Lo que cambia respecto al original está
-// marcado con "Hiwonder:"; la lógica de la misión es la misma. Ver README.md
-// y ORIGEN.md.
+// Obstacle Challenge mission program (WRO Future Engineers, design v7, Raspberry Pi 5).
+// Perception: Camera Module 3 Wide frames go through a YOLOv8n model on the Hailo-8
+// accelerator, which detects the red/green traffic signs (pillars) and the magenta
+// parking-lot markers; the Slamtec RPLidar S2L (360 deg, 10 Hz) gives wall distances
+// and wall orientation (Select_Wall / Slope / Distance_To_Wall).
+// Actuation: the Hiwonder ROS Robot Controller board (drive motor, HX-35H steering
+// servo, on-board IMU for heading) through the SPIKE-compatible API of spike.h.
+// main() starts the lidar reader thread and the camera -> Hailo -> postprocess
+// pipeline, then the mission thread (Obstacle_Challenge_Thread), which waits for the
+// start button, detects the driving direction, leaves the parking lot, drives 3 laps
+// (4 sections per lap; red pillars are passed on the right, green on the left) and
+// finally parallel-parks.
+// This file is object_detection.cpp of the design-v6 program
+// (object_detection_original_h10, the national-final mission with parking) with the
+// LEGO SPIKE hub replaced by the Hiwonder layer already proven on the track by the
+// Open Challenge (src/ondevice). Changes versus that original are marked
+// "Hiwonder:"; the mission logic is unchanged. See README.md and ORIGEN.md.
 #include "toolbox.hpp"
 #include "hailo_infer.hpp"
 #include "utils.hpp"
@@ -24,10 +35,14 @@
 #include <stdexcept>
 #include <unistd.h>
 
+// Most relevant pillar detection of the latest camera frame, written by
+// postprocess_callback (post-process thread) and read by the mission thread.
+// middle_point_x/y are the box centre in normalised image coordinates (0..1),
+// area is the normalised box area (0..1), confidence is the YOLO score.
 struct traffic_lights_struct{
     float  middle_point_x;
     float  middle_point_y;
-    Color_traffic_light light_color; /* red = 2,  green = 1, xparking = 3 */
+    Color_traffic_light light_color; /* red = 2, green = 1, xparking (parking marker) = 3, none = 0 */
     float area;
     float confidence;
 };
@@ -40,11 +55,13 @@ static bool g_no_display = false;
 // Enabled only by the separate terminal-run demo binary/service.
 static bool g_fusion_demo_mode = false;
 
+// writer: lidar reader thread (fills the 360-value buffer).
+// Main_Actions: mission thread (Obstacle_Challenge_Thread).
 pthread_t writer;
 pthread_t Main_Actions;
 static bool g_main_actions_started = false;
-// Hiwonder: WRO_SOLO_PERCEPCION=1 arranca cámara, Hailo y lidar sin abrir la
-// placa ni crear la misión (para probar la visión sin mover nada).
+// Hiwonder: WRO_SOLO_PERCEPCION=1 starts camera, Hailo and lidar without opening
+// the board or creating the mission (to test perception without moving anything).
 static bool g_solo_percepcion = false;
 
 
@@ -53,6 +70,7 @@ static bool g_solo_percepcion = false;
 // color slot a given wall segment currently holds.
 std::unordered_map<int, int> wall_rank;
 
+// Forward declarations. Mission steps are defined in the second half of this file.
 void signal_handler(int signum);
 void *Obstacle_Challenge_Thread(void *arg);
 static void *Obstacle_Challenge_Impl(void *arg);
@@ -66,6 +84,14 @@ float calculte_angle_section_start_counterclockwise(Color_traffic_light traffic_
 static float Fit_Line_Orientation(const std::vector<cv::Point2f> &pts, const std::vector<int> &indices);
 void avoid_cube_start_section(Color_traffic_light traffic_light_color, Cube_number cube_number_per_section);
 
+// Clockwise mission steps. Each one returns the colour of the last pillar seen or
+// passed, so the next step can plan its path:
+//   esquivar_cubos_1 / esquivar_cubos_2 - pass the first / second pillar of a section
+//   Corner_Case     - drive into the corner, check for a pillar there, turn 90 deg
+//   esquivar_cubos_middle - pass a single pillar in the middle position of a section
+//   Desicion        - re-zero the heading on the wall and choose which of the above to run
+//   estacionamiento_clockwise - leave the parking lot at the start, read the first pillar
+// `parking = true` marks the section that contains the parking lot.
 Color_traffic_light esquivar_cubos_1(bool parking = false);
 Color_traffic_light esquivar_cubos_2( Color_traffic_light past_cube,  bool parking = false);
 void calculte_angle_section_start_clockwise_chr(Color_traffic_light traffic_light_color, Cube_number_chr cube_number_per_section, float *angle, float *hypotenuse, bool parking = false);
@@ -75,16 +101,15 @@ Color_traffic_light Desicion(Color_traffic_light past_cube, bool middle_cube, bo
 Color_traffic_light estacionamiento_clockwise(void);
 void Advance_For_distance_Especial(int speed, int distance, int reference);
 
-// Contrapartes para vuelta en sentido antihorario (counterclockwise). Los
-// giros y la correccion de rumbo usan el lidar del lado DERECHO (Slope(right),
-// diStanceToRightWallmm) -- lo opuesto a las versiones clockwise, que usan el
-// izquierdo. Dentro de calculte_angle_section_start_counterclockwise_chr,
-// verde y rojo usan la formula que en la version clockwise usaba el color
-// contrario, porque al medir ahora la pared derecha en vez de la izquierda,
-// el color cuyo lado de paso coincide con el lado medido (formula "directa")
-// pasa de ser verde a ser rojo. El criterio de "verde se pasa por la
-// izquierda, rojo por la derecha" (direction_to_turn) es una regla de trafico
-// fija y NO se invierte con el sentido de la vuelta.
+// Counterparts for driving the lap counterclockwise. Turns and heading correction
+// use the lidar on the RIGHT side (Slope(right), diStanceToRightWallmm), the
+// opposite of the clockwise versions, which use the left side. Inside
+// calculte_angle_section_start_counterclockwise_chr, green and red use the formula
+// that the clockwise version uses for the opposite colour: now that the right wall
+// is measured instead of the left one, the colour whose passing side matches the
+// measured side ("direct" formula) is red instead of green. The rule "green is
+// passed on the left, red on the right" (direction_to_turn) is a fixed traffic
+// rule and is NOT inverted with the driving direction.
 void calculte_angle_section_start_counterclockwise_chr(Color_traffic_light traffic_light_color, Cube_number_chr cube_number_per_section, float *angle, float *hypotenuse, bool parking = false);
 Color_traffic_light esquivar_cubos_1_counterclockwise(bool parking = false);
 Color_traffic_light esquivar_cubos_2_counterclockwise(Color_traffic_light past_cube, bool parking = false);
@@ -106,6 +131,8 @@ struct WallSelection {
 };
 static WallSelection Select_Wall(const direction side);
 
+// Returns the index of the largest value in arr[0..n-1] (first one on ties), or -1
+// if n <= 0. Used to pick the detection box with the largest area.
 int find_max_index(float arr[], int n) {
     if (n <= 0) return -1; // Handle empty array case
 
@@ -129,6 +156,7 @@ static int Next_Debug_Snapshot_Id() {
     return next_id++;
 }
 
+// Wall-clock time as "YYYY-MM-DD HH:MM:SS.mmm" for the debug CSV logs.
 static std::string Debug_Timestamp() {
     struct timespec ts;
     clock_gettime(CLOCK_REALTIME, &ts);
@@ -266,7 +294,9 @@ std::shared_ptr<BoundedTSQueue<std::pair<std::vector<cv::Mat>, std::vector<cv::M
 std::shared_ptr<BoundedTSQueue<InferenceResult>> results_queue =
     std::make_shared<BoundedTSQueue<InferenceResult>>(MAX_QUEUE_SIZE);
 
-// Task-specific preprocessing callback
+// Task-specific preprocessing callback (runs in the preprocess thread): converts each
+// camera frame to a contiguous RGB image of the model input size
+// (target_width x target_height px) expected by the YOLOv8n network on the Hailo-8.
 void preprocess_callback(const std::vector<cv::Mat>& org_frames,
                          std::vector<cv::Mat>& preprocessed_frames,
                          uint32_t target_width, uint32_t target_height)
@@ -311,7 +341,15 @@ void preprocess_callback(const std::vector<cv::Mat>& org_frames,
     }
 }
 
-// Task-specific postprocessing callback
+// Task-specific postprocessing callback (runs in the post-process thread once per
+// inference result):
+//  1. parses the Hailo NMS output (3 classes: green, red, parking marker) and draws
+//     the boxes on the frame;
+//  2. when a new lidar scan has arrived, segments it into walls (outlier removal,
+//     adaptive breakpoints, corner splitting, frame-to-frame tracking) and draws the
+//     "Lidar Coordinates" debug window, highlighting the walls Select_Wall() picks;
+//  3. stores the largest confident red/green box in the global traffic_lights, which
+//     the mission thread reads.
 void postprocess_callback(
     cv::Mat &frame_to_draw,
     const std::vector<std::pair<uint8_t*, hailo_vstream_info_t>> &output_data_and_infos,
@@ -404,8 +442,9 @@ void postprocess_callback(
         // the spacing expected for two returns off the same flat surface.
         // A smaller lambda shrinks sin(lambda-delta_phi) in D_max's denominator below,
         // which makes D_max *larger* - i.e. more tolerant of gaps, less likely to split.
-        // At 5deg, D_max for a ~450mm-range point was ~142mm: generous enough that a
-        // real object sitting near a wall wouldn't get split off as its own segment.
+        // At 5 deg, D_max for a ~450 mm-range point (1 deg step) is ~142 mm: so generous
+        // that a real object sitting near a wall would not be split off as its own
+        // segment. At the 10 deg used here it is ~80 mm.
         const float bpd_lambda_deg = 10.0f;  // min incidence angle assumed for a flat surface
         const float bpd_sigma_r_mm = 10.0f;  // range measurement noise estimate
         const float lambda_rad = Oradar_S2L_Degrees_To_Radians(bpd_lambda_deg);
@@ -638,7 +677,7 @@ void postprocess_callback(
     for (const auto &named_bbox : bboxes){
         traffic_light_area[index] = (named_bbox.bbox.x_max - named_bbox.bbox.x_min) * (named_bbox.bbox.y_max - named_bbox.bbox.y_min);
         if((named_bbox.bbox.score < 0.75) || ((Color_traffic_light)named_bbox.class_id == light_xparking ) )
-        { // check the score, if the score is below 0.65 make the area 0 to discard in the following steps
+        { // discard boxes with score below 0.75 and parking markers (area 0) so they are not picked as the pillar
             traffic_light_area[index] = 0;
         }
         index++;
@@ -647,7 +686,7 @@ void postprocess_callback(
     traffic_lights.light_color = none;
     traffic_lights.confidence = 0.0f;
     if (bboxes.size() > 0){
-        const auto named_bbox = bboxes.at(max_index); // Assuming only one bbox for traffic light detection
+        const auto named_bbox = bboxes.at(max_index); // largest remaining box = nearest pillar
         
         traffic_lights.middle_point_x = (named_bbox.bbox.x_min + named_bbox.bbox.x_max) / 2.0;
         traffic_lights.middle_point_y = (named_bbox.bbox.y_min + named_bbox.bbox.y_max) / 2.0;
@@ -663,9 +702,10 @@ void postprocess_callback(
 }
 
 
-// Hiwonder: espera hasta timeout_ms a que la cámara reporte un cubo. Sustituye
-// al "while(cube == none)" del original, que declaraba OTRA variable adentro y
-// nunca salía si en ese instante no se veía ningún cubo.
+// Hiwonder: waits up to timeout_ms (ms) for the camera to report a pillar and returns
+// its colour (none on timeout or shutdown). Replaces the original
+// "while(cube == none)" loop, which declared ANOTHER variable inside and never
+// exited if no pillar was visible at that moment.
 static Color_traffic_light Esperar_Color_De_Cubo(int timeout_ms){
     Color_traffic_light cube = traffic_lights.light_color;
     for(int t = 0; (cube == none) && (t < timeout_ms) && (terminating_main == 0); t++){
@@ -678,8 +718,9 @@ static Color_traffic_light Esperar_Color_De_Cubo(int timeout_ms){
     return cube;
 }
 
-// Hiwonder: los .yaml están junto al ejecutable (CMake los copia ahí), sin
-// depender del directorio desde el que se lance.
+// Hiwonder: the .yaml files sit next to the executable (CMake copies them there), so
+// they are found regardless of the directory the program is launched from.
+// Returns <executable dir>/nombre, or nombre itself if /proc/self/exe cannot be read.
 static std::string Ruta_Junto_Al_Ejecutable(const char *nombre){
     std::error_code ec;
     const fs::path exe = fs::read_symlink("/proc/self/exe", ec);
@@ -687,8 +728,10 @@ static std::string Ruta_Junto_Al_Ejecutable(const char *nombre){
     return (exe.parent_path() / nombre).string();
 }
 
-// Hiwonder: apagado ordenado. El hilo del lidar se une ANTES de liberar el
-// driver que todavía lee (si no, use-after-free), y la placa queda en coast.
+// Hiwonder: orderly shutdown. Stops and joins the mission thread, leaves the board
+// motors in coast and closes its serial port, releases the GPIO, and joins the lidar
+// thread BEFORE freeing the driver it is still reading from (otherwise
+// use-after-free).
 static void Apagar_Todo(void){
     terminating_main = 1;
     if(g_main_actions_started){
@@ -705,6 +748,11 @@ static void Apagar_Todo(void){
     Oradar_S2L_Close();
 }
 
+// Program entry. Options: --fusion-demo (camera + lidar demo instead of the mission)
+// plus the standard Hailo example arguments (network, input, batch size, display...).
+// Env: WRO_SOLO_PERCEPCION=1 (perception only), WRO_VISUALIZATION_CONFIG (yaml path).
+// Order: lidar thread -> GPIO (start button) -> board init -> wait for the first lidar
+// scan -> Hailo pipeline threads -> mission thread. Returns a hailo_status code.
 int main(int argc, char** argv)
 {
 
@@ -728,10 +776,10 @@ int main(int argc, char** argv)
         return HAILO_INTERNAL_FAILURE;
     }
 
-    // Hiwonder: placa en lugar del hub SPIKE, sin relé ni REPL. Abre la placa,
-    // instala la parada de emergencia (Ctrl+C), comprueba el servo, centra la
-    // dirección y calibra el giroscopio 5 s con el robot QUIETO: el mismo
-    // arranque del reto 1 más las escalas del reto 2 (Spike_Reto2_Init).
+    // Hiwonder: board instead of the SPIKE hub, no relay and no REPL. Opens the board,
+    // installs the emergency stop (Ctrl+C), checks the servo, centres the steering
+    // and calibrates the gyro for 5 s with the robot STILL: the same start-up as the
+    // Open Challenge plus the Obstacle Challenge scale factors (Spike_Reto2_Init).
     if(!g_solo_percepcion){
         if(Spike_Reto2_Init() != 0){
             Rasp_Gpio_Clean();
@@ -745,9 +793,9 @@ int main(int argc, char** argv)
         std::cout << "SOLO PERCEPCION: camara, Hailo y lidar; la placa no se abre y no hay mision.\n";
     }
 
-    // Sin datos del lidar la distancia vale 0 y los bucles de avance toman 0
-    // como "todavia no hay lectura": el robot avanzaria a ciegas. Esperar el
-    // primer barrido completo; si no llega, salir sin mover nada.
+    // Without lidar data every distance reads 0 and the advance loops treat 0 as
+    // "no reading yet": the robot would drive blind. Wait (up to 50 x 100 ms = 5 s)
+    // for the first complete scan; if none arrives, exit without moving.
     for(int i = 0; (i < 50) && (Oradar_S2L_Get_Scan_Seq() == 0) && (terminating_main == 0); i++){
         usleep(100000);
     }
@@ -835,8 +883,8 @@ int main(int argc, char** argv)
                                     results_queue,
                                     post_cb);
 
-        // Hiwonder: la misión arranca cuando cámara, inferencia y postproceso
-        // ya corren. El botón físico sigue siendo el disparador del movimiento.
+        // Hiwonder: the mission thread starts once camera, inference and post-process
+        // are already running. The physical button is still what starts the motion.
         if(!g_solo_percepcion){
             const int rc = pthread_create(&Main_Actions, NULL, Obstacle_Challenge_Thread, NULL);
             if(rc != 0){
@@ -845,6 +893,7 @@ int main(int argc, char** argv)
             g_main_actions_started = true;
         }
 
+        // Blocks until the camera pipeline ends (input closed or error).
         hailo_status status = wait_and_check_threads(
             preprocess_thread,    "Preprocess",
             inference_thread,     "Inference",
@@ -868,28 +917,37 @@ int main(int argc, char** argv)
     }
 }
 
+// Obstacle Challenge mission (runs in the Main_Actions thread). Waits for the start
+// button, then either runs the fusion demo (--fusion-demo) or the real mission:
+// detect the driving direction from the side distances, leave the parking lot,
+// run 12 sections (3 laps x 4 sections, Corner_Case + Desicion per section) and
+// parallel-park. Moves the motors and blocks until terminating_main is set.
 static void *Obstacle_Challenge_Impl(void *arg){
     float distancia_frente;
     float distancia_derecha;
     float distancia_izquierda;
-    float lidar_shared_buffer[360]; // Your shared buffer
+    float lidar_shared_buffer[360]; // local copy of the lidar scan (mm per degree index)
     Color_traffic_light cubo_temp;
     Color_traffic_light cubo_temp1;
     bool is_middle_case = false;
 
-    //printf("dsitancia derecha : %f\n", distancia_derecha);
-    //printf("dsitancia izquierda : %f\n", distancia_izquierda);
-    //printf("dsitancia frente : %f\n", distancia_frente);
+    //printf("distance right : %f\n", distancia_derecha);
+    //printf("distance left : %f\n", distancia_izquierda);
+    //printf("distance front : %f\n", distancia_frente);
 
     Spike_Reset_Gyro(0);
     Rasp_Gpio_Wait_For_Button();
     if (terminating_main != 0) return NULL;
+    // Fusion demo (--fusion-demo): for 120 s, follow heading 0 and, when the lidar sees
+    // something closer than 700 mm ahead, sidestep it on the side chosen from the
+    // camera (red -> right, green -> left), the box position, or the freer side.
+    // Stops early if the lidar stalls or both sides are blocked.
     if (g_fusion_demo_mode) {
         constexpr auto demo_duration = std::chrono::seconds(120);
-        constexpr auto maneuver_reserve = std::chrono::seconds(12);
-        constexpr float front_trigger_mm = 700.0f;
-        constexpr float side_clearance_mm = 450.0f;
-        constexpr float no_return_mm = 2500.0f;
+        constexpr auto maneuver_reserve = std::chrono::seconds(12); // no new sidestep this close to the end
+        constexpr float front_trigger_mm = 700.0f;   // obstacle ahead closer than this -> sidestep
+        constexpr float side_clearance_mm = 450.0f;  // minimum free space needed on the passing side
+        constexpr float no_return_mm = 2500.0f;      // value used when a sector has no valid return
         const auto demo_start = std::chrono::steady_clock::now();
         auto last_scan_change = demo_start;
         unsigned long last_scan_seq = Oradar_S2L_Get_Scan_Seq();
@@ -897,6 +955,7 @@ static void *Obstacle_Challenge_Impl(void *arg){
         std::printf("[FUSION DEMO] Camera + LiDAR, 120 seconds after button.\n");
         Spike_Reset_Gyro(0);
 
+        // Nearest / mean valid range (mm) within +-half_width deg of a buffer index.
         auto sector_min = [&](int center, int half_width) {
             float nearest = no_return_mm;
             for (int offset = -half_width; offset <= half_width; ++offset) {
@@ -978,6 +1037,7 @@ static void *Obstacle_Challenge_Impl(void *arg){
                     front_mm, camera_cube ?
                     (traffic_lights.light_color == light_red ? "red" : "green") : "uncertain",
                     traffic_lights.middle_point_x, preferred == left ? "left" : "right");
+                // Sidestep: turn 70 deg away, advance 280 mm, turn back to heading 0.
                 Spike_Turn_For_Degrees(preferred, 25, 70, 40, true);
                 Spike_Reset_Gyro(0);
                 Spike_Center_Vehicle_Short();
@@ -1003,17 +1063,18 @@ static void *Obstacle_Challenge_Impl(void *arg){
             stopped_early ? "sensor/clearance safety stop" :
             (terminating_main ? "shutdown requested" : "120 seconds elapsed"));
     } else {
-    usleep(200000); //wiating for reset gyro
+    usleep(200000); // let the gyro reset settle (200 ms)
     float slope = Slope(front);
     Spike_Reset_Gyro(0);
     Spike_Center_Vehicle_Short();
 
     Oradar_S2L_Get_Buffer(&lidar_shared_buffer[0]);
-    distancia_frente = lidar_shared_buffer[270]; // frente = 270 en el buffer (90 es atras)
-    distancia_derecha = lidar_shared_buffer[0];
-    distancia_izquierda = lidar_shared_buffer[180];
+    distancia_frente = lidar_shared_buffer[270]; // front = index 270 in the buffer (90 is behind)
+    distancia_derecha = lidar_shared_buffer[0];     // right = index 0
+    distancia_izquierda = lidar_shared_buffer[180]; // left = index 180
 
 
+    // Earlier test sequences, kept disabled.
     /*cubo_temp = esquivar_cubos_1();
     cubo_temp = esquivar_cubos_2(cubo_temp);
     cubo_temp = Corner_Case(cubo_temp, &is_middle_case);
@@ -1035,9 +1096,9 @@ static void *Obstacle_Challenge_Impl(void *arg){
     cubo_temp = Desicion(cubo_temp, is_middle_case);*/
     
     //cubo_temp = Corner_Case(light_red, &is_middle_case);
-    //printf("cubo en la esquina: %d\n", cubo_temp);
+    //printf("corner pillar: %d\n", cubo_temp);
     //cubo_temp = Desicion(cubo_temp, is_middle_case);
-    //printf("cubo 2: %d\n", cubo_temp);
+    //printf("pillar 2: %d\n", cubo_temp);
     //cubo_temp = Corner_Case(light_red, &is_middle_case);
     //slope = Slope(front);
     //Spike_Reset_Gyro(slope);
@@ -1046,8 +1107,13 @@ static void *Obstacle_Challenge_Impl(void *arg){
     //esquivar_cubos_2(cubo_temp, false);
     //Spike_Turn_For_Degrees(right, 60, 90, 40);
     
+    // Driving direction. The robot starts in the parking lot, which lies along the
+    // outer wall: if the open lane (more than 600 mm free) is on the right, the lap is
+    // clockwise; if it is on the left, counterclockwise.
     if(distancia_derecha > 600){
         printf("Sentido horario\n");
+        // Leave the parking lot, then 3 laps x 4 sections; the 4th section of each
+        // lap (parking = true) is the one with the parking lot.
         cubo_temp = estacionamiento_clockwise();
         cubo_temp = Corner_Case(cubo_temp, &is_middle_case);
         cubo_temp = Desicion(cubo_temp, is_middle_case);
@@ -1075,7 +1141,9 @@ static void *Obstacle_Challenge_Impl(void *arg){
         cubo_temp = Desicion(cubo_temp, is_middle_case);
         cubo_temp = Corner_Case(cubo_temp, &is_middle_case,true);
         cubo_temp = Desicion(cubo_temp, is_middle_case,true);
-        if(cubo_temp == light_red){ /* lo hace bien */ 
+        // Final parking (clockwise). First reposition according to the last pillar
+        // passed so the robot ends up beside the parking lot.
+        if(cubo_temp == light_red){ /* red: go to 950 mm from the front wall, turn left 90 deg, advance to 260 mm, turn back right */ 
             Oradar_S2L_Advance_Until_Distance(50, 0, 950, Hold);
             Spike_Turn_For_Degrees(left, 60,90,45, true);
             Spike_Center_Vehicle();
@@ -1084,7 +1152,7 @@ static void *Obstacle_Challenge_Impl(void *arg){
             usleep(100000);
             Spike_Turn_For_Degrees(right, 50, 90, 45, true);
             Spike_Center_Vehicle();
-        }else if(cubo_temp == light_green){/* muchos problemas */ /* rojo verde caso ideal */
+        }else if(cubo_temp == light_green){/* green: turn 10 deg left, creep at heading 10 until index 190 (left, 10 deg forward) reads <= 180 mm */
             Spike_Turn_For_Degrees(left, 60,10,45, true);
             Spike_Center_Vehicle();
             float lidar_buffer[360];
@@ -1101,6 +1169,8 @@ static void *Obstacle_Challenge_Impl(void *arg){
             Spike_Turn_For_Degrees(right, 50,4,30, true);
             Spike_Center_Vehicle_Short();
         }
+        // Square up on the front wall, approach it to 150 mm, then reverse 2250 hub
+        // degrees along the lot and back into it with a left/right reverse S-turn.
         float slope_final = Slope(front);
         printf("===============------------==================== reset angle before %f\n", slope_final);
         Spike_Reset_Gyro(slope_final);
@@ -1122,6 +1192,8 @@ static void *Obstacle_Challenge_Impl(void *arg){
         Spike_Turn_For_Degrees(left, -50, 105, 45, true);
         Spike_Center_Vehicle();
         usleep(200000);
+        // Reverse into the lot at the -105 deg heading, then straighten the wheels
+        // with a short reverse right turn and a small forward left correction.
         Spike_Advance_For_Degrees(-50,400,-105);
         Spike_Break_Motors();
         Spike_Reset_Gyro(0);
@@ -1137,6 +1209,9 @@ static void *Obstacle_Challenge_Impl(void *arg){
 
     else if (distancia_izquierda > 600){
         printf("Sentido antihorario\n");
+        // Leave the parking lot, then 3 laps x 4 sections (mirror of the clockwise
+        // branch). If the pillar read on leaving the lot was red, back up 200 hub
+        // degrees at heading 90 deg after the first corner.
         cubo_temp1 = estacionamiento_counterclockwise();
         cubo_temp = Corner_Case_counterclockwise(cubo_temp1, &is_middle_case);
         if(cubo_temp1 == light_red){
@@ -1170,6 +1245,8 @@ static void *Obstacle_Challenge_Impl(void *arg){
         cubo_temp = Desicion_counterclockwise(cubo_temp, is_middle_case,true);
         printf("acabaron las vueltas, etacionamiento\n");
         usleep(100000);
+        // Final parking (counterclockwise). A green last pillar needs the same
+        // repositioning as red in the clockwise branch, mirrored.
         if(cubo_temp == light_green){
             Oradar_S2L_Advance_Until_Distance(50, 0, 950, Hold);
             Spike_Turn_For_Degrees(right, 60,90,45, true);
@@ -1195,6 +1272,9 @@ static void *Obstacle_Challenge_Impl(void *arg){
             Spike_Reset_Gyro(0);
         }*/
         usleep(100000);
+        // Creep forward at heading -10 deg until the right-side reading
+        // lidar_shared_buffer[0] is <= 160 mm, approach the front wall to 200 mm,
+        // then reverse 740 hub degrees and back into the lot with a reverse S-turn.
         float distance_to_right = 1000;
         distance_to_right = lidar_shared_buffer[0];;
         while(distance_to_right > 160){
@@ -1230,21 +1310,23 @@ static void *Obstacle_Challenge_Impl(void *arg){
 
     }
 
+    // Mission finished: idle until shutdown is requested (Ctrl+C / kill).
     while(terminating_main == 0){
         /*Oradar_S2L_Get_Buffer(&lidar_shared_buffer[0] );
         distancia_izquierda = lidar_shared_buffer[90];
-        printf("dsitancia izquierda : %f\n", distancia_izquierda);*/
+        printf("distance left : %f\n", distancia_izquierda);*/
         usleep(1000);
     }
 
-    // Hiwonder: no hay REPL que interrumpir; main() apaga lidar, GPIO y placa.
+    // Hiwonder: there is no REPL to interrupt; main() shuts down lidar, GPIO and board.
     Spike_Coast_Motors();
     return NULL;
 }
 
-// Hiwonder: la capa lanza std::exception si la placa deja de responder o una
-// orden es inválida; aquí se para el robot y se pide el apagado en vez de
-// terminar el proceso con el motor andando.
+// Hiwonder: the board layer throws std::exception if the board stops responding or a
+// command is invalid; here the robot is stopped (motors coast) and shutdown is
+// requested instead of ending the process with the motor still running.
+// pthread entry point of the mission thread.
 void *Obstacle_Challenge_Thread(void *arg){
     try {
         return Obstacle_Challenge_Impl(arg);
@@ -1256,6 +1338,10 @@ void *Obstacle_Challenge_Thread(void *arg){
     }
 }
 
+// Drives towards the detected pillar: each loop runs one PD steering step that moves
+// the pillar's image x position (0..1) towards referencia_2. Stops when the box area
+// reaches `area` (normalised 0..1) or the detection confidence drops to 0.65 or below,
+// then coasts the motors. vel = drive speed (%).
 void Follow_cubes(int vel, float referencia_2, float area){
 
     while((terminating_main == 0) && (traffic_lights.area < area) && (traffic_lights.confidence > 0.65) ){
@@ -1263,7 +1349,7 @@ void Follow_cubes(int vel, float referencia_2, float area){
         usleep(1000);
         //printf("area : %f\n", traffic_lights.area);
     }
-    //printf("area : %f , confidencia: %f, terminating : %d\n", traffic_lights.area, traffic_lights.confidence, terminating_main );
+    //printf("area : %f , confidence: %f, terminating : %d\n", traffic_lights.area, traffic_lights.confidence, terminating_main );
     Spike_Coast_Motors();
 
 }
@@ -1306,12 +1392,18 @@ static float Line_Fit_Residual_Mm(const std::vector<cv::Point2f> &pts, const std
     return (float)sqrt(sum_sq / indices.size());
 }
 
-// Calculates the slope using only the two best walls found around middle_point: "best"
-// meaning the most points and the cleanest (lowest-residual) fit to a straight line, so
-// a noisy point, a stray outlier, or a corner artifact in the window doesn't skew the
-// result. The points themselves are no longer passed in - this fetches the current
-// lidar buffer and runs wall detection (gap + corner segmentation) over the requested
-// angular window itself, scoped to [middle_point - point, middle_point).
+// Selects the wall seen on one side of the robot from the current LiDAR scan. The best
+// wall segment is the one that passes the quality gates (enough points, enough length,
+// orientation matching that side, low line-fit residual) with the largest extent, using
+// the residual as a tiebreaker; the runner-up is merged into it only when the two are
+// collinear (one wall split by a dropout). A noisy point, a stray outlier or a corner
+// artifact in the window therefore does not skew the result. The function fetches the
+// LiDAR buffer itself and runs wall detection (despike, outlier removal, gap + corner
+// segmentation) over a window of `point` degrees centred on that side's reference angle.
+//   side   : right, left, front or behind (anything else returns found = false).
+//   return : WallSelection with the window points (mm, robot frame), the indices of the
+//            chosen wall and their LiDAR angles; found = false when no wall qualifies.
+//   side effect: updates the per-side wall tracker (mutex-protected, see below).
 
 static WallSelection Select_Wall(const direction side) {
     WallSelection result;
@@ -1319,7 +1411,7 @@ static WallSelection Select_Wall(const direction side) {
     // The window's center angle and width are fully determined by which side of the
     // robot we're looking at - callers just say which side, not raw lidar angles.
     int middle_point = 0;
-    // The Oradar's raw zero-reference sits 90deg off from the robot's actual front
+    // The LiDAR buffer's raw zero-reference sits 90deg off from the robot's actual front
     // (confirmed empirically: testing "right" lit up the wall the robot is squarely
     // facing). front/right are swapped from the naive 0/270 guess; left=180 and
     // behind=90 were already correct from an earlier empirical fix.
@@ -1685,6 +1777,9 @@ static WallSelection Select_Wall(const direction side) {
     return result;
 }
 
+// Orientation (deg, -90..90, in the LiDAR buffer's x/y frame) of the wall selected on
+// `side` by Select_Wall. A wall parallel to the robot's travel reads close to +-90 deg.
+// Returns 0 when no wall is found.
 float Slope(const direction side) {
     WallSelection sel = Select_Wall(side);
     if (!sel.found) return 0;
@@ -1694,6 +1789,7 @@ float Slope(const direction side) {
 // Perpendicular distance from the robot (origin) to the selected wall's fitted line -
 // not just the centroid's range, since the centroid can sit off to one side of the
 // perpendicular foot. Mirrors the highlighted-wall distance shown in the visualization.
+// Returns the distance in mm, or 0 when no wall is found on that side.
 float Distance_To_Wall(const direction side) {
     WallSelection sel = Select_Wall(side);
     if (!sel.found) return 0;
@@ -1711,7 +1807,8 @@ float Distance_To_Wall(const direction side) {
 
 /**
  * function name: Print_Slope
- * description: This function calculates the slope of the line formed by the points detected by the lidar
+ * description: Debug helper: computes the slope (deg) of the wall selected on `side`;
+ *              the printf that reported it is commented out.
  * return: void
  * parameters: direction side
  * side: which side of the robot to look at - right, left, front, or behind
@@ -1723,7 +1820,9 @@ void Print_Slope(const direction side){
 
 /**
  * function name: Follow_Wall
- * description: This function follows the wall maintaining an angle of 0 with respect to it
+ * description: Drives at speed 60 while the PD steering loop pushes the wall orientation
+ *              returned by Slope(side) towards 0 deg. Blocks until terminating_main is
+ *              set (Ctrl+C / shutdown).
  * return: void
  * parameters: direction side
  * side: which side of the robot to look at - right, left, front, or behind
@@ -1737,6 +1836,11 @@ void Follow_Wall(const direction side){
     }
 }
 
+// Older start-of-section geometry (used by avoid_cube_start_section; the current mission
+// uses the *_chr variants below). Returns atan(longitudinal / lateral) in deg, where
+// longitudinal = front-wall distance - cube_number_per_section (Cube_number value, mm)
+// and lateral = distance to a lane 185 mm from the left wall (green pillar) or from the
+// right wall of the 1000 mm wide section (red pillar). Returns 0 for any other colour.
 float calculte_angle_section_start_clockwise(Color_traffic_light traffic_light_color, Cube_number cube_number_per_section){
     float angle = 0;
     float angle_rad = 0;
@@ -1761,6 +1865,22 @@ float calculte_angle_section_start_clockwise(Color_traffic_light traffic_light_c
     return angle;
 }
 
+// Clockwise run: computes the heading change and straight-line distance needed to go
+// from the robot's current position to the lane that passes a pillar on the correct side
+// (green pillars on the left, red pillars on the right).
+//   traffic_light_color     : colour of the pillar to pass (light_green / light_red).
+//   cube_number_per_section : pillar row, as a distance in mm (Cube_number_chr):
+//                             CUBE_first  = 1000 mm from the rear wall,
+//                             CUBE_middle = 1450 mm from the rear wall,
+//                             CUBE_second = 1300 mm from the front wall.
+//   angle      [out]        : heading change from the section axis, deg (90 - atan(side_1/side_2)).
+//   hypotenuse [out]        : straight-line distance to the target point, mm.
+//   parking                 : true in the section that holds the parking lot; a green
+//                             pillar then uses a lane 400 mm from the left wall instead of 185 mm.
+// side_1 = longitudinal distance to the pillar row (mm); side_2 = lateral distance to the
+// target lane, measured from the left wall (outer wall in a clockwise run); the red-pillar
+// lane is 185 mm from the right wall of the 1000 mm wide section.
+// Blocks until the LiDAR reports a front wall (or terminating_main is set).
 void calculte_angle_section_start_clockwise_chr(Color_traffic_light traffic_light_color, Cube_number_chr cube_number_per_section, float *angle, float *hypotenuse, bool parking){
     float angle_rad = 0;
     float diStanceToFrontWallmm = 0;
@@ -1778,10 +1898,11 @@ void calculte_angle_section_start_clockwise_chr(Color_traffic_light traffic_ligh
     }
     Oradar_S2L_Get_Buffer(&lidar_shared_buffer[0]);
     diStanceToFrontWallmm = distance_to_wall_front_temp;
-        // Rear wall not confidently found this scan (e.g. out of range/no clean fit) -
-        // fall back to the field-length estimate instead of trusting a 0 reading.
+        // The rear distance is estimated from the field length (3000 mm) minus the front
+        // distance, instead of the rear-wall fit, which returns 0 when the rear wall is
+        // out of range or has no clean fit.
     distanceToBackWallmm = 3000 - distance_to_wall_front_temp;
-    diStanceToLeftWallmm = lidar_shared_buffer[180];
+    diStanceToLeftWallmm = lidar_shared_buffer[180]; // single raw ray at 180 = left
 
     //printf("atras: %f\n", distanceToBackWallmm);
 
@@ -1845,6 +1966,9 @@ void calculte_angle_section_start_clockwise_chr(Color_traffic_light traffic_ligh
     printf("distancia frente: %f, distancia atras: %f, distancia izquierda: %f, angle rad: %f\n", diStanceToFrontWallmm, distanceToBackWallmm, diStanceToLeftWallmm, angle_rad);
 }
 
+// Counter-clockwise version of calculte_angle_section_start_clockwise: same formula with
+// the lateral distance measured from the right wall. Returns the angle in deg (0 for any
+// other colour).
 float calculte_angle_section_start_counterclockwise(Color_traffic_light traffic_light_color, Cube_number cube_number_per_section){
     float angle = 0;
     float angle_rad = 0;
@@ -1867,6 +1991,10 @@ float calculte_angle_section_start_counterclockwise(Color_traffic_light traffic_
     return angle;
 }
 
+// Older pillar-avoidance routine (the current mission uses esquivar_cubos_*): turns
+// towards the passing side (green -> left, red -> right) by 90 - angle deg, drives until
+// the side or front wall is closer than 250 mm, then steers back the other way.
+// Blocks; moves the drive motor and the steering servo.
 void avoid_cube_start_section(Color_traffic_light traffic_light_color, Cube_number cube_number_per_section){
     float angle_to_wall = 0;
     direction direction_to_turn = invalid;
@@ -1905,6 +2033,13 @@ void avoid_cube_start_section(Color_traffic_light traffic_light_color, Cube_numb
     Spike_Coast_Motors();
 }
 
+// Clockwise run: passes the first pillar of a section (row CUBE_first, 1000 mm from the
+// rear wall) using the colour currently reported by the camera.
+// Sequence: turn by angle + 5 deg towards the passing side, drive hypotenuse - 400 mm
+// (hypotenuse - 200 mm for a green pillar in the parking section) holding that heading,
+// then steer back to heading 0 (parallel to the section).
+//   parking : true in the section that holds the parking lot.
+//   return  : colour of the pillar that was passed (none if the camera saw nothing).
 Color_traffic_light esquivar_cubos_1(bool parking){
     float angle_to_wall = 0;
     float hypotenuse = 0;
@@ -1943,6 +2078,16 @@ Color_traffic_light esquivar_cubos_1(bool parking){
     return cube;
 }
 
+// Clockwise run: handles the second pillar of a section (row CUBE_second, 1300 mm from
+// the front wall), given the colour of the pillar just passed.
+// A second pillar counts as present only when the camera reports a red/green pillar (not
+// a parking marker) whose normalised image x-position is below 0.5 (after a red pillar)
+// or 0.90 (after a green one). Same colour as before -> the robot is already on the right
+// side and drives straight to 1000 mm from the front wall (green in the parking section:
+// to 1500 mm, then a short S-shift to the left). Different colour -> crosses the lane with
+// a computed turn and Advance_For_distance_Especial, then steers back to heading 0.
+// No second pillar -> drives straight to 1000 mm from the front wall.
+//   return : colour of the second pillar if present, otherwise past_cube.
 Color_traffic_light esquivar_cubos_2( Color_traffic_light past_cube, bool parking){
     float angle_to_wall = 0;
     float hypotenuse = 0;
@@ -2021,7 +2166,7 @@ Color_traffic_light esquivar_cubos_2( Color_traffic_light past_cube, bool parkin
                 //usleep(10000000);
                 Spike_Turn_For_Degrees(direction_to_turn, 60, abs(angle_to_wall) - 5, 40);
                 Spike_Center_Vehicle_Short();
-                if((parking == false)){//el parking se utiliza aqui especialmente en el cubo rojo en la seccion de parking
+                if((parking == false)){// the parking flag matters here mainly for the red pillar in the parking section
                     Advance_For_distance_Especial(80, (int)hypotenuse - 250, (angle_to_wall*direction_to_turn*-1));
                 }
                 else{
@@ -2047,6 +2192,15 @@ Color_traffic_light esquivar_cubos_2( Color_traffic_light past_cube, bool parkin
     }
 }
 
+// Clockwise run: drives to 1000 mm from the front wall, checks the camera for a pillar in
+// the corner area and takes the right-hand corner turn (until |yaw| >= 86 deg).
+// The colour seen sets how close to the front wall the robot gets before turning:
+//   green after a red pillar -> 400 mm (600 mm when entering the parking section),
+//   red after a red pillar   -> 990 mm (turn almost immediately),
+//   anything else            -> 650 mm; no corner pillar, and *middle_cube is set to
+//                               false after a green pillar, true otherwise.
+//   middle_cube [out] : whether the next section is handled as a single middle pillar.
+//   return            : colour of the corner pillar, or none when there is none.
 Color_traffic_light Corner_Case(Color_traffic_light past_cube, bool *middle_cube, bool parking){
     bool is_corner_cube = true;
     printf("Case_corner\n");
@@ -2094,6 +2248,10 @@ Color_traffic_light Corner_Case(Color_traffic_light past_cube, bool *middle_cube
     }
 }
 
+// Clockwise run: passes a single pillar in the middle row (CUBE_middle, 1450 mm from the
+// rear wall): turn by angle + 3 deg, drive hypotenuse - 450 mm (red) or - 350 mm (green)
+// holding that heading, then steer back to heading 0.
+//   return : colour of the pillar that was passed.
 Color_traffic_light esquivar_cubos_middle(bool parking){
     float angle_to_wall = 0;
     float hypotenuse = 0;
@@ -2135,6 +2293,14 @@ Color_traffic_light esquivar_cubos_middle(bool parking){
     return cube;
 }
 
+// Clockwise run: handles one straight section after a corner.
+// First re-zeroes the gyro on the left (outer) wall: Slope(left) is close to +-90 deg when
+// the robot is parallel to it, so +-90 is removed to get the misalignment, and heading 0
+// becomes "parallel to the section". Then:
+//   past_cube == none and middle_cube -> one middle pillar (esquivar_cubos_middle),
+//   past_cube == none                 -> first and second pillars (esquivar_cubos_1 + _2),
+//   otherwise (pillar at the corner)  -> only the second pillar (esquivar_cubos_2).
+//   return : colour of the last pillar passed in the section.
 Color_traffic_light Desicion(Color_traffic_light past_cube, bool middle_cube, bool parking){
     //usleep(2000000);
     printf("Entro a decision\n");
@@ -2174,13 +2340,21 @@ Color_traffic_light Desicion(Color_traffic_light past_cube, bool middle_cube, bo
     return cubo_temp;
 }
 
+// Clockwise run: leaves the parking lot at the start of the Obstacle Challenge and passes
+// the first pillar. Reverses while steering left to 16 deg, then drives forward turning
+// right to 45 deg and waits up to 3 s for the camera to report a pillar.
+//   red   -> turn right to 90 deg, drive at heading -90 to 480 mm from the wall ahead,
+//            steer back to 0 and drive to 1050 mm from the front wall.
+//   green -> steer back left in two steps, a small S-shift to the left, then drive to
+//            1100 mm from the front wall.
+//   return : colour seen (none if no pillar was seen within 3 s).
 Color_traffic_light estacionamiento_clockwise(void){
     Spike_Turn_For_Degrees(left, -40, 16, 45, true);
     Spike_Center_Vehicle();
     Spike_Turn_For_Degrees(right, 60, 45, 40, true);
     usleep(300000);
 
-    Color_traffic_light cube = Esperar_Color_De_Cubo(3000); // Hiwonder: antes no salia nunca si no veia cubo
+    Color_traffic_light cube = Esperar_Color_De_Cubo(3000); // Hiwonder: the v6 wait never returned if no pillar was visible
 
     if(cube == light_red){
         Spike_Turn_For_Degrees(right, 60, 90, 40);
@@ -2203,15 +2377,16 @@ Color_traffic_light estacionamiento_clockwise(void){
     return cube;
 }
 
-// ===================== Contrapartes counterclockwise =====================
+// ===================== Counter-clockwise counterparts =====================
 
-// Igual a calculte_angle_section_start_clockwise_chr pero midiendo la pared
-// DERECHA en vez de la izquierda (giros/correccion de vuelta counterclockwise
-// van por el lado derecho). Verde sigue pasandose por su izquierda y rojo
-// por su derecha (regla fija), pero al medir ahora el lado derecho, el color
-// cuyo formula queda "directa" (mismo lado que se pasa == lado medido) es
-// rojo en vez de verde -- por eso rojo usa side_2 = derecha-185 y verde usa
-// el complemento 1000-derecha-185.
+// Same as calculte_angle_section_start_clockwise_chr but measuring the RIGHT wall
+// instead of the left one (in a counter-clockwise run the turns and the heading
+// correction use the right side, the outer wall). Green is still passed on its left and
+// red on its right (fixed rule), but since the right side is now measured, the colour
+// whose formula is "direct" (passing side == measured side) is red instead of green --
+// so red uses side_2 = right - 185 (right - 400 in the parking section) and green uses
+// the complement 1000 - right - 185.
+// Parameters and outputs as in the clockwise version.
 void calculte_angle_section_start_counterclockwise_chr(Color_traffic_light traffic_light_color, Cube_number_chr cube_number_per_section, float *angle, float *hypotenuse, bool parking){
     float angle_rad = 0;
     float diStanceToFrontWallmm = 0;
@@ -2239,10 +2414,11 @@ void calculte_angle_section_start_counterclockwise_chr(Color_traffic_light traff
     }
     Oradar_S2L_Get_Buffer(&lidar_shared_buffer[0]);
     diStanceToFrontWallmm = distance_to_wall_front_temp;
-        // Rear wall not confidently found this scan (e.g. out of range/no clean fit) -
-        // fall back to the field-length estimate instead of trusting a 0 reading.
+        // The rear distance is estimated from the field length (3000 mm) minus the front
+        // distance, instead of the rear-wall fit, which returns 0 when the rear wall is
+        // out of range or has no clean fit.
     distanceToBackWallmm = 3000 - distance_to_wall_front_temp;
-    diStanceToRightWallmm = lidar_shared_buffer[0];
+    diStanceToRightWallmm = lidar_shared_buffer[0]; // single raw ray at 0 = right
 
     if(cube_number_per_section == CUBE_first){
         side_1 = cube_number_per_section - distanceToBackWallmm;
@@ -2303,9 +2479,11 @@ void calculte_angle_section_start_counterclockwise_chr(Color_traffic_light traff
     //usleep(5000000);
 }
 
-// Estructuralmente identica a esquivar_cubos_1: el criterio verde->izquierda,
-// rojo->derecha para direction_to_turn no cambia (es la regla de trafico),
-// solo llama a la variante counterclockwise del calculo de angulo/hipotenusa.
+// Same structure as esquivar_cubos_1: the green -> left, red -> right rule for
+// direction_to_turn does not change (it is the traffic rule); it calls the
+// counter-clockwise angle/hypotenuse calculation, and the distance margin subtracted from
+// the hypotenuse scales with angle / 45 deg (400 mm, or 200 mm for a red pillar in the
+// parking section).
 Color_traffic_light esquivar_cubos_1_counterclockwise(bool parking){
     float angle_to_wall = 0;
     float hypotenuse = 0;
@@ -2341,8 +2519,12 @@ Color_traffic_light esquivar_cubos_1_counterclockwise(bool parking){
     return cube;
 }
 
-// Estructuralmente identica a esquivar_cubos_2, solo cambia la variante del
-// calculo de angulo/hipotenusa que se llama.
+// Counter-clockwise counterpart of esquivar_cubos_2, using the counter-clockwise
+// angle/hypotenuse calculation with margins scaled by angle / 45 deg. After a red pillar
+// any red/green detection counts as a second pillar (no image-position check); after a
+// green one the detection must be at normalised x > 0.5. Two reds in the parking section
+// end with a short S-shift to the right; a green -> red crossing in the parking section
+// ends with a short advance and the same S-shift.
 Color_traffic_light esquivar_cubos_2_counterclockwise( Color_traffic_light past_cube, bool parking){
     float angle_to_wall = 0;
     float hypotenuse = 0;
@@ -2352,7 +2534,7 @@ Color_traffic_light esquivar_cubos_2_counterclockwise( Color_traffic_light past_
     bool is_cube_present = false;
 
     if(past_cube == light_red){
-        if(/*(middle_point_x > 0.1) && *//* lo quite porque aveces no lo veia */(cube != none) && ( cube != light_xparking)){
+        if(/*(middle_point_x > 0.1) && *//* position check removed: the pillar was sometimes not detected there */(cube != none) && ( cube != light_xparking)){
             is_cube_present = true;
             if( past_cube == cube ){
                 if(parking == false){
@@ -2448,12 +2630,11 @@ Color_traffic_light esquivar_cubos_2_counterclockwise( Color_traffic_light past_
     }
 }
 
-// Igual a Corner_Case, salvo el giro de esquina al final: en una vuelta
-// counterclockwise las esquinas se toman hacia la izquierda en vez de hacia
-// la derecha (right -> left). Los umbrales de distancia por color dentro de
-// la funcion NO se tocaron -- no hay suficiente informacion geometrica para
-// saber si tambien deberian cambiar; probarlo en pista antes de confiar en
-// ellos tal cual.
+// Counter-clockwise counterpart of Corner_Case: the corner turn is taken to the left
+// instead of the right, and the colours are swapped: red after a green pillar -> stop at
+// 400 mm (600 mm entering the parking section), green after a green pillar -> 990 mm,
+// otherwise 650 mm with *middle_cube = false after a red pillar, true otherwise.
+// The distance thresholds are the same as in the clockwise version.
 Color_traffic_light Corner_Case_counterclockwise(Color_traffic_light past_cube, bool *middle_cube, bool parking){
     bool is_corner_cube = true;
     printf("Case_corner (ccw)\n");
@@ -2501,8 +2682,9 @@ Color_traffic_light Corner_Case_counterclockwise(Color_traffic_light past_cube, 
     }
 }
 
-// Estructuralmente identica a esquivar_cubos_middle, solo cambia la variante
-// del calculo de angulo/hipotenusa que se llama.
+// Counter-clockwise counterpart of esquivar_cubos_middle: uses the counter-clockwise
+// angle/hypotenuse calculation, turns by angle + 5 deg, and the margin is
+// 450 mm (green) or 350 mm (red) scaled by angle / 45 deg.
 Color_traffic_light esquivar_cubos_middle_counterclockwise(bool parking){
     float angle_to_wall = 0;
     float hypotenuse = 0;
@@ -2543,9 +2725,9 @@ Color_traffic_light esquivar_cubos_middle_counterclockwise(bool parking){
     return cube;
 }
 
-// Igual a Desicion, salvo que llama a las variantes _counterclockwise de las
-// funciones esquivar_cubos_* y usa Slope(right) en vez de Slope(left) -- la
-// correccion de rumbo en la vuelta counterclockwise va por el lidar derecho.
+// Same as Desicion, except that it calls the _counterclockwise variants of the
+// esquivar_cubos_* functions and uses Slope(right) instead of Slope(left) -- in a
+// counter-clockwise run the heading correction uses the right (outer) LiDAR side.
 Color_traffic_light Desicion_counterclockwise(Color_traffic_light past_cube, bool middle_cube, bool parking){
 
     printf("Entro a decision (ccw)\n");
@@ -2583,22 +2765,25 @@ Color_traffic_light Desicion_counterclockwise(Color_traffic_light past_cube, boo
     return cubo_temp;
 }
 
-// Espejo completo de estacionamiento_clockwise: a diferencia de las funciones
-// de arriba, esta es una secuencia de giros fija/afinada a mano para la
-// geometria fisica del cajon de estacionamiento, no una formula derivada del
-// lidar -- por eso aqui SI se espeja cada giro (left<->right) y cada angulo
-// de referencia con signo (-90 -> 90), en vez de solo intercambiar
-// verde/rojo. Que color dispara cada rama NO cambia (sigue siendo la regla
-// fija verde-izquierda/rojo-derecha); lo que cambia es la forma espejada de
-// cada maniobra. Es la funcion con mas incertidumbre de todo este grupo --
-// probarla en pista antes de confiar en ella.
+// Counter-clockwise counterpart of estacionamiento_clockwise (leaving the parking lot
+// at the start of the run). Unlike the functions above, this is a fixed sequence of
+// turns tuned by hand for the physical geometry of the parking lot, not a formula
+// derived from the LiDAR. The first two moves mirror the clockwise version
+// (left <-> right); the colour branches are their own hand-tuned sequences:
+//   red   -> steer right back to 35 deg and then to 0 deg.
+//   green -> turn left to 120 deg, steer right back to 0, drive to 800 mm from the
+//            front wall, then reverse 600 hub degrees.
+//   none  -> same moves as the red branch.
+// The colour that triggers each branch follows the fixed rule (green passed on the
+// left, red on the right).
+//   return : colour seen (none if no pillar was seen within 3 s).
 Color_traffic_light estacionamiento_counterclockwise(void){
     Spike_Turn_For_Degrees(right, -40, 16, 45, true);
     Spike_Center_Vehicle();
     Spike_Turn_For_Degrees(left, 45, 45, 40, true);
     //(usleep(1500000);
 
-    Color_traffic_light cube = Esperar_Color_De_Cubo(3000); // Hiwonder: antes no salia nunca si no veia cubo
+    Color_traffic_light cube = Esperar_Color_De_Cubo(3000); // Hiwonder: the v6 wait never returned if no pillar was visible
     if(cube == light_red){
         printf("vio rojo\n");
         Spike_Small_Turn(right, 60, 35, 15,true);
@@ -2631,11 +2816,16 @@ Color_traffic_light estacionamiento_counterclockwise(void){
     return cube;
 }
 
-// Hiwonder: ag() del hub vigilando el lidar. El rayo que apunta en la
-// dirección del avance (270 - reference, con el rumbo de la misión) corta el
-// movimiento si baja de 370 mm: la hipotenusa calculada era demasiado larga.
-// Diferencia con el original: un 0 en ese grado (sin lectura) ya no cuenta
-// como "menos de 370 mm" y no aborta el avance.
+// Hiwonder: the hub's ag() (drive a distance holding a heading) while watching the
+// LiDAR. The ray at buffer index 270 - reference (270 = robot front, offset by the
+// mission heading reference) stops the move when it reads 370 mm or less: the computed
+// hypotenuse was too long and the robot is already close to the wall/pillar ahead.
+// Difference from the v6 code: a 0 at that index (no reading) no longer counts as
+// "below 370 mm" and does not abort the move.
+//   speed     : drive speed in hub units (%), negative = reverse.
+//   distance  : distance to drive, mm (converted to hub degrees with kMmPorGradoSpike).
+//   reference : heading to hold, deg (gyro frame, positive = left).
+// Blocks until the distance is covered or the LiDAR stop triggers; ends holding the motor.
 void Advance_For_distance_Especial(int speed, int distance, int reference){
     const int indice = (((270 - reference) % 360) + 360) % 360;
     float lidar_shared_buffer[360];
@@ -2652,6 +2842,9 @@ void Advance_For_distance_Especial(int speed, int distance, int reference){
     Spike_Hold_Motors();
 }
 
+// SIGINT (Ctrl+C) handler: sets terminating_main so every mission/LiDAR loop exits and
+// the shutdown path runs, then restores the default handler so a second Ctrl+C kills
+// the process immediately.
 void signal_handler(int signum){
     printf("\nCtrl+C detceted\n");
     terminating_main = 1;

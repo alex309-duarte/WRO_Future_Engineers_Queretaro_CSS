@@ -1,20 +1,22 @@
 #ifndef LIDAR_DISPLAY_H
 #define LIDAR_DISPLAY_H
 
-// Ventana "Lidar Coordinates" (OpenCV) para ver el lidar por VNC, como la de
-// object_detection_original_h10: puntos en mm, paredes segmentadas y, por
-// lado, la pared que detecta Oradar_S2L_Wall_Slope con su distancia y grados.
-// Sólo lee: no cambia lo que hace el robot.
+// Open Challenge debug view: "Lidar Coordinates" OpenCV window, viewed over
+// VNC, like the one of the Obstacle Challenge program (object_detection_h10):
+// lidar points in mm, segmented walls and, for each side, the wall found by
+// Oradar_S2L_Wall_Slope with its distance and angle.
+// Read-only: it does not change what the robot does.
 
-// false (con un aviso) si no hay DISPLAY: así el servicio de arranque y
-// "sudo" siguen corriendo sin ventana.
+// Returns false (with a warning) if there is no DISPLAY, so the boot service
+// and "sudo" runs keep working without a window.
 bool Lidar_Display_Available(void);
-// Dibuja la ventana hasta que *terminado deje de ser 0. Llamar desde el hilo
-// principal: el backend Qt de OpenCV no admite la ventana en otro hilo. Si la
-// ventana falla, avisa y espera igual, sin parar el recorrido.
+// Draws the window until *terminado becomes non-zero. Must be called from the
+// main thread: the OpenCV Qt backend does not support the window in another
+// thread. If the window fails, it prints a warning and keeps waiting, without
+// stopping the run.
 void Lidar_Display_Loop(volatile int *terminado);
-// Muestra el yaw del giroscopio de la placa. Llamar sólo después de que
-// Spike_Hiwonder_Init() funcione: antes, la placa puede no existir todavía.
+// Enables the display of the board gyro yaw. Call only after
+// Spike_Hiwonder_Init() succeeds: before that, the board may not exist yet.
 void Lidar_Display_Enable_Gyro(void);
 
 #endif // LIDAR_DISPLAY_H

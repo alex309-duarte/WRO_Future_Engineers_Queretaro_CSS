@@ -1,3 +1,7 @@
+# Open Challenge program (my_lidar_app) for the Raspberry Pi 5: RPLidar S2L +
+# Hiwonder controller board. Build with `make`, run the offline tests with
+# `make test`.
+
 # compiler
 CXX = g++
 
@@ -7,17 +11,17 @@ ORADAR_SDK_BUILD_DIR = $(ORADAR_SDK_DIR)/build
 ORADAR_SDK_LIB = $(ORADAR_SDK_BUILD_DIR)/liboradar_sdk.a
 ORADAR_INCLUDES = -I$(ORADAR_SDK_DIR) -I$(ORADAR_SDK_DIR)/src
 
-# Placa Hiwonder (rama reto1-hiwonder): spike_hiwonder.cpp y spike_compat
-# implementan la API SPIKE del equipo sobre la libreria hiwonder_brick, copiada
-# en ./hiwonder. spike.cpp (driver del REPL del hub) ya no se compila.
+# Hiwonder board (branch reto1-hiwonder): spike_hiwonder.cpp and spike_compat
+# implement the team's SPIKE API on top of the hiwonder_brick library, copied
+# into ./hiwonder. spike.cpp (design v6 LEGO SPIKE hub REPL driver) is no longer compiled.
 HIWONDER_DIR = ./hiwonder
 HIWONDER_SRCS = spike_hiwonder.cpp parada_emergencia.cpp $(HIWONDER_DIR)/src/hiwonder_brick.cpp spike_compat.cpp
-# La calibracion vive en headers: sin esto, make no recompila al cambiarla.
+# The calibration lives in headers: listing them makes `make` rebuild when it changes.
 HIWONDER_HEADERS = spike.h hiwonder_config.h parada_emergencia.h $(wildcard $(HIWONDER_DIR)/include/*/*)
 
-# Lidar del robot: RPLIDAR_S2L (por defecto) u ORADAR (MS200).
+# Robot LiDAR: RPLIDAR_S2L (default, design v7) or ORADAR (MS200, design v6).
 #   make WRO_LIDAR=ORADAR
-# La orientacion del S2L se ajusta con LIDAR_FLAGS, p. ej.
+# The S2L mounting orientation is set with LIDAR_FLAGS, e.g.
 #   make LIDAR_FLAGS="-DRPLIDAR_FRONT_DEG=180"
 WRO_LIDAR ?= RPLIDAR_S2L
 RPLIDAR_SDK_DIR ?= $(HOME)/rplidar_sdk
@@ -37,7 +41,7 @@ endif
 CXXFLAGS = -O3 -Wall -std=gnu++17 $(LIDAR_INCLUDES) -I$(HIWONDER_DIR)/include -DWRO_LIDAR_$(WRO_LIDAR) $(LIDAR_FLAGS)
 LDFLAGS = -lpthread -lgpiod
 
-# Ventana del lidar (lidar_display.cpp, se apaga con --no-display): OpenCV.
+# LiDAR visualisation window (lidar_display.cpp, disabled with --no-display) needs OpenCV.
 OPENCV_CFLAGS = $(shell pkg-config --cflags opencv4)
 OPENCV_LIBS = $(shell pkg-config --libs opencv4)
 
@@ -49,7 +53,7 @@ SDK_DEP = $(LIDAR_LIB)
 
 all: $(TARGET)
 
-# Recompila al cambiar WRO_LIDAR o LIDAR_FLAGS.
+# Stamp file: forces a rebuild when WRO_LIDAR or LIDAR_FLAGS change.
 LIDAR_STAMP = .lidar_$(WRO_LIDAR)$(subst =,_,$(subst -D,,$(subst $() ,,$(LIDAR_FLAGS))))
 $(LIDAR_STAMP):
 		rm -f .lidar_*
@@ -65,7 +69,7 @@ $(TARGET): $(SRCS) $(HIWONDER_HEADERS) Oradar_S2L.h lidar_display.h $(SDK_DEP) $
 clean:
 		rm -f $(TARGET) $(TEST_BIN) .lidar_*
 
-# Pruebas offline del adaptador contra una placa falsa (no abren el puerto).
+# Offline tests of the SPIKE adapter against a fake board (no serial port is opened).
 TEST_BIN = tests/spike_hiwonder_test
 TEST_SRCS = tests/spike_hiwonder_test.cpp tests/fake_brick.cpp spike_hiwonder.cpp spike_compat.cpp
 

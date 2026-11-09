@@ -1,3 +1,7 @@
+// Detection helpers: the colour palette, conversion of normalised boxes to
+// pixels, drawing of boxes and labels, and parsing of the Hailo NMS output
+// buffer into NamedBbox detections (declared in utils.hpp).
+
 #include "utils.hpp"
 #include "toolbox.hpp"
 #include "labels/coco_eighty.hpp"
@@ -23,12 +27,14 @@ std::vector<cv::Scalar> COLORS = {
 };
 
 
+// Assigns a palette colour to class ids 0..80 (cycling through COLORS).
 void initialize_class_colors(std::unordered_map<int, cv::Scalar>& class_colors) {
     for (int cls = 0; cls <= 80; ++cls) {
         class_colors[cls] = COLORS[cls % COLORS.size()];
     }
 }
 
+// Converts a normalised (0..1) box to a pixel rectangle for the given frame size.
 cv::Rect get_bbox_coordinates(const hailo_bbox_float32_t& bbox, int frame_width, int frame_height) {
     int x1 = static_cast<int>(bbox.x_min * frame_width);
     int y1 = static_cast<int>(bbox.y_min * frame_height);
@@ -37,6 +43,7 @@ cv::Rect get_bbox_coordinates(const hailo_bbox_float32_t& bbox, int frame_width,
     return cv::Rect(cv::Point(x1, y1), cv::Point(x2, y2));
 }
 
+// Draws label as black text on a filled box of the given colour at top_left.
 void draw_label(cv::Mat& frame, const std::string& label, const cv::Point& top_left, const cv::Scalar& color) {
     int baseLine = 0;
     cv::Size label_size = cv::getTextSize(label, cv::FONT_HERSHEY_TRIPLEX, 0.6, 1, &baseLine);
@@ -46,6 +53,7 @@ void draw_label(cv::Mat& frame, const std::string& label, const cv::Point& top_l
     cv::putText(frame, label, cv::Point(top_left.x, top), cv::FONT_HERSHEY_TRIPLEX, 0.6, cv::Scalar(0, 0, 0), 1);
 }
 
+// Draws one box with a "<class name> <score>%" label (names from coco_eighty).
 void draw_single_bbox(cv::Mat& frame, const NamedBbox& named_bbox, const cv::Scalar& color) {
     auto bbox_rect = get_bbox_coordinates(named_bbox.bbox, frame.cols, frame.rows);
     cv::rectangle(frame, bbox_rect, color, 2);
@@ -56,6 +64,8 @@ void draw_single_bbox(cv::Mat& frame, const NamedBbox& named_bbox, const cv::Sca
     draw_label(frame, label, bbox_rect.tl(), color);
 }
 
+// Draws up to vis.max_boxes_to_draw boxes (all if 0) whose score reaches
+// vis.score_thresh, coloured by class id.
 void draw_bounding_boxes(cv::Mat &frame,
                          const std::vector<NamedBbox> &bboxes,
                          const VisualizationParams &vis)
@@ -84,6 +94,9 @@ void draw_bounding_boxes(cv::Mat &frame,
 }
 
 
+// Parses the Hailo NMS output buffer: for each class, a float detection count
+// followed by that many hailo_bbox_float32_t boxes. Class ids are stored
+// 1-based (class_id + 1).
 std::vector<NamedBbox> parse_nms_data(uint8_t* data, size_t max_class_count) {
     std::vector<NamedBbox> bboxes;
     size_t offset = 0;

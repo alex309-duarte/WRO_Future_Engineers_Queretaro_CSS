@@ -12,15 +12,19 @@
 #include <unordered_map>
 #include <vector>
 
-// Dibujo y segmentacion copiados de postprocess_callback en
-// object_detection_original_h10/object_detection.cpp. La pared de cada lado
-// sale de Oradar_S2L_Get_Wall_Info: es la que usa este programa, no la del
-// reto 2.
+// Open Challenge lidar viewer (see lidar_display.h). Drawing and
+// segmentation are copied from postprocess_callback in the Obstacle
+// Challenge program (object_detection_original_h10/object_detection.cpp).
+// The wall shown for each side comes from Oradar_S2L_Get_Wall_Info: it is the
+// one this program uses, not the Obstacle Challenge one.
 
-static volatile int display_gyro_enabled = 0;
+static volatile int display_gyro_enabled = 0;  // set by Lidar_Display_Enable_Gyro()
 
-// Divide un segmento en su punto de maxima desviacion (Iterative End-Point
-// Fit): separa dos paredes que se tocan en una esquina sin hueco de distancia.
+// Recursively splits a segment at its point of maximum deviation from the
+// line joining its end points (Iterative End-Point Fit): separates two walls
+// that meet at a corner without a distance gap. threshold_mm: minimum
+// deviation to split; corner_margin_points: points dropped on each side of
+// the corner. Appends the resulting segments to out_segments.
 static void split_segment_at_corners(const std::vector<cv::Point2f> &points_mm,
                                      const std::vector<int> &indices,
                                      float threshold_mm,
@@ -62,15 +66,18 @@ static void split_segment_at_corners(const std::vector<cv::Point2f> &points_mm,
     }
 }
 
-// El buffer esta en la orientacion del Oradar (derecha=0, atras=90,
-// izquierda=180, frente=270) y se dibuja con el indice 0 hacia +x y la y de
-// la imagen hacia abajo: el frente queda arriba. Los puntos de
-// Oradar_S2L_Get_Wall_Info vienen en el sistema "RP" (0=frente, 90=derecha),
-// que es el mismo girado +270: (x, y) RP -> (y, -x) aqui.
+// The buffer uses the shared buffer layout (right=0, back=90, left=180,
+// front=270) and is drawn with index 0 towards +x and the image y axis
+// pointing down, so the front of the robot is at the top. The points of
+// Oradar_S2L_Get_Wall_Info are in the "RP" frame (0=front, 90=right), which
+// is the same frame rotated by +270 deg: (x, y) RP -> (y, -x) here.
 static cv::Point2f rp_to_canvas_mm(float x_mm, float y_mm) {
     return cv::Point2f(y_mm, -x_mm);
 }
 
+// Draws one full scan on the square canvas: mm grid, raw points coloured by
+// wall segment, the wall picked for each side with its distance/angle, the
+// board yaw and the scan counter.
 static void draw_scan(cv::Mat &lidar_canvas, unsigned long scan_seq) {
     const int canvas_size = lidar_canvas.rows;
     const float lidar_scale = 0.15f; // pixels per mm
@@ -80,7 +87,7 @@ static void draw_scan(cv::Mat &lidar_canvas, unsigned long scan_seq) {
     const cv::Scalar grid_color(180, 180, 180);
     const cv::Scalar axis_color(60, 60, 60);
 
-    // Cuadricula cada grid_spacing_mm, con etiquetas en mm
+    // Grid every grid_spacing_mm, labelled in mm
     int max_offset_mm = (int)((canvas_size / 2) / lidar_scale);
     for (int offset_mm = grid_spacing_mm; offset_mm <= max_offset_mm; offset_mm += grid_spacing_mm) {
         int offset_px = (int)(offset_mm * lidar_scale);
@@ -99,7 +106,7 @@ static void draw_scan(cv::Mat &lidar_canvas, unsigned long scan_seq) {
     cv::line(lidar_canvas, cv::Point(origin.x, 0), cv::Point(origin.x, canvas_size), axis_color, 1);
     cv::line(lidar_canvas, cv::Point(0, origin.y), cv::Point(canvas_size, origin.y), axis_color, 1);
 
-    // Direccion 0 del buffer (indice 0, hacia +x)
+    // Buffer direction 0 (index 0, towards +x = robot right side)
     const cv::Scalar zero_deg_color(0, 0, 255); // red
     cv::line(lidar_canvas, origin, cv::Point(canvas_size, origin.y), zero_deg_color, 2);
     cv::putText(lidar_canvas, "0deg", cv::Point(canvas_size - 60, origin.y - 8),
@@ -122,8 +129,8 @@ static void draw_scan(cv::Mat &lidar_canvas, unsigned long scan_seq) {
         point_angle_deg.push_back((float)angle);
     }
 
-    // Radius Outlier Removal: un punto con menos de ror_min_neighbors vecinos
-    // a ror_radius_mm es ruido.
+    // Radius Outlier Removal: a point with fewer than ror_min_neighbors
+    // neighbours within ror_radius_mm is treated as noise.
     const float ror_radius_mm = 100.0f;
     const int   ror_min_neighbors = 10;
     std::vector<bool> is_outlier(points_mm.size(), false);
@@ -139,8 +146,10 @@ static void draw_scan(cv::Mat &lidar_canvas, unsigned long scan_seq) {
         is_outlier[i] = (neighbor_count < ror_min_neighbors);
     }
 
-    // Adaptive Breakpoint Detector (Borges & Aldon): un hueco mayor que el
-    // esperado entre dos retornos de la misma superficie empieza otra pared.
+    // Adaptive Breakpoint Detector (Borges & Aldon): a gap larger than the
+    // one expected between two returns of the same surface starts a new wall.
+    // The allowed gap d_max grows with the range r and the angular step dphi
+    // (lambda = 10 deg incidence limit, sigma_r = 10 mm range noise).
     const float bpd_lambda_deg = 10.0f;
     const float bpd_sigma_r_mm = 10.0f;
     const float lambda_rad = Oradar_S2L_Degrees_To_Radians(bpd_lambda_deg);
@@ -165,7 +174,7 @@ static void draw_scan(cv::Mat &lidar_canvas, unsigned long scan_seq) {
         prev_inlier_idx = (int)i;
     }
 
-    // 359 y 0 son vecinos: unir el primer y el ultimo segmento si son la misma pared
+    // 359 and 0 are neighbours: join the first and last segments if they are the same wall
     if (next_segment_id > 0) {
         int first_inlier = -1, last_inlier = -1;
         for (size_t i = 0; i < points_mm.size(); i++) {
@@ -191,7 +200,7 @@ static void draw_scan(cv::Mat &lidar_canvas, unsigned long scan_seq) {
         }
     }
 
-    // Partir ademas en las esquinas (cambio de orientacion sin hueco)
+    // Also split at corners (change of orientation without a gap)
     const float corner_split_threshold_mm = 40.0f;
     const int   corner_margin_points = 2;
     {
@@ -199,7 +208,7 @@ static void draw_scan(cv::Mat &lidar_canvas, unsigned long scan_seq) {
         for (size_t i = 0; i < segment_id.size(); i++) {
             if (segment_id[i] >= 0) {
                 segments_by_id[segment_id[i]].push_back((int)i);
-                segment_id[i] = -1; // los puntos junto a una esquina quedan sin clasificar
+                segment_id[i] = -1; // points next to a corner stay unclassified
             }
         }
         std::vector<std::vector<int>> split_segments;
@@ -213,7 +222,7 @@ static void draw_scan(cv::Mat &lidar_canvas, unsigned long scan_seq) {
         }
     }
 
-    // Solo los max_walls segmentos mas grandes cuentan como paredes
+    // Only the max_walls largest segments count as walls
     const int max_walls = 8;
     std::unordered_map<int, int> segment_counts;
     for (size_t i = 0; i < segment_id.size(); i++) {
@@ -235,8 +244,8 @@ static void draw_scan(cv::Mat &lidar_canvas, unsigned long scan_seq) {
         candidate_centroid[c] = sum * (1.0f / std::max(count, 1));
     }
 
-    // Asignar colores por centroide mas cercano al barrido anterior, para que
-    // una pared no cambie de color de un barrido a otro.
+    // Assign colours by nearest centroid to the previous scan (greedy
+    // matching), so that a wall keeps its colour from one scan to the next.
     struct WallTrack { bool valid; cv::Point2f centroid; };
     static std::vector<WallTrack> wall_tracks(max_walls, WallTrack{false, cv::Point2f(0, 0)});
     const float wall_track_max_match_mm = 400.0f;
@@ -304,8 +313,9 @@ static void draw_scan(cv::Mat &lidar_canvas, unsigned long scan_seq) {
         }
     }
 
-    // La pared de cada lado segun Oradar_S2L_Wall_Slope, con su distancia
-    // perpendicular y su orientacion (Wall_Slope devuelve 10 veces los grados).
+    // The wall of each side according to Oradar_S2L_Wall_Slope, with its
+    // perpendicular distance and its orientation (Wall_Slope returns 10 times
+    // the angle in degrees).
     struct SideHighlight { int middle_point; const char *label; cv::Scalar color; };
     static const std::vector<SideHighlight> sides_to_highlight = {
         { FRONT, "front",  cv::Scalar(0, 0, 255) },    // red
@@ -328,9 +338,9 @@ static void draw_scan(cv::Mat &lidar_canvas, unsigned long scan_seq) {
             cv::Point2f c = rp_to_canvas_mm(wall.centroid_x_mm, wall.centroid_y_mm);
             cv::Point text_pos = origin + cv::Point((int)(c.x * lidar_scale) + 10,
                                                     (int)(c.y * lidar_scale) - 10);
-            // Izquierda/derecha: los mismos grados que Wall_Slope / 10. Frente y
-            // atras corren a 90: se muestra cuanto se desvian, para que el mismo
-            // giro del robot lea igual en los cuatro lados.
+            // Left/right: the same degrees as Wall_Slope / 10. Front and back
+            // walls run at 90 deg: their deviation from 90 is shown, so the same
+            // robot rotation reads the same on all four sides.
             float tilt_deg = wall.orientation_deg;
             if (sh.middle_point == FRONT || sh.middle_point == BACK) {
                 tilt_deg -= 90.0f;
@@ -341,13 +351,13 @@ static void draw_scan(cv::Mat &lidar_canvas, unsigned long scan_seq) {
         } else {
             snprintf(dist_text, sizeof(dist_text), "%s: sin pared", sh.label);
         }
-        // Resumen en la esquina, para leerlo aunque la etiqueta quede fuera
+        // Summary in the corner, readable even if the label is off-canvas
         cv::putText(lidar_canvas, dist_text, cv::Point(10, 25 + 22 * text_row++),
                     cv::FONT_HERSHEY_SIMPLEX, 0.6, sh.color, 2);
     }
 
-    // Abajo, el yaw de la placa: el mismo que usan los giros y el PD de rumbo
-    // (Spike_Print_Gyro lo imprime en decigrados).
+    // At the bottom, the board yaw: the same one used by the turns and the
+    // heading PD controller (Spike_Print_Gyro prints it in tenths of a degree).
     char gyro_text[48];
     if (display_gyro_enabled) {
         try {
@@ -371,6 +381,7 @@ static void draw_scan(cv::Mat &lidar_canvas, unsigned long scan_seq) {
                 cv::FONT_HERSHEY_PLAIN, 1.2, axis_color, 1);
 }
 
+// See lidar_display.h.
 bool Lidar_Display_Available(void) {
     const char *display = std::getenv("DISPLAY");
     if (display == nullptr || *display == '\0') {
@@ -381,8 +392,9 @@ bool Lidar_Display_Available(void) {
     return true;
 }
 
-// Un fallo de la ventana (p. ej. sin permiso para el servidor X con sudo)
-// sólo cierra la ventana; el recorrido sigue en su hilo.
+// Redraws only when a new scan has arrived (scan sequence changed); polls
+// the window every 30 ms. A window failure (e.g. no permission for the X
+// server under sudo) only closes the window; the run continues in its thread.
 void Lidar_Display_Loop(volatile int *terminado) {
     const char *window = "Lidar Coordinates";
     try {
