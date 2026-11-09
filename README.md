@@ -1691,7 +1691,7 @@ See the [assembly guide](other/Assembly_photos/Assembly_Process_EN.md) for all t
 ### Obstacle Challenge
 *(Click on preview to visit YouTube Video)*
 
-[![Obstacle Challenge](https://img.youtube.com/vi/b2bn9Eo9FxU/maxresdefault.jpg)](https://www.youtube.com/shorts/b2bn9Eo9FxU)
+[![Obstacle Challenge](https://img.youtube.com/vi/g_2ZrS4TVyc/maxresdefault.jpg)](https://www.youtube.com/shorts/g_2ZrS4TVyc)
 
 ### 2026 Mexico National Final: official rounds
 
