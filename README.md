@@ -131,7 +131,7 @@ The vehicle must complete three laps on the track with random placements of the 
 ### Obstacle Challenge
 The vehicle must complete three laps on the track while detecting and avoiding randomly placed coloured obstacles (either green or red blocks), passing them on a specific side according to their colour, and then finish by performing a parallel parking maneuver.
 
-More info: [WRO Official Site](https://wro-association.org/) | [Future Engineers Rules](other/WRO-2026-FE_GeneralRules.pdf)
+More info: [WRO Official Site](https://wro-association.org/) | [Future Engineers Rules](https://wro-association.org/wp-content/uploads/WRO-2026-Future-Engineers-Self-Driving-Cars-General-Rules.pdf) (copy in [`other/`](other/WRO-2026-FE_GeneralRules.pdf)) | [Documentation rubric](other/WRO-2026-FE_DocumentationRubric.pdf) | [Playfield](other/WRO-2026-FE_Playfield.pdf)
 
 ---
 ## 3. Our Robot: design v7 at a glance <a id="our-robot"></a>
@@ -200,7 +200,7 @@ The robot has gone through seven designs across two seasons (see [§7.4](#lesson
 |---|---|---|---|
 | Motor controller | LEGO SPIKE Prime Hub | Hiwonder ROS Robot Control Board (STM32F407), firmware `pos-v8` | [D1](#d1) |
 | Drive motor | LEGO SPIKE Large Angular Motor (45602), 175 rpm no-load | Hiwonder JGB37-520 Hall-encoder DC gear motor, 30:1, 12 V, 320 rpm no-load | [D2](#d2) |
-| Rear axle | Solid axle | Axle with differential | [D9](#d9) |
+| Rear differential | v6 differential | New differential (LEGO 65414 housing + 65413 28T gear in a custom mount), same 20:28 ratio | [D9](#d9) |
 | Steering actuator | LEGO SPIKE Small Angular Motor (45607) | Hiwonder HX-35H serial bus servo (35 kg·cm) | [D3](#d3) |
 | Heading (IMU) | SPIKE Hub built-in IMU | IMU on the Hiwonder board (20 Hz) | [D1](#d1) |
 | Battery | 4× Panasonic NCR18650B + Geekworm X1203 UPS | 3× Panasonic NCR18650B in series (3S, 10.8 V nominal) with a 3S BMS | [D10](#d10) |
@@ -239,6 +239,18 @@ The v7 chassis is a modification of the v6 design, modeled in SolidWorks. It was
 <img src="v-photos/Isometric_v7.JPG" alt="Isometric view of design v7" width="800">
 
 *Figure 4. Isometric view of design v7: Hiwonder controller at the front, RPLidar S2L in the centre, camera mast and JGB37 drive motor at the rear. The SolidWorks assembly is in [`models/cad/v7_assembly/`](models/cad/v7_assembly).*
+
+**CAD views of design v7.** Only one tyre is drawn, for reference: the tyres are LEGO parts, not printed.
+
+| Side | Opposite side |
+|---|---|
+| <img src="other/additionalMedia/Others/cad_v7_side_a.png" alt="Design v7 CAD side view" width="420"> | <img src="other/additionalMedia/Others/cad_v7_side_b.png" alt="Design v7 CAD side view, opposite side" width="420"> |
+| **Front** | **Rear** |
+| <img src="other/additionalMedia/Others/cad_v7_front.png" alt="Design v7 CAD front view" width="420"> | <img src="other/additionalMedia/Others/cad_v7_rear.png" alt="Design v7 CAD rear view" width="420"> |
+| **Top** | **Isometric** |
+| <img src="other/additionalMedia/Others/cad_v7_top.png" alt="Design v7 CAD top view" width="420"> | <img src="other/additionalMedia/Others/cad_v7_isometric.png" alt="Design v7 CAD isometric view" width="420"> |
+
+*Figure 4b. Design v7 in SolidWorks. Side views: steering servo, Hiwonder board and front wheel on one end; camera mast, drive motor and differential on the other; the RPLidar S2L in the middle, its scanning plane about 75 mm above the ground; the Raspberry Pi and the 3S pack below it. Top view: Ackermann linkage with the wheel at full lock.*
 
 <details>
 <summary><b>Design v6 (national) chassis</b></summary>
@@ -287,7 +299,7 @@ After weighing both options, the team concluded that the regular Ackermann's sli
 | **What for** | Fast steering response (0.18 s/60° at 11.1 V) directly from battery voltage, with position feedback at start-up. |
 | **Alternatives** | A PWM hobby servo (no position feedback, needs a separate PWM output); keeping a LEGO motor through an adapter. |
 
-| HX-35H specification (Hiwonder) | Value |
+| HX-35H specification ([Hiwonder](https://www.hiwonder.com/products/hx-35h)) | Value |
 |---|---|
 | Operating voltage | 9–12.6 V |
 | Stall torque | 35 kg·cm at 11.1 V |
@@ -305,13 +317,13 @@ After weighing both options, the team concluded that the regular Ackermann's sli
 | | |
 |---|---|
 | **What** | The LEGO SPIKE Large Angular Motor was replaced by a **Hiwonder JGB37-520 Hall-encoder DC gear motor** (30:1, 12 V, 320 rpm no-load). |
-| **Why** | The v6 motor reached a loaded top speed of only **0.365 m/s** (calculation below). With a 3-minute round limit and the same mission, a faster drivetrain gives margin for slower, more careful manoeuvres where they matter. The encoder also gives the board closed-loop speed and distance control. **PENDING:** confirm, and add the v6 lap time that motivated the change. |
+| **Why** | The v6 motor reached a loaded top speed of only **0.365 m/s** (calculation below). With a 3-minute round limit and the same mission, a faster drivetrain gives margin for slower, more careful manoeuvres where they matter. The SPIKE motor was too slow for the level we expect at the international final, where every team is the best of its country, so v7 needed a faster drive motor. Its encoder also gives the board closed-loop speed and distance control. |
 | **When** | Design v7, October 2026. |
 | **How** | The board runs closed-loop speed and position control using the encoder: 11 pulses per motor revolution × 30:1 gearbox × 4 (quadrature) = **1320 counts per output revolution**, which matches the 1320 ticks/rev we measured. `speed = 100` in the mission code maps to `kRpsVelocidad100`; the environment variable `WRO_MAX_RPS` lowers it for first tests without recompiling. |
 | **What for** | Calculated loaded top speed **0.62 m/s at 10.8 V**, about **1.7×** the v6 robot (calculation below). |
-| **Alternatives** | Other JGB37 ratios (higher speed, less torque); keeping the LEGO motor. **PENDING.** |
+| **Alternatives** | Other JGB37 ratios (higher speed, less torque); other DC encoder motors; keeping the LEGO motor. We chose the Hiwonder JGB37 because we already had a similar Hiwonder motor and were familiar with it, and its speed and torque cover our needs with margin (calculation below). |
 
-| JGB37-520R30-12V specification (Hiwonder) | Value |
+| JGB37-520R30-12V specification ([Hiwonder](https://www.hiwonder.com/products/hall-encoder-dc-geared-motor)) | Value |
 |---|---|
 | Rated voltage | 12 V |
 | Gear ratio | 30:1 |
@@ -361,12 +373,12 @@ With the same 1.25× safety factor as v6: $T_{m,req} = 0.0568$ N·m (0.58 kg·cm
 
 | | |
 |---|---|
-| **What** | The v7 rear axle drives the wheels through a **differential** (custom housing with a LEGO z28 differential gear) instead of the v6 solid axle. |
-| **Why** | In a corner the outer rear wheel travels farther than the inner one. With a solid axle one of them must slip, which wastes traction, wears the tires and makes the encoder distance less accurate. At the higher v7 speed this effect grows. |
+| **What** | A **new rear differential**: LEGO 65414 differential housing with the 65413 28-tooth bevel gear, in a custom mount (`Diferencial.SLDASM`), replacing the differential of design v6. |
+| **Why** | The v6 differential had a shape and size that did not fit the modified chassis and the new JGB37 motor well. This one fits the new structure and the motor mount better. A differential is kept because in a corner the outer rear wheel travels farther than the inner one; without it one wheel must slip, which wastes traction, wears the tyres and makes the encoder distance less accurate. |
 | **When** | Design v7, October–November 2026. |
 | **How** | The motor drives the differential through the 20:28 gear pair. CAD: `Diferencial.SLDASM` (`Cuerpo diferencial`, `Engrane_diferencial`, LEGO 65413/65414 parts). |
-| **What for** | **PENDING:** e.g. heading error or tire slip in corners, solid axle vs differential. |
-| **Alternatives** | Solid axle (v6); two independent motors (not allowed: one driving axle, rule 11.3). |
+| **What for** | Same function as in v6 with a better fit to the new chassis and motor. Because the **gear ratio stays 20:28**, the speed and torque calculation below and the distance constants of the missions keep the same meaning. |
+| **Alternatives** | Keeping the v6 differential with adapters; a solid axle (wheel scrub in corners); two independent motors (not allowed: one driving axle, rule 11.3). |
 
 <details>
 <summary><b>Design v6 (national) drivetrain analysis: LEGO SPIKE Large Angular Motor</b></summary>
@@ -507,7 +519,7 @@ The vehicle uses a single LEGO SPIKE Large Angular Motor (Part 45602) driving th
 | **What** | Three **Panasonic NCR18650B** cells in series (**3S**): 10.8 V nominal, 12.6 V full, 3400 mAh, 36.7 Wh, protected by a **3S BMS**. |
 | **Why** | The new motor and the HX-35H servo are 12 V parts, and the Hiwonder board is designed for a 12 V supply. A 3S pack gives that voltage directly, without the boost stage of the v6 Geekworm X1203 (a 5 V UPS for the Pi only). We kept the NCR18650B cells because in v6 they solved the brownouts caused by generic high-resistance cells. |
 | **When** | Design v7, October 2026. |
-| **How** | Pack → 3S BMS → **Hiwonder ROS Robot Controller** (STM32F407VET6, input 7–14 V), which drives the motor and the bus servo at battery voltage. The controller's independent **5 V / 5 A Type-C output powers the Raspberry Pi 5**, which in turn powers the Hailo-8, the camera, the LiDAR and the start button. The Pi 5 needs 5 V / 5 A to run its USB ports at full current, which matters because the LiDAR is USB-powered. Pi ↔ controller: USB serial (UART, 1 Mbaud). Wiring diagram below. |
+| **How** | Pack → 3S BMS → **Hiwonder ROS Robot Controller** (STM32F407VET6, input 7–14 V; [product page](https://hiwonder.com/products/ros-robot-control), [documentation](https://wiki.hiwonder.com/projects/ROS-Robot-Control-Board/en/latest/)), which drives the motor and the bus servo at battery voltage. The controller's independent **5 V / 5 A Type-C output powers the Raspberry Pi 5**, which in turn powers the Hailo-8, the camera, the LiDAR and the start button. The Pi 5 needs 5 V / 5 A to run its USB ports at full current, which matters because the LiDAR is USB-powered ([Raspberry Pi: USB Power Delivery on Raspberry Pi 5](other/datasheets/RP-009856-WP-1-USB-Power-Delivery-on-Raspberry-Pi-5.pdf)). Pi ↔ controller: USB serial (UART, 1 Mbaud). Wiring diagram below. |
 | **What for** | Estimated runtime about 1.7 h (budget below), far above a 3-minute round. |
 | **Alternatives** | v6 pack + X1203 for the Pi plus a separate 12 V pack (two batteries to charge, more mass); a 2S pack (7.2–8.4 V, too low for the 12 V motor's speed). |
 
@@ -515,9 +527,9 @@ The vehicle uses a single LEGO SPIKE Large Angular Motor (Part 45602) driving th
 
 | Component | Supply | Operating state | Estimate |
 |---|---|---|---|
-| Raspberry Pi 5 | 5 V | High CPU load | 9.0 W |
-| Hailo-8 | 5 V (from the Pi) | Continuous inference (typical, manufacturer figure) | 2.5 W |
-| RPLidar S2L | 5 V | Scanning, 10 Hz (datasheet: 500 mA typical) | 2.5 W |
+| [Raspberry Pi 5](https://www.raspberrypi.com/products/raspberry-pi-5/) | 5 V | High CPU load | 9.0 W |
+| Hailo-8 | 5 V (from the Pi) | Continuous inference (typical, [Hailo-8 product page](https://hailo.ai/products/ai-accelerators/hailo-8-ai-accelerator/)) | 2.5 W |
+| RPLidar S2L | 5 V | Scanning, 10 Hz ([Slamtec](https://www.slamtec.com/en/s2): 500 mA typical) | 2.5 W |
 | Grove LED button | 5 V | | 0.1 W |
 | **5 V subtotal** | | | **14.1 W → 15.7 W from the pack at ~90 % regulator efficiency** |
 | JGB37 drive motor | Battery | Accelerating at $a$ = 1.3 m/s² (≈ 0.35 A, linear torque–current estimate) | 3.8 W |
@@ -527,7 +539,7 @@ The vehicle uses a single LEGO SPIKE Large Angular Motor (Part 45602) driving th
 
 $$t_{runtime} = \frac{36.7\text{ Wh}}{21\text{ W}} \approx 1.7\text{ h}$$
 
-**Peak current.** The motor stall current is 3.2 A and the servo stall current is 3 A. In the worst case (both stalled while the 5 V side draws 1.45 A) the pack would supply ≈ 7.7 A, above the 4.8 A the journal lists as the NCR18650B continuous limit. In a 3S pack all three cells carry the full current (there is no parallel branch to share it, unlike v6). This is a short-duration case, but it is the same kind of transient that caused the v6 brownouts, so it is in the risk register ([§7.3](#systems)).
+**Peak current.** The motor stall current is 3.2 A and the servo stall current is 3 A. In the worst case (both stalled while the 5 V side draws 1.45 A) the pack would supply ≈ 7.7 A, above the NCR18650B's 4.875 A continuous rating. In a 3S pack all three cells carry the full current (there is no parallel branch to share it, unlike v6). This is a short-duration case, but it is the same kind of transient that caused the v6 brownouts, so we calculated its effect below and track it in the risk register ([§7.3](#systems)).
 
 #### Wiring diagram (design v7)
 
@@ -535,14 +547,28 @@ $$t_{runtime} = \frac{36.7\text{ Wh}}{21\text{ W}} \approx 1.7\text{ h}$$
 
 *Battery voltage (red), regulated 5 V (orange), data (blue), mechanical links (dashed).*
 
-**Measurements to record (PENDING)**
+**Electrical limits, calculated from the Panasonic datasheet**
 
-| Measurement | Value |
+| NCR18650B ([Panasonic datasheet](other/datasheets/Panasonic-NCR18650B-datasheet.pdf); max. discharge: [Battery Bro](https://batterybro.com/products/panasonic-b-ncr18650b-3400mah-4-8a); resistance: [lygte-info](https://lygte-info.dk/review/batteries2012/Panasonic%20NCR18650B%203400mAh%20(Green)%20UK.html)) | Value |
 |---|---|
-| Average pack current, Obstacle Challenge run | |
-| Peak pack current, start from standstill | |
-| 5 V rail minimum during the peak | |
-| Pack voltage, full → after a test session | |
+| Capacity | 3200 mAh rated minimum, 3350 mAh typical (sold as 3400 mAh) |
+| Nominal / charge / cut-off voltage | 3.6 V / 4.20 V / 2.5 V per cell |
+| Maximum continuous discharge | 4.875 A |
+| Internal resistance (AC, 1 kHz) | ≤ 45 mΩ |
+| Mass | 48.5 g max. |
+
+| Quantity | Calculation | Result |
+|---|---|---|
+| Average pack current, Obstacle Challenge run | 21 W ÷ 10.8 V (1.67 A at 12.6 V full, 2.12 A at 9.9 V low) | **≈ 1.9 A**, 0.58 C, 40 % of the 4.875 A rating |
+| Peak pack current, start from standstill | motor at stall 3.2 A + 5 V side 1.45 A + servo holding 0.1 A | **≈ 4.75 A**, 98 % of the rating, for the start-up transient only |
+| Worst case | motor and servo both stalled + 5 V side | ≈ 7.7 A (157 % of the rating); avoided by the steering clamp, see [§7.3](#systems) |
+| Voltage sag at the peak | I × R<sub>pack</sub>, R<sub>pack</sub> = 3 × 45 mΩ = 0.135 Ω (doubled to 0.27 Ω to allow for DC resistance, BMS and wiring) | 0.6–1.3 V at 4.75 A; 1.0–2.1 V at 7.7 A |
+| Lowest board input | low pack (3.3 V/cell = 9.9 V) minus the worst-case sag | **≈ 7.8 V**, above the controller's 7 V minimum, so its 5 V / 5 A output to the Pi stays regulated |
+| Energy per round | 21 W × 121 s (Obstacle) / 48 s (Open) | 0.71 Wh (2 % of the pack) / 0.28 Wh (0.8 %) |
+| Test session of 10 + 10 runs | 10 × 0.71 + 10 × 0.28 Wh of driving | ≈ 9.9 Wh, 29 % of the 34.6 Wh minimum capacity, plus idle time between runs (≈ 16 W) |
+| Runtime | 34.6 Wh (rated minimum) ÷ 21 W | ≈ 1.65 h (1.7 h with the typical capacity) |
+
+Even the worst-case sag leaves the Hiwonder board's input inside its 7–14 V range, and the board regulates the Pi's 5 V from it.
 
 <details>
 <summary><b>Design v6 (national) power analysis: 4× NCR18650B + Geekworm X1203</b></summary>
@@ -609,7 +635,7 @@ A drawback of this configuration is that the batteries charge internally, in pla
 | **What for** | Wall detected in **98.4 %** of frames vs 96.2 % for the MS200k, with lower noise at every distance and as accurate at short range ([§6.9](#testing)). |
 | **Alternatives** | Oradar MS200k (v5–v6), ultrasonic sensors (removed in 2026). |
 
-| | RPLidar S2L (Slamtec datasheet) |
+| | RPLidar S2L ([Slamtec](https://www.slamtec.com/en/s2)) |
 |---|---|
 | Range | 0.05–18 m (white), 0.05–8 m (black) |
 | Sample rate / scan rate | 32 kHz / 10 Hz |
@@ -621,20 +647,20 @@ A drawback of this configuration is that the batteries charge internally, in pla
 
 > **What we learned:** we judged the sensor by a test of our own integration. A component should be ruled out only after the integration has been tested on its own, with time to separate a sensor problem from a software problem.
 
-**Placement and field geometry.** The track walls and the traffic signs (pillars) are both 100 mm tall. In v5 the LiDAR was first mounted too high and its scanning plane passed over the walls (see [§7.4](#lessons)). The v7 chassis was lowered so the scanning plane stays well below 100 mm. **PENDING:** state the v7 scanning-plane height and add a side-view figure.
+**Placement and field geometry.** The track walls and the traffic signs (pillars) are both 100 mm tall. In v5 the LiDAR was first mounted too high and its scanning plane passed over the walls (see [§7.4](#lessons)). The v7 chassis was lowered so the S2L's scanning plane sits about **75 mm above the ground**, 25 mm below the top of the walls and the pillars, so every wall and pillar is cut by the scan even with small chassis pitch on the track (side views in [Figure 4b](#mobility)).
 
 #### Camera and AI accelerator
 
-**Raspberry Pi Camera Module 3 Wide** captures the frames used to detect the obstacle pillars and the magenta parking markers. The camera detects *what* the obstacle is and roughly *where*; the LiDAR gives the precise distance (see [§6.6](#heading)).
+**Raspberry Pi Camera Module 3 Wide** ([product brief](other/datasheets/RP-008151-DS-1-camera-module-3-product-brief.pdf)) captures the frames used to detect the obstacle pillars and the magenta parking markers. The camera detects *what* the obstacle is and roughly *where*; the LiDAR gives the precise distance (see [§6.6](#heading)).
 
 #### Decision card D5: Hailo-10H → Hailo-8 <a id="d5"></a>
 
 | | |
 |---|---|
-| **What** | Design v7 runs inference on a **Hailo-8** (HailoRT 4.23) instead of the Hailo-10H AI HAT+ 2 used in v6. |
+| **What** | Design v7 runs inference on a **Hailo-8** ([Raspberry Pi AI HAT+ 26 TOPS](other/datasheets/RP-008133-DS-1-raspberry-pi-ai-hat-plus-product-brief.pdf), HailoRT 4.23) instead of the Hailo-10H AI HAT+ 2 used in v6. |
 | **Why** | Our YOLOv8n model is light enough to run on the Hailo-8 at the same accuracy, and the Hailo-8 board is lighter and smaller, which reduces the overall mass and dimensions of the vehicle. For a single small detection model the Hailo-10H was more than we needed. |
 | **When** | Design v7, October 2026. |
-| **How** | The same v4 model was compiled for both chips ([D6](#d6)); the Hailo-8 version uses the Dataflow Compiler 3.34. Run script: `src/cpp/object_detection_hiwonder_h10/run_hiwonder_h8.sh`. |
+| **How** | The same v4 model was compiled for both chips ([D6](#d6)); the Hailo-8 version uses the [Hailo Dataflow Compiler](https://hailo.ai/products/hailo-software/hailo-ai-software-suite/) 3.34. Run script: `src/cpp/object_detection_hiwonder_h10/run_hiwonder_h8.sh`. |
 | **What for** | Same accuracy on both chips (mAP50 0.990 Hailo-8 vs 0.991 Hailo-10H) and **8 ms per frame** on the Hailo-8. |
 | **Alternatives** | Hailo-10H (v6), OAK-D Lite (2025 season). |
 
@@ -654,8 +680,8 @@ Ultrasonic sensors used in previous seasons were removed in 2026; the robot reli
 | Yaw sign | With the wheels lifted, turn the robot clockwise by hand: yaw must **decrease**, as on the SPIKE Hub. | [`src/ondevice/HIWONDER.md`](src/ondevice/HIWONDER.md) |
 | Steering center and side | Servo at 750 = wheels straight. Commanding the "right" position must turn the wheels right; if not, swap `kDireccionDerecha` and `kDireccionIzquierda`. | `hiwonder_config.h` |
 | Distance | `Spike_Advance_For_distance(50, 1000, 0)` must travel 1000 mm; if it travels L mm, multiply `kDiametroRuedaMm` by L/1000. | `reto2_config.h` |
-| LiDAR angle offset | **PENDING:** v6 used `ORADAR_ANGLE_OFFSET = 270°` for the MS200k. Document the S2L offset. | `Oradar_S2L.cpp` |
-| Camera / lighting | **PENDING:** how the model behaves under different lighting and shadows, and any exposure settings. | — |
+| LiDAR angle offset | The S2L is mounted with its 0° mark facing the front of the robot and its angles growing clockwise: `RPLIDAR_FRONT_DEG = 0`, `RPLIDAR_CLOCKWISE = 1`. The driver converts every S2L reading into the buffer layout of design v6 (`ORADAR_ANGLE_OFFSET = 270°`), so the mission code reads `FRONT`, `RIGHT`, `BACK`, `LEFT` exactly as before. If the LiDAR is remounted, rebuild with e.g. `make LIDAR_FLAGS="-DRPLIDAR_FRONT_DEG=180"` and check the four walls in the LiDAR window. | `Oradar_S2L.cpp`, `Oradar_S2L.h` |
+| Camera / lighting | No fixed camera settings: the camera runs with libcamera's automatic exposure and white balance (800×600 frames through GStreamer, stretched to 640×640 for the model). Robustness to light comes from the dataset: photos taken in poor light and with shadows, plus augmentation of brightness (±20 %) and exposure (±10 %) ([D6](#d6)). On the track: 96 of 100 pillars read correctly, the 4 errors in strong shadows. Check with `./run_hiwonder_h8.sh --solo-percepcion`, which shows the detections without moving the robot. | `toolbox.cpp`, `run_hiwonder_h8.sh` |
 
 ### 5.4 Noise, interference and failure points
 
@@ -663,7 +689,7 @@ Ultrasonic sensors used in previous seasons were removed in 2026; the robot reli
 |---|---|---|
 | LiDAR outliers and seams | False walls | Angular windowing, chassis filter (< 150 mm), radius outlier removal and segment scoring ([§6.5](#lidar)) |
 | Single noisy LiDAR reading at the start | Wrong start-box or direction decision | The Open Challenge now takes 3 readings that must agree within 30 mm (`Lidar_Debounced_Read`, `main.cpp`) |
-| IMU at 20 Hz vs control loop every 2 ms | The D term of the heading PD only sees a change in 1 of ~25 calls, so steering may vibrate on straights | Known issue, documented in `HIWONDER.md`. **PENDING:** result of tuning on the track |
+| IMU at 20 Hz vs control loop every 2 ms | The D term of the heading PD only sees a change in 1 of ~25 calls, so steering may vibrate on straights | Documented in `HIWONDER.md`. The heading gains were re-tuned on the track by trial and error, with small adjustments until the robot held its straights satisfactorily ([§6.7](#67-steering-control-pd)) |
 | Voltage sag on acceleration | Pi brownouts (seen in June 2026, design v4) | Low-resistance NCR18650B cells, kept in v7; 3S pack with BMS; peak current check in [§5.1](#power-sensors) |
 | Lighting changes, shadows | Missed or wrong pillar color | Dataset with many lighting conditions ([D6](#d6)); on track 96 % correct, errors from strong shadows; fails consistently only in near darkness |
 
@@ -714,12 +740,25 @@ However, since the WRO Future Engineers competition prohibits wireless connectio
 
 | | |
 |---|---|
-| **What** | The LEGO SPIKE Prime Hub was replaced by the **Hiwonder ROS Robot Control Board** (STM32F407). Instead of rewriting the mission code, we wrote a **`spike_compat` layer** that keeps the same API the missions already used (`Spike_Advance_For_Degrees`, `Spike_Turn_For_Degrees`, `Spike_Reset_Gyro`, …) and translates it to the board. |
-| **Why** | **PENDING:** why leave the SPIKE Hub (speed limits of the SPIKE motors, the serial REPL latency, cost, reliability at nationals?). Keeping the API meant the mission logic that placed 2nd at nationals did not have to be rewritten and re-tuned from zero two months before the international final. |
+| **What** | The LEGO SPIKE Prime Hub was replaced by the **Hiwonder ROS Robot Control Board** (STM32F407; [product page](https://hiwonder.com/products/ros-robot-control), [documentation](https://wiki.hiwonder.com/projects/ROS-Robot-Control-Board/en/latest/)). Instead of rewriting the mission code, we wrote a **`spike_compat` layer** that keeps the same API the missions already used (`Spike_Advance_For_Degrees`, `Spike_Turn_For_Degrees`, `Spike_Reset_Gyro`, …) and translates it to the board. |
+| **Why** | The faster drive motor ([D2](#d2)) cannot be driven by the SPIKE Hub, so we needed a new controller that works with it and also replaces what the hub gave us, above all its **integrated IMU** for the heading. The Hiwonder board drives the JGB37 encoder motor, has an on-board IMU, and its 5 V / 5 A output also **powers the Raspberry Pi** ([D10](#d10)). Keeping the API meant the mission logic that placed 2nd at nationals did not have to be rewritten and re-tuned from zero two months before the international final. |
 | **When** | Open Challenge on the board: 2026-10-04 (`7925b70`). Obstacle Challenge: 2026-10-18. Merged to `main`: 2026-11-08. |
 | **How** | `hiwonder_brick` implements the board protocol. `spike_compat` reproduces the hub semantics, for example: `Spike_Reset_Gyro` receives **decidegrees** like the hub's `reset_yaw()`; `speed` 0–100 becomes rev/s in closed loop; `Spike_Turn_For_Degrees` turns with full steering like the hub's `turn()`; `Spike_Advance_For_Degrees` converts hub degrees to encoder ticks and stops 40 ticks early, then coasts, like the hub's `ag()`. The obstacle mission is the national `object_detection.cpp` with targeted substitutions, each marked with a `Hiwonder:` comment, so a diff against the original shows only the board-related changes. |
-| **What for** | The same mission code runs on both robots, and the translations are covered by offline tests with a fake board: **51 checks** for the Open Challenge layer and **31** for the Obstacle Challenge layer. **PENDING:** add the track result. |
+| **What for** | The same mission code runs on both robots, and the translations are covered by offline tests with a fake board: **53 checks** for the Open Challenge layer and **31** for the Obstacle Challenge layer. On the track (2026-11-08) the v7 robot completed **9 of 10** Open Challenge runs and **8 of 10** Obstacle Challenge runs ([§6.9](#testing)). |
 | **Alternatives** | Rewriting the missions directly on the board API (more risk, no reuse of tuned constants); keeping the SPIKE Hub. |
+
+| Hiwonder ROS Robot Controller specification ([Hiwonder](https://www.hiwonder.com/products/ros-robot-control), [documentation](https://wiki.hiwonder.com/projects/ROS-Robot-Control-Board/en/latest/)) | Value | How we use it |
+|---|---|---|
+| Microcontroller | STM32F407VET6: Arm Cortex-M4, 168 MHz with FPU, 512 KB flash, 192 KB RAM | Runs Hiwonder firmware `pos-v8` (closed-loop motor control, servo bus, IMU) |
+| Power input | DC 7–14 V | 3S pack, 9.9–12.6 V in use ([§5.1](#power-sensors)) |
+| 5 V output | Independent 5 V / 5 A, USB Type-C | Powers the Raspberry Pi 5 and, through it, the Hailo-8, camera, LiDAR and button |
+| Encoder motors | 4 channels with PID speed control | Port M4: JGB37-520 drive motor |
+| Servos | 4 PWM servo ports (5 V), 2 serial bus servo ports (battery voltage) | One bus port: HX-35H steering servo (ID 1) |
+| IMU | On-board 6-axis IMU (MPU6050 per Hiwonder) | Heading, read by the Pi at 20 Hz |
+| Communication | 2 USB serial ports, CAN, SBUS, I²C, UART, Bluetooth module port | USB serial to the Pi at 1 Mbaud |
+| Controls and indicators | Main power switch, motor enable switch, 2 user buttons, user LED, buzzer, OLED port | Main power switch = hardware kill switch ([D8](#d8)) |
+| Protection | Over-temperature, short-circuit, over-current, reverse connection | |
+| Size and mass | 85 × 60 mm (holes 57 × 49 mm), 39.5 g | Mounted on the combined board/LiDAR support |
 
 <img src="other/additionalMedia/Others/fpv.gif">
 
@@ -731,92 +770,112 @@ The Obstacle Challenge program is structured as cooperating threads: a Hailo pre
 
 ### 6.2 Open Challenge
 
-> [!WARNING]
-> **PENDING:** the flowchart and thresholds below were traced from the **v6** `main.cpp`. The v7 `main.cpp` changed (commit `693405f`): it takes 3 debounced LiDAR readings at the start, the corner loop runs `while (v < 11)`, corner turns use 70–80°, and the final approach uses 450 / 750 / 1500 mm. Re-trace the diagram and the table from the current code.
+Unlike the Obstacle Challenge, the Open Challenge runs a separate, simpler program, [`src/ondevice/main.cpp`](src/ondevice/main.cpp). There are no color pillars to detect, so the Hailo/camera pipeline isn't used at all: the program only needs the Slamtec RPLidar S2L and the Hiwonder ROS Robot Controller board. Motion goes through the `spike_compat` layer (section 6.1), so the mission keeps the team's `Spike_*` API while the board does the driving; the LiDAR functions keep their historical `Oradar_S2L_*` names from design v6. The whole run lives in `Recorrido()` ("the run"), which `main()` calls directly, or from a second thread when the optional "Lidar Coordinates" debug window is open (`--no-display` turns it off; the window only reads the LiDAR and the gyro, so the run is identical with or without it).
 
-Unlike the Obstacle Challenge, the Open Challenge runs a separate, simpler program [`src/ondevice/main.cpp`](src/ondevice/main.cpp). There are no color pillars to detect, so the Hailo/camera pipeline isn't used at all, only the LiDAR and the SPIKE Prime Hub. The trace below follows `main()` top to bottom. The robot's own left/right turns are true mirror images of each other in the code, drawn once here as `sentido` (the detected open side), with the mirror called out in the caption below.
+**Strategy in one line:** find the driving direction at the first corner, then for each of the 12 corners wait for the inner wall to end, turn toward it, drive into the new section and re-zero the gyro on the outer wall, so heading errors never add up from one corner to the next. The trace below follows `Recorrido()` top to bottom. The two driving directions are mirror images in the code and are drawn once here as `sentido` (the detected open side); the speeds and turn angles that differ between them are in the table under the figure.
 
 ```mermaid
 flowchart TD
-    A(["Power on"]) --> B["Init lidar + writer thread<br/>Init GPIO, power on SPIKE hub<br/>SPIKE serial + interpreter,<br/>load on-hub motion routines"]
-    B --> C{{"Wait for start button"}}
-    C --> D["Reset gyro to 0&deg;<br/>Center vehicle"]
-    D --> E["Read lidar once:<br/>front / right / left distance"]
-    E --> F{"right or left<br/>&gt; 800&nbsp;mm?"}
-    F -- yes: OUTSIDE start --> G["First straight = 1350&nbsp;mm"]
-    F -- no: INSIDE start --> H["First straight = 300&nbsp;mm"]
-    G --> I["Detect which side is open:<br/>Advance_And_Detect_Side()<br/>&rarr; sentido = right | left"]
-    H --> I
-    I --> J["Turn 80&deg; toward sentido<br/>Center vehicle"]
-    J --> K["Drive the first-straight distance,<br/>curving toward sentido"]
-    K --> L["Slope() at +300&nbsp;mm,<br/>Slope() again at +700&nbsp;mm more"]
-    L --> M["Average the two slopes<br/>Reset gyro to that heading"]
-    M --> N(["Corner loop<br/>v = 0 &hellip; 9"])
-    N --> O["Advance until a gap opens<br/>on the sentido side"]
-    O --> P["Turn 80&deg; toward sentido<br/>Center vehicle"]
-    P --> Q["Drive 300&nbsp;mm, then 700&nbsp;mm more,<br/>measuring + averaging slope again"]
-    Q --> R["Reset gyro to the new heading"]
-    R --> S{"v = 10?"}
-    S -- "no (v&plus;&plus;)" --> N
-    S -- yes --> T["Pick a stop distance from the<br/>opposite-side reading taken back<br/>at the start (400 / 600&nbsp;mm bands)"]
-    T --> U["Turn 80&deg; toward sentido, center<br/>Drive 300&nbsp;mm"]
-    U --> V{"front reading<br/>&gt; 1500&nbsp;mm?"}
-    V -- yes --> W1["Advance to 1750&nbsp;mm from wall"]
-    V -- no --> W2["Advance to 1400&nbsp;mm from wall"]
-    W1 --> X["Coast motors &middot; close serial<br/>stop lidar thread &middot; close lidar"]
-    W2 --> X
-    X --> Z(["Run finished"])
+    A(["Power on"]) --> B["Init RPLidar S2L + writer thread<br/>Register lidar stop frames<br/>with the emergency stop<br/>Init GPIO"]
+    B --> C["Spike_Hiwonder_Init():<br/>open board, check firmware + servo,<br/>center steering, calibrate gyro 5&nbsp;s"]
+    C --> C1{"Board OK and first<br/>lidar scan within 5&nbsp;s?"}
+    C1 -- no --> X0(["Exit 1, nothing moves"])
+    C1 -- yes --> D{{"Wait for start button (GPIO4)"}}
+    D --> E["Spike_Reset_Gyro(0)<br/>Spike_Center_Vehicle_Short()"]
+    E --> F["3 debounced lidar readings:<br/>front / right / left<br/>(Lidar_Debounced_Read)"]
+    F --> G{"right or left<br/>&gt; 800&nbsp;mm?"}
+    G -- "yes: OUTSIDE case" --> H1["Speeds 40-50 %<br/>first straight 1350 motor deg"]
+    G -- "no: INSIDE case" --> H2["Speed 30 %<br/>first straight 600 motor deg"]
+    H1 --> I["Oradar_S2L_Advance_And_Detect_Side(30, 0)<br/>&rarr; sentido = right | left"]
+    H2 --> I
+    I --> J["First corner:<br/>Spike_Turn_For_Degrees toward sentido<br/>Spike_Center_Vehicle_Short()<br/>Spike_Advance_For_Degrees(first straight)"]
+    J --> K["Oradar_S2L_Wall_Slope(outer wall)<br/>&rarr; Spike_Reset_Gyro(angle)"]
+    K --> L(["Corner loop: while (v &lt; 11)"])
+    L --> M["Oradar_S2L_Advance_Until_Right_Gap /<br/>_Left_Gap at heading 0"]
+    M --> N["Spike_Turn_For_Degrees toward sentido<br/>(70 or 80&deg;)<br/>Spike_Center_Vehicle_Short()"]
+    N --> O["Spike_Advance_For_Degrees<br/>600 motor deg at heading &minus;90 / +90"]
+    O --> P["Oradar_S2L_Wall_Slope(outer wall)<br/>&rarr; Spike_Reset_Gyro(angle)<br/>v = v + 1"]
+    P --> Q{"v &lt; 11?"}
+    Q -- yes --> M
+    Q -- "no: 12 corners done" --> R["Oradar_S2L_Advance_Until_Distance(30, 0, 1500)<br/>&rarr; Spike_Hold_Motors()"]
+    R --> S["Coast motors &middot; close board serial<br/>stop + join lidar thread &middot; close lidar"]
+    S --> Z(["Run finished"])
 ```
 
-*Figure 8. Open Challenge program flow, traced directly from [`src/ondevice/main.cpp`](src/ondevice/main.cpp).*
+*Figure 8. Open Challenge program flow, traced directly from `Recorrido()` in [`src/ondevice/main.cpp`](src/ondevice/main.cpp).*
 
-> Every turn, distance, and threshold above is read directly out of [`main.cpp`](src/ondevice/main.cpp). **Sentido** (the detected open side) is fixed for the whole run right after the first turn, the code for `sentido = left` is the exact sign-mirrored twin of the `right` path drawn here.
+> **How each step works.** `Lidar_Debounced_Read` copies the 360-slot distance buffer until 3 consecutive samples of the same angle agree within 30 mm, so a single bad return cannot choose the wrong start case. `Oradar_S2L_Advance_And_Detect_Side` drives straight until the front wall is within 1100 mm and one side reads more than 1350 mm (or gives no return): that open side is `sentido`, fixed for the whole run (`right` = clockwise). `Spike_Turn_For_Degrees` turns with full steering lock until |yaw| reaches 70-80°, a little short of 90°, and `Spike_Advance_For_Degrees` then holds heading &minus;90 (right turn) or +90 (left turn) for a fixed number of motor degrees, which completes the turn and brings the robot into the new section. Finally, `Oradar_S2L_Wall_Slope` fits the outer wall (the continuous one, on the side opposite `sentido`) and `Spike_Reset_Gyro` redefines the yaw so that heading 0 is parallel to it. This cancels gyro drift and turn error at every corner.
+
+| Case / `sentido` | First turn (speed, yaw) | First straight (speed, motor deg, heading) | Gap search speed | Loop turn (speed, yaw) | Loop straight (speed, motor deg, heading) | Outer wall |
+|---|---|---|---|---|---|---|
+| Outside, right | 50 %, 80° | 40 %, 1350, &minus;90 | 50 % | 40 %, 80° | 50 %, 600, &minus;90 | `LEFT` |
+| Outside, left | 40 %, 80° | 50 %, 1350, +90 | 50 % | 40 %, 70° | 50 %, 600, +90 | `RIGHT` |
+| Inside, right | 30 %, 70° | 30 %, 600, &minus;90 | 30 % | 30 %, 70° | 30 %, 600, &minus;90 | `LEFT` |
+| Inside, left | 30 %, 70° | 30 %, 600, +90 | 30 % | 30 %, 70° | 30 %, 600, +90 | `RIGHT` |
+
+The "outside" case (one side wall farther than 800 mm at the start) has room for faster moves and a longer first straight; the "inside" case starts close to both walls, so every move runs at 30 %. At the end of the 12th corner the robot is back in the starting section and drives at heading 0 until the front wall is at 1500 mm, i.e. the middle of the 3000 mm side, then holds the drive motor.
 
 #### High-level states
 
-The same run, one level up, the states a judge or teammate would actually watch the robot move through.
+The same run, one level up: the states a judge or teammate would actually watch the robot move through.
 
 ```mermaid
 stateDiagram-v2
     [*] --> Booting
-    Booting --> WaitingForStart: hardware + hub ready
-    WaitingForStart --> Calibrating: start button pressed
-    Calibrating --> SideDetect: gyro zeroed, vehicle centered
-    SideDetect --> Aligning: open side found (left / right)
-    Aligning --> Cornering: heading corrected to wall
-    Cornering --> Aligning: gap found, turned (x10)
-    Cornering --> Parking: 10th corner cleared
-    Parking --> Stopped: final wall reached
-    WaitingForStart --> Stopped: Ctrl+C
-    Calibrating --> Stopped: Ctrl+C
-    SideDetect --> Stopped: Ctrl+C
-    Aligning --> Stopped: Ctrl+C
-    Cornering --> Stopped: Ctrl+C
+    Booting --> Aborted: board or lidar not ready
+    Booting --> Run: board + lidar ready
+    state Run {
+        [*] --> WaitingForStart
+        WaitingForStart --> Zeroing: start button pressed
+        Zeroing --> SideDetect: gyro zeroed, 3 debounced readings
+        SideDetect --> Turning: open side found (left / right)
+        Turning --> Aligning: turned, advanced into next section
+        Aligning --> GapSearch: fewer than 12 corners done
+        GapSearch --> Turning: inner wall ends
+        Aligning --> Parking: 12th corner done
+        Parking --> [*]: front wall at 1500 mm
+    }
+    Run --> Stopped: run finished
+    Run --> EmergencyStop: Ctrl+C, kill or crash
+    Aborted --> [*]
     Stopped --> [*]
+    EmergencyStop --> [*]
 ```
 
 *Figure 9. Open Challenge high-level state machine.*
 
-> Ctrl+C sets the lidar's `terminating` flag from every state; the current busy-wait loop notices it within ~1 ms and the run drops straight to **Stopped** instead of finishing the maneuver in progress.
+> **Emergency stop.** The Hiwonder board firmware has no command watchdog: if the program died with the motor running, the motor would keep its last speed. So, from the moment the LiDAR is opened, Ctrl+C, `kill` or a crash triggers `parada_emergencia` ("emergency stop"), which sends the board a COAST command for all four motors and the LiDAR its stop frames, then ends the process immediately, so no half-finished loop can send another speed. If the board or the LiDAR does not start (no scan within 5 s), `Recorrido()` returns 1 before anything moves.
 
 #### Thresholds
 
-Pulled straight from the constants in [`main.cpp`](src/ondevice/main.cpp), for whoever tunes this next.
+Pulled straight from the constants in [`main.cpp`](src/ondevice/main.cpp) and the `Oradar_S2L_*` helpers it calls, for whoever tunes this next. Distances are in mm from the LiDAR; straights are in motor degrees, the unit of `Spike_Advance_For_Degrees`.
 
-| Constant | Value | Where it acts |
+| Threshold | Value | Where / purpose |
 |---|---|---|
-| Outside / inside split | `800 mm` | Right or left reading above this at the very start, treated as an "outside" starting box, else "inside". |
-| First straight, outside case | `1350 mm` | Distance driven right after the first turn, before the first slope measurement. |
-| First straight, inside case | `300 mm` | Same step, shorter start, inside boxes give less room before the first wall. |
-| Slope sampling gap | `300 + 700 mm` | Two `Slope()` reads this far apart get averaged into one heading correction. |
-| Corners per run | `10 (v < 10)` | Loop count for the corner-navigation phase, matches the Open Challenge's three laps of the four-cornered field. |
-| Corner turn angle | `80°` | Every `Spike_Turn_For_Degrees` call at a corner, in both the lap loop and the setup turn. |
-| Final approach bands | `400 / 600 mm` | The opposite-side reading from step 1 selects a 550, 750, or 1050 mm stop distance for parking. |
-| Final front threshold | `1500 mm` | Chooses whether the closing approach stops at 1400 or 1750 mm from the front wall. |
+| LiDAR start timeout | `50 × 100 ms = 5 s` | Wait for the first full scan (`Oradar_S2L_Get_Scan_Seq`); without it every distance is 0, so the run exits without moving. |
+| Gyro calibration | `5 s` | `Spike_Hiwonder_Init`, robot still, steering already centered so the servo does not shake the IMU. |
+| Debounce | `3 samples, ≤ 30 mm apart` | `Lidar_Debounced_Read` for the front / right / left start readings. |
+| Outside / inside split | `> 800 mm` | Right or left start reading above this selects the "outside" case, else "inside". |
+| Open side (direction) | `> 1350 mm` or no return | `Oradar_S2L_Advance_And_Detect_Side`: the side where the inner wall ends sets `sentido`. |
+| Corner gate, front | `≤ 1100 mm` | Detect-side and gap helpers only stop when the front wall is this close, so an opening seen too early is ignored. |
+| Corner gap, side | `≥ 1350 mm`, or front `≤ 500 mm` | `Oradar_S2L_Advance_Until_Right_Gap` / `_Left_Gap`: inner wall gone (or wall ahead very close), time to turn. |
+| Corner turn yaw | `80°` / `70°` | `Spike_Turn_For_Degrees`, full lock; 80° in the outside case (except the left-loop turns, 70°), 70° in the inside case. |
+| First straight | `1350` / `600` motor deg | `Spike_Advance_For_Degrees` after the first turn, outside / inside case. |
+| Corner straight | `600` motor deg | `Spike_Advance_For_Degrees` after every loop turn, at heading &minus;90 / +90. |
+| Speeds | `30 %` inside, `40-50 %` outside | `Spike_*` speed scale 0-100, converted to closed-loop rev/s by `spike_compat`. |
+| Corners per run | `1 + 11 = 12` (`while (v < 11)`) | First corner before the loop, 11 in the loop: 3 laps of the four-corner field. |
+| Final stop | `≤ 1500 mm` front, `30 %` | `Oradar_S2L_Advance_Until_Distance(30, 0, 1500)`, then `Spike_Hold_Motors`: stops mid-way along the 3000 mm starting side. |
 
 ### 6.3 Obstacle Challenge
 
-The v7 mission is the national mission running on the Hiwonder layer, plus a LiDAR-guarded advance (`Oradar_S2L_Advance_Until_Distance` with brake type) and three waits that were not being released. **PENDING:** list any v7 strategy changes and re-check the thresholds table.
+The v7 mission is the national (v6) mission running on the Hiwonder layer: the strategy, the corner and section logic, and every distance and angle in this section are the ones used at the national final. What changed in v7 (each change is marked `Hiwonder:` in the code):
+
+- **Actuation:** the SPIKE calls of the mission go to the Hiwonder board through `spike_compat`. `Spike_Reto2_Init` converts the hub units the mission uses: steering `tire_turn` (4.29 steering-motor degrees per unit, so `40` = 0.96 of full lock) and hub degrees / millimetres to encoder ticks of the drive motor. Turns with `await` give the servo 150 ms to reach its position before the drive motor starts.
+- **Start-up:** board check, steering centring and a 5 s gyro calibration with the robot still; the robot does not move until the LiDAR has delivered its first full scan (up to 5 s); the mission thread starts once camera, inference and post-processing are running, and the start button still starts the motion.
+- **LiDAR-guarded advance:** `Advance_For_distance_Especial` (the crossing between two pillars of different color) stops early when the LiDAR ray in the direction of travel reads 370 mm or less; a ray with no return (0) is ignored. `Oradar_S2L_Advance_Until_Distance` (drive until the front wall is at a given distance) ends with a selectable brake type (`Hold` throughout the mission).
+- **Bounded waits:** the pillar-color wait when leaving the parking lot gives up after 3 s and continues as "no pillar"; the wait for a valid wall in the avoidance geometry also ends on shutdown.
+- **Shutdown:** Ctrl+C stops the robot at any moment (motors in coast, steering servo released); a board error stops the motors and ends the mission.
+- **Perception-only mode:** `WRO_SOLO_PERCEPCION=1` runs camera, Hailo and LiDAR without opening the board, to check the model and the LiDAR orientation before arming the robot.
 
 Two threads run at once (both started from `main()`): the Hailo camera
 pipeline keeps the global `traffic_lights` struct (color, x-position, area,
@@ -829,7 +888,7 @@ it's currently looking at. The diagrams below are the navigation thread.
 ```mermaid
 stateDiagram-v2
     [*] --> Booting
-    Booting --> WaitingForStart: lidar + GPIO + Spike + Hailo model ready
+    Booting --> WaitingForStart: lidar (first scan) + GPIO + Hiwonder board + Hailo pipeline ready
     WaitingForStart --> InitialScan: start button pressed
     InitialScan --> ClockwiseRun: right-side reading > 600mm
     InitialScan --> CounterClockwiseRun: left-side reading > 600mm
@@ -858,17 +917,17 @@ Drawn once here rather than 12 times over.
 
 ```mermaid
 flowchart TD
-    A(["Corner_Case(past_cube, parking)"]) --> B["Advance to 1100mm from the front wall"]
+    A(["Corner_Case(past_cube, parking)"]) --> B["Advance to 1000mm from the front wall"]
     B --> C["Read the cube color the camera<br/>currently sees: traffic_lights.light_color"]
     C --> D{"cube color?"}
-    D -- green --> E["Advance to 600mm (parking)<br/>or 400mm (not parking)"]
-    D -- red --> F["Advance to 990mm"]
-    D -- none --> G["Advance to 650mm<br/>set is_middle_case from the PREVIOUS cube's color"]
+    D -- "green, after a red" --> E["Advance to 600mm (parking)<br/>or 400mm (not parking)"]
+    D -- "red, after a red" --> F["Advance to 990mm"]
+    D -- "anything else" --> G["Advance to 650mm<br/>set is_middle_case from the PREVIOUS cube's color"]
     E --> H["Turn 86&deg; into the next section<br/>(right clockwise, left counter-clockwise),<br/>center vehicle, coast"]
     F --> H
     G --> H
     H --> I(["Desicion(cube, is_middle_case, parking)"])
-    I --> J["Sleep 1s, then Slope() on the outer wall<br/>reset gyro +/-90deg to square up to the side wall"]
+    I --> J["Slope() on the outer wall<br/>reset gyro +/-90deg to square up to the side wall, settle 0.3s"]
     J --> K{"was a cube already<br/>seen right at the corner?"}
     K -- "no (color was none)" --> L{"is_middle_case?"}
     L -- yes --> M["esquivar_cubos_middle(parking)<br/>one cube in the middle of the section"]
@@ -879,33 +938,45 @@ flowchart TD
     O --> P
 ```
 
+> In the counter-clockwise run the two corner colors are swapped: red after a
+> green stops at 400 / 600 mm, green after a green at 990 mm.
+
 > `esquivar_cubos_1/2/middle` each call `calculte_angle_section_start_clockwise_chr`
 > (or its `..._counterclockwise` counterpart) to get an angle + distance to the
 > cube, turn toward it (left for green, right for red -- the passing side is set
 > by the rules and does not mirror with the driving direction), advance alongside
 > it, then small-turn back straight.
-> `esquivar_cubos_2` additionally short-circuits to a plain 1000mm advance
-> when no second cube is present or it's the same color as the first.
+> `esquivar_cubos_2` additionally short-circuits to a plain advance to 1000mm
+> from the front wall when no second cube is present or it's the same color as
+> the first (two greens in the parking section: 1500mm, then a short S-shift to
+> the left).
 
 > `Obstacle_Challenge_Thread` also calls `Slope(front)` once, right after
-> the initial button-press reset, but resets the gyro to a hardcoded `0`
-> right after rather than to that `slope` value -- the measurement is taken
-> but its result currently isn't used.
+> the initial button-press reset, and then resets the gyro to `0`: the
+> starting heading is the robot's placement in the parking lot.
 
 #### Thresholds referenced above
 
 | Constant | Value | Where it acts |
 |---|---|---|
 | Direction-of-run split | `600 mm` | Right reading above this at start -> clockwise run; left reading above this -> counter-clockwise run. Fixed for the whole attempt. |
-| Corner approach | `1100 mm` | First advance in every `Corner_Case`, before reading the cube color. |
-| Green-cube advance | `600 mm` (parking) / `400 mm` (not) | Second advance in `Corner_Case` when the corner cube is green. |
-| Red-cube advance | `990 mm` | Second advance in `Corner_Case` when the corner cube is red. |
-| No-cube advance | `650 mm` | Second advance in `Corner_Case` when no cube is seen at the corner. |
+| Start pillar wait | `3 s` | Leaving the parking lot, the robot waits this long for the camera to report a pillar, then continues as "no pillar". |
+| Corner approach | `1000 mm` | First advance in every `Corner_Case`, before reading the cube color. |
+| Green-cube advance | `600 mm` (parking) / `400 mm` (not) | Second advance in `Corner_Case` when the corner cube is green and the previous one was red. |
+| Red-cube advance | `990 mm` | Second advance in `Corner_Case` when the corner cube is red and the previous one was red. |
+| No-cube advance | `650 mm` | Second advance in `Corner_Case` in every other case (treated as no corner cube). |
 | Corner turn | `86 deg` | Every `Corner_Case`, turning into the next section: right when running clockwise, left when running counter-clockwise. |
 | Gyro realign | `Slope(outer wall) +/- 90 deg` | Start of every `Desicion`, squares the robot to the outer side wall (on the left running clockwise, on the right running counter-clockwise) before looking for cubes. |
 | Corners per run | `12` (3 laps x 4) | 4th corner of each lap calls `Corner_Case`/`Desicion` with `parking=true`. |
-| Cube-1 clearance | `hypotenuse - 400` (normal) / `-100` (parking, red) | `esquivar_cubos_1`'s advance-past-cube distance. |
-| Cube-2 clearance | `hypotenuse - 400` (normal) / `-150` (parking, green-cube case) | `esquivar_cubos_2`'s advance-past-cube distance. |
+| Avoidance turn | angle `+5 deg` (cube 1) / `-5 deg` (cube 2) / `+3 deg` (middle), max `70 deg` | Turn toward the computed passing point before each avoidance advance. |
+| Cube-1 clearance | `hypotenuse - 400` (normal) / `-200` (parking, green) | `esquivar_cubos_1`'s advance-past-cube distance. |
+| Cube-2 clearance | `hypotenuse - 250` (normal) / `-260` (parking, red after green) | `esquivar_cubos_2`'s advance-past-cube distance when the second cube has the other color. |
+| Middle-cube clearance | `hypotenuse - 450` (red) / `-350` (green) | `esquivar_cubos_middle`'s advance-past-cube distance. |
+| LiDAR guard | `370 mm` | `Advance_For_distance_Especial` (cube-2 crossing) stops early when the ray in the direction of travel reads this or less. |
+
+> Values are for the clockwise run. The counter-clockwise run uses the same
+> corner distances (colors swapped, see above) and scales the clearance
+> margins by `angle / 45 deg`, with its own avoidance-turn offsets.
 
 ### 6.4 Vision model
 
@@ -913,12 +984,12 @@ flowchart TD
 
 | | |
 |---|---|
-| **What** | YOLOv8n retrained on a new, much larger dataset (**23,938 images**, 9,354 of them originals) and compiled for both accelerators: [`src/HailoModels/wro_h8_yolov8n_v4.hef`](src/HailoModels) for the Hailo-8 (v7 robot) and a Hailo-10H version. Classes: `greenbox`, `redbox`, `xparking`. |
-| **Why** | **PENDING:** say which dataset the v6 model used and describe the v6 failures you saw on the track (lighting, distance, false detections) that motivated the new dataset. |
+| **What** | YOLOv8n retrained on a new, much larger dataset (**23,938 images**, 9,354 of them originals, including scenes without pillars and in poor lighting) and compiled for both accelerators: [`src/HailoModels/wro_h8_yolov8n_v4.hef`](src/HailoModels) for the Hailo-8 (v7 robot) and a Hailo-10H version. Classes: `greenbox`, `redbox`, `xparking`. |
+| **Why** | On the track the v6 model made three kinds of mistakes: it sometimes **missed a pillar** that was there, it took **objects outside the track for pillars** (for example, a red broom read as a red pillar), and it sometimes saw a **green pillar in an empty corner** of the track. Most failures happened in **poor lighting**. The v6 model had been trained on our small hand-labelled national dataset (501 images in [`other/dataset/`](other/dataset), mAP50 0.986 in training). The new dataset adds photos from the robot's own camera in those situations, including images with **no pillars at all**, so the model also learns when there is nothing to detect. |
 | **When** | Dataset exported from Roboflow and model trained on 2026-10-18 (training run `h10_yolov8n_640_v4`). |
-| **How** | See the dataset breakdown below. YOLOv8n, image size 640, Ultralytics 8.4.115. Images are stretched to 640×640 with no letterbox, the same preprocessing the car applies to the camera frame, so the model sees images shaped like the ones it gets on the robot. Hailo-8 version compiled with the Dataflow Compiler 3.34. |
+| **How** | See the dataset breakdown below. [YOLOv8n](https://docs.ultralytics.com/models/yolov8/), image size 640, Ultralytics 8.4.115. Images are stretched to 640×640 with no letterbox, the same preprocessing the car applies to the camera frame, so the model sees images shaped like the ones it gets on the robot. Hailo-8 version compiled with the Dataflow Compiler 3.34. |
 | **What for** | See the results table below: decision correct in **99.2 %** of the October validation images on both chips, **8 ms** per frame on the Hailo-8. |
-| **Alternatives** | Keeping the v6 model (`yolov8n_wro_hailo8.hef` is kept for comparison: `WRO_HIWONDER_MODEL=... ./run_hiwonder_h8.sh`). **PENDING:** other options considered (e.g. YOLOv8s, a larger but slower model). |
+| **Alternatives** | Keeping the v6 model (`yolov8n_wro_hailo8.hef` is kept for comparison: `WRO_HIWONDER_MODEL=... ./run_hiwonder_h8.sh`). We kept the same model type (YOLOv8n) because it already runs well on our hardware (8 ms per frame on the Hailo-8); the errors came from the data, so we improved the dataset and retrained to make the model more accurate and less prone to the mistakes that could cost a run. |
 
 **Dataset:** [`wro-dataset-completo`, version 1](https://universe.roboflow.com/roboteam-x6iuc/wro-dataset-completo) (Roboflow Universe, MIT license).
 
@@ -969,23 +1040,38 @@ The camera classifies the pillar color; the LiDAR's role is purely geometric: on
 
 Heading comes from the IMU on the Hiwonder board (20 Hz), read and reset through `spike_compat`. LiDAR wall-orientation readings (`Slope()` / `Oradar_S2L_Wall_Slope()`) correct the heading at defined points of each maneuver, for example at the start of every corner decision, where the robot re-squares itself against the side wall (±90°).
 
-This is **not** a formal sensor fusion (no complementary or Kalman filter): it is gyro-primary heading with situational LiDAR correction. We chose this because each correction happens at a known wall reference, where the LiDAR measurement is most reliable. **PENDING:** add data, e.g. heading error after 3 laps with and without the wall correction.
+This is **not** a formal sensor fusion (no complementary or Kalman filter): it is gyro-primary heading with situational LiDAR correction. We chose this because each correction happens at a known wall reference, where the LiDAR measurement is most reliable. Without any correction the gyro drifts about 1° per minute (3.2° after 180 s with the robot still, [§6.9](#testing)); a 3-lap run lasts about 48 s (Open) to 121 s (Obstacle), and the heading is re-squared against a wall at every corner, 12 times per run, so the drift cannot accumulate over the laps.
 
 ### 6.7 Steering control (PD)
 
- Steering uses a Proportional-Derivative (PD) controller: the P term reacts to the lateral position error, and the D term anticipates the rate of change of that error to damp oscillations, allowing smooth trajectories through both the wall-following and obstacle-avoidance challenges.
+Steering uses a Proportional-Derivative (PD) controller: the P term reacts to the lateral position error, and the D term anticipates the rate of change of that error to damp oscillations, allowing smooth trajectories through both the wall-following and obstacle-avoidance challenges.
 
-Two separate PD loops are tuned for the two control contexts:
+In v7 both challenges steer through the same `spike_compat` layer, which rebuilds the SPIKE hub's PD functions on the Hiwonder board. The mission does not pass gains: it calls a motion function with a speed and a heading reference (degrees), and each function uses its own fixed gain set. The faster motor, the board's IMU and the S2L changed how the robot responds, so these gains were re-tuned for v7 on the track:
 
-| Controller | Kp | Kd |
+| Function (hub equivalent) | Used for | Kp | Kd |
+| :--- | :--- | :---: | :---: |
+| `Spike_Forward` (`da()`) | Advances that end on a LiDAR distance (`Oradar_S2L_Advance_Until_Distance`), parking approach | 0.05 | 0 |
+| `Spike_Advance_For_Degrees` / `Spike_Advance_For_distance` (`ag()`) | Fixed-distance advances: past each pillar, Open Challenge straights, parking | 0.02 | 0.05 |
+| Same, in reverse (`ag_u()`) | Parking manoeuvre | 0.003 (0.15 x Kp) | 0 |
+
+The gains were obtained by trial and error on the physical track rather than derived analytically: small adjustments to the values, run after run, until the robot held its straights and turns satisfactorily.
+
+In the competition runs every steering correction is a heading PD on the gyro: pillars are passed with the LiDAR geometry of [6.3](#63-obstacle-challenge) and the camera supplies only the color. Corner and avoidance turns are not PD-controlled: the steering is set to a fixed `tire_turn` and the robot drives until the gyro reaches the target angle.
+
+**v7 chain, one PD step:**
+
+1. **Error.** `e = yaw - reference`, in tenths of a degree. The hub reported yaw in decidegrees and its gains are expressed in those units, so `spike_compat` multiplies both angles by 10 and the hub gains keep their meaning.
+2. **Heading dead band.** `kBandaMuertaRumboGrados = 0.3 deg` (`hiwonder_config.h`). Inside ±0.3° the error is 0; outside, 0.3° is subtracted, so there is no jump at the edge of the band. Without it, the residual gyro drift after calibration (~0.01 °/s) keeps the servo correcting by a few units while the robot holds a straight line.
+3. **PD.** `u = Kp·e + Kd·(e - e_prev)`. `e_prev` is cleared on every gyro reset, so the D term never sees the jump of a re-zeroed heading. Fixed-distance advances run one step per new IMU sample (20 Hz).
+4. **Servo.** `steering = clamp(u · kPdADireccion, -1, +1)`, where ±1 is the full steering travel: `kDireccionRecorrido = 145` servo units either side of the centre (750; 605 right, 895 left), 0.24° per unit = ±34.8°, inside the ±35° mechanical limit. `kPdADireccion = 0.133 · 200 / kDireccionRecorrido ≈ 0.183`.
+5. **Reverse.** The output sign is inverted (in reverse the steering acts on the heading the opposite way), with 0.15 x Kp and no D term, as `ag_u()` did on the hub.
+
+**Why the scaling matters.** One unit of PD output moves the servo `kPdADireccion · kDireccionRecorrido = 0.133 · 200 = 26.6` units, about 6.4° of servo rotation: the same 6.4° per unit that the hub commanded its steering motor (`et * 6.4`). Because the travel appears in the denominator of `kPdADireccion`, the per-unit response does not depend on the steering limit; limiting the travel to ±35° only makes the correction saturate earlier. With the gains above, 1° of heading error gives:
+
+| Function | Steering per 1° of heading error (P term) | Full lock reached at |
 | :--- | :---: | :---: |
-| Camera-based cube following | 150 | 100 |
-| Gyroscope-based wall following | 2 | 300000 |
-
-Both gain sets were obtained through trial-and-error tuning on the physical track rather than derived analytically.
-
-> [!WARNING]
-> **PENDING:** these gains were tuned for the SPIKE Hub. In v7 the PD output is scaled to the servo range by `kPdADireccion` (`hiwonder_config.h`, marked AJUSTAR en pista). Document the v7 gains and how they were tuned.
+| `Spike_Forward` | 13.3 servo units (≈ 3.2°) | ≈ 11° of error |
+| `Spike_Advance_For_Degrees` | 5.3 servo units (≈ 1.3°) | ≈ 28° of error |
 
 ### 6.8 Avoidance, parking and edge cases
 
@@ -999,13 +1085,15 @@ Both gain sets were obtained through trial-and-error tuning on the physical trac
 | Second pillar missing or same color as the first | `esquivar_cubos_2` short-circuits to a plain 1000 mm advance |
 | Run direction unknown at start | Decided once from the side-wall reading (600 mm) and held for the whole run |
 | Start position inside or outside | Open Challenge: side reading > 800 mm → outside start |
-| **PENDING** | |
+| LiDAR not ready at start | The program waits up to 5 s (50 × 100 ms) for the first scan and exits without moving if none arrives |
+| Start pillar not detected | The wait for the first pillar at the start gives up after 3 s and the run continues with the no-pillar case |
+| Ctrl+C, kill or crash during a run | Emergency stop: motors in COAST, steering torque off, LiDAR stopped ([D8](#d8)) |
 
 ### 6.9 Testing and tuning workflow <a id="testing"></a>
 
 1. **Offline tests, no hardware.** Every change to the hardware layer is checked against a fake board that records the commands it receives:
    ```bash
-   cd src/ondevice && make test                                 # 51 checks (Open Challenge layer)
+   cd src/ondevice && make test                                 # 53 checks (Open Challenge layer)
    ./src/cpp/object_detection_hiwonder_h10/build/h8_s2l/reto2_test  # 31 checks (Obstacle Challenge layer)
    ```
 2. **Perception only.** Camera, Hailo and LiDAR run, but the board is not opened, so nothing moves:
@@ -1103,7 +1191,7 @@ The official rounds of the 2026 Mexico National Final (2nd place) are linked in 
 | If we change… | …it affects | Example from this project |
 |---|---|---|
 | Chassis layout | LiDAR height, center of gravity, battery access | The compact v4 chassis raised the LiDAR above the walls ([§7.4](#lessons)); v7 was lowered on purpose |
-| Drive motor speed | Control loop timing, LiDAR and camera latency, braking distance | v7 top speed is ~1.7× v6 ([§4.3](#mobility)): at 0.62 m/s the robot moves 62 mm per LiDAR scan (10 Hz) and 5 mm per camera inference (8 ms). **PENDING:** effect on the distance thresholds |
+| Drive motor speed | Control loop timing, LiDAR and camera latency, braking distance | v7 top speed is ~1.7× v6 ([§4.3](#mobility)): at 0.62 m/s the robot moves 62 mm per LiDAR scan (10 Hz) and 5 mm per camera inference (8 ms). The higher speed, together with the new motor, IMU and LiDAR, made us recalculate several thresholds, above all the PD gains Kp and Kd, by trial and error on the track |
 | Motor current | Supply voltage for the Pi and Hailo | Brownouts under acceleration in June 2026; v7 shares one 3S pack between the motors and the 5 V side |
 | Controller board | Every motion function in the missions | Solved with the `spike_compat` layer ([D1](#d1)) |
 | IMU rate | Heading PD stability | 20 Hz IMU vs 2 ms loop ([§5.4](#power-sensors)) |
@@ -1118,7 +1206,7 @@ The official rounds of the 2026 Mexico National Final (2nd place) are linked in 
 | Time | Less than 8 weeks from the national final (2026-09-19) to the repository deadline (2026-11-10); final 2026-12-08 | Reuse of the national mission code instead of a rewrite ([D1](#d1)) |
 | Processing | Real-time vision + LiDAR on one Raspberry Pi 5 | C/C++ instead of Python; inference offloaded to the Hailo |
 | No wireless during runs | Rules | Wired Ethernet for SSH between runs |
-| Budget | **PENDING** | **PENDING** |
+| Budget | Design v7 BOM **$23,679.82 MXN** at current prices ([§10](#construction-guide)) | Parts from v6 were reused (Raspberry Pi 5, camera, tyres, cells and start button); the JGB37 was chosen partly because the team already had a similar Hiwonder motor |
 
 ### 7.3 Risk and failure-mode register
 
@@ -1131,20 +1219,20 @@ The official rounds of the 2026 Mexico National Final (2nd place) are linked in 
 | **When** | Design v7, October 2026. |
 | **How** | [`src/ondevice/parada_emergencia.cpp`](src/ondevice/parada_emergencia.cpp) is installed in `Spike_Hiwonder_Init()`, right after opening the board and before anything moves. It opens a second descriptor of the board's port with pre-built frames, so the signal handler only has to write them: 4 motors to COAST, servo torque off, LiDAR stop frames, then exit with code 130 without returning to the mission. |
 | **What for** | Ctrl+C, `kill`, closing the terminal or SSH session, Ctrl+Z and crashes (segfault, abort) all stop the robot. |
-| **Alternatives** | A firmware watchdog (not available in `pos-v8`); a hardware kill switch on the 12 V line. **PENDING:** do you plan to add one? |
+| **Alternatives** | A firmware watchdog (not available in `pos-v8`). The **hardware kill switch** is the Hiwonder board's power switch: it cuts the power to the motor, the servo and, through the board's 5 V output, the Raspberry Pi and every sensor, so it stops the robot even when the software cannot (`kill -9`, a frozen Pi). |
 
 
 | Risk / failure mode | Consequence | Mitigation | Status |
 |---|---|---|---|
-| Program dies while the motor runs (the board firmware has **no command watchdog**) | The motor keeps the last speed | `parada_emergencia.cpp`: on Ctrl+C, kill, closed SSH session, Ctrl+Z or crash, the 4 motors go to COAST, the servo torque is released and the process exits without returning to the mission. Not covered: `kill -9` and Pi power loss; manual fallback `motor_move.py --stop` or cut the 12 V. | Implemented |
-| Steering driven past the mechanical limit | Wheel hits the chassis | Single clamp in `set_steering`; start-up refuses to move a servo outside the range | Implemented (limit value **PENDING**, see [§4.2](#mobility)) |
+| Program dies while the motor runs (the board firmware has **no command watchdog**) | The motor keeps the last speed | `parada_emergencia.cpp`: on Ctrl+C, kill, closed SSH session, Ctrl+Z or crash, the 4 motors go to COAST, the servo torque is released and the process exits without returning to the mission. Not covered by software: `kill -9` and Pi power loss; for those, the Hiwonder board's power switch cuts power to the whole robot. | Implemented |
+| Steering driven past the mechanical limit | Wheel hits the chassis | Single clamp in `set_steering`; start-up refuses to move a servo outside the range | Implemented (±35°, see [D3](#d3)) |
 | LiDAR keeps spinning after exit | Battery drain, heat | Emergency stop also sends the LiDAR stop frames | Implemented |
 | LiDAR not ready at start | Decisions on an empty buffer | Waits up to 50 cycles for the first scan, aborts cleanly otherwise | Implemented |
 | Gyro drift | Heading error accumulates over 3 laps | 5 s bias calibration; heading re-squared against the side wall at every corner | Implemented |
 | Wrong pillar color | Penalty | Retrained model, 99.2 % correct decisions in validation | On track: 96 % (errors caused by shadows) ([§6.9](#testing)) |
-| Peak current (motor + servo stall) above the cells' continuous rating | Rail sag, Pi reset | Steering clamp avoids pushing against the end stops; BMS; **PENDING:** acceleration ramp, measure the peak | Accepted |
+| Peak current (motor + servo stall) above the cells' continuous rating | Rail sag, Pi reset | Steering clamp avoids pushing against the end stops; BMS. Calculated ([§5.1](#power-sensors)): start-up peak ≈ 4.75 A (98 % of the 4.875 A rating), worst case ≈ 7.7 A with ≤ 2.1 V sag, which keeps the board input ≥ 7.8 V, above its 7 V minimum | Accepted |
 | Speed set-point above the motor's no-load speed | Speed changes as the battery drains | Effect measured: −9.7 % speed on a low battery at 5.7 rev/s, −6.1 % at 4.0 rev/s ([§6.9](#testing)) | Characterised |
-| LiDAR fails mid-run | Robot continues on stale data | **PENDING:** e.g. stop if `Oradar_S2L_Get_Scan_Seq()` stops increasing | Open (was open in v6 too) |
+| LiDAR fails mid-run | Robot continues on stale data | At start the program waits for the first scan and aborts without moving if none arrives. During the run, `Oradar_S2L_Get_Scan_Seq()` counts complete scans; the camera + LiDAR demo mode already brakes when no new scan arrives for 750 ms. The competition missions do not use this check yet. | Open (was open in v6 too) |
 
 ### 7.4 Iteration history <a id="lessons"></a>
 
@@ -1220,7 +1308,7 @@ Within 2026 the progress was incremental, no iteration after v3 changed the conc
 
 * **The S2L was not the problem; our integration was.** In July we dropped the RPLidar S2L after distorted readings near the walls. For v7, with time to test it on its own, the same sensor proved accurate and reliable once our driver was fixed ([D4](#d4)). Lesson: test an integration on its own before blaming the component.
 * **No command watchdog on the new board.** If the program died, the motor kept running. Solved with the signal-based emergency stop ([D8](#d8)).
-* **PENDING:** add the other v7 problems (for example the steering limit, the 20 Hz IMU, distance calibration) and how they were solved.
+* **A faster robot needs new gains.** With the faster motor, the board's IMU and the S2L, the national thresholds and the PD gains no longer gave the same behaviour. We re-tuned them on the track by trial and error, with small changes to the values until the runs were satisfactory, while keeping the mission logic unchanged thanks to the compatibility layer ([D1](#d1)).
 
 ---
 
@@ -1239,7 +1327,8 @@ Each milestone of the vehicle is a tagged [GitHub release](https://github.com/al
 | [`v2.0.0-alpha.1`](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS/releases/tag/v2.0.0-alpha.1) | 2026-11-08 | Hiwonder board + RPLidar S2L, development snapshot |
 | [`v2.0.0-alpha.2`](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS/releases/tag/v2.0.0-alpha.2) | 2026-11-09 | International documentation snapshot: journal, wiring diagram, CAD v7, test log |
 | [`v2.0.0-alpha.3`](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS/releases/tag/v2.0.0-alpha.3) | 2026-11-09 | Source code commented in English, steering limit ±35° |
-| `v2.0.0` | **PENDING** | International Final version |
+| [`v2.0.0-beta.1`](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS/releases/tag/v2.0.0-beta.1) | 2026-11-09 | Documentation feature-complete: power calculations, CAD views, datasheets in the repository |
+| `v2.0.0` | 2026-11-09 | International Final version |
 
 ### 8.2 Repository structure
 
@@ -1261,12 +1350,14 @@ Build outputs (`build/`, `build_*` folders), compiled binaries and `__pycache__/
 │   ├── dataset/                          # Computer vision dataset for model training
 │   │   ├── images/                       # Raw/annotated training images
 │   │   └── labels/                       # Bounding box labels (YOLO format)
-│   ├── datasheets/                       # Hardware datasheets for sensors and motors
+│   ├── datasheets/                       # Datasheets and product briefs (v6 and v7 parts)
 │   ├── releases/                         # Release notes for each tagged version
 │   ├── software_26topsRaspHAT/           # Raspberry Pi & Hailo AI HAT setup/tools
 │   ├── testing/                          # Test log of design v7 (WRO2026_v7_test_log.xlsx)
 │   ├── Training_model_and_results/       # Model training scripts and evaluation logs
 │   │   └── weights/                      # Model weights (.pt, .onnx, .hef)
+│   ├── WRO-2026-FE_DocumentationRubric.pdf # WRO documentation rubric
+│   ├── WRO-2026-FE_Playfield.pdf         # WRO playfield drawing
 │   └── WRO-2026-FE_GeneralRules.pdf      # WRO official competition rules
 ├── schemes/                              # Electrical documentation & schematics
 │   └── hardware/                         # Circuit designs and wiring diagrams
@@ -1279,7 +1370,7 @@ Build outputs (`build/`, `build_*` folders), compiled binaries and `__pycache__/
 │   ├── HailoModels/                      # Pre-compiled models for Hailo AI accelerator
 │   ├── ondevice/                         # Onboard sensor drivers and SDKs
 │   │   ├── oradar_sdk/                   # ORadar LiDAR SDK
-│   │   └── rplidar_sdk/                  # RPLiDAR SDK
+│   │   └── rplidar_sdk/                  # Slamtec RPLIDAR SDK (github.com/Slamtec/rplidar_sdk)
 │   └── tools/                            # Utility test scripts and helper binaries (Hailo)
 ├── t-photos/                             # Team photos (members & coaches)
 ├── v-photos/                             # Required 6-view vehicle photos (design v7: *_v7.JPG, design v6: no suffix)
@@ -1305,12 +1396,13 @@ The v7 robot builds **two programs**: the Open Challenge (`src/ondevice/`, LiDAR
 ### 9.1 Prerequisites
 
 1. **OS:** Raspberry Pi OS 64-bit (Bookworm or newer) on the Pi 5, via Raspberry Pi Imager. Enable SSH.
-2. **Hailo-8 stack** (Obstacle Challenge only): HailoRT **4.23** and the PCIe driver. Check the device with `hailortcli fw-control identify`. The HailoRT version must be compatible with the Dataflow Compiler used for the `.hef` (3.34 for the v7 model).
+2. **Hailo-8 stack** (Obstacle Challenge only): [HailoRT](https://github.com/hailo-ai/hailort/tree/hailo8) **4.23** and the PCIe driver (see the [AI HAT+ documentation](https://www.raspberrypi.com/documentation/accessories/ai-hat-plus.html)). Check the device with `hailortcli fw-control identify`. The HailoRT version must be compatible with the Dataflow Compiler used for the `.hef` (3.34 for the v7 model).
 3. **Build dependencies:**
    ```bash
    sudo apt update
    sudo apt install -y build-essential cmake git libopencv-dev libgpiod-dev pkg-config
    ```
+   The camera is read through [libcamera](https://libcamera.org/) (part of Raspberry Pi OS) and the start button through [libgpiod](https://libgpiod.readthedocs.io/).
 
 ### 9.2 Clone
 
@@ -1351,15 +1443,29 @@ make -C build/h8_s2l -j"$(nproc)"
 ./run_hiwonder_h8.sh             # run the mission
 ```
 
-More detail: [`src/cpp/object_detection_hiwonder_h10/README.md`](src/cpp/object_detection_hiwonder_h10/README.md). **PENDING:** translate the folder READMEs (`HIWONDER.md`, `ORIGEN.md`, `README.md`) to English; the rules require English for the international final.
+More detail: [`src/cpp/object_detection_hiwonder_h10/README.md`](src/cpp/object_detection_hiwonder_h10/README.md). The board layer is described in [`src/ondevice/HIWONDER.md`](src/ondevice/HIWONDER.md), and the relation between the v6 and v7 Obstacle programs in [`ORIGEN.md`](src/cpp/object_detection_hiwonder_h10/ORIGEN.md).
 
 ### 9.7 Auto-start
 
-See [`SERVICES_README.md`](SERVICES_README.md) for the systemd services. **PENDING:** update for the v7 binaries.
+See [`SERVICES_README.md`](SERVICES_README.md) to start either v7 program at boot with systemd (`run_hiwonder_h8.sh --no-display` for the Obstacle Challenge, `my_lidar_app --no-display` for the Open Challenge).
 
 ### 9.8 Training and compiling your own model
 
 Only needed if retraining the vision model rather than using the one already checked into `src/HailoModels/`.
+
+**Design v7 model** (`src/HailoModels/wro_h8_yolov8n_v4.hef`, decision card [D6](#d6)):
+
+1. **Dataset.** Download [`wro-dataset-completo` v1](https://universe.roboflow.com/roboteam-x6iuc/wro-dataset-completo) from Roboflow Universe in **YOLOv8** format. Classes: `greenbox`, `redbox`, `xparking`. The export is already resized to 640×640 (stretch) and the training split already carries the 3× augmentation listed in D6.
+2. **Train** YOLOv8n with Ultralytics **8.4.115** ([training documentation](https://docs.ultralytics.com/modes/train/)) at image size **640** (training run `h10_yolov8n_640_v4`), starting from `yolov8n.pt`.
+3. **Compile for the Hailo-8** on an x86 Linux PC (not the Pi) with the Hailo **Dataflow Compiler 3.34** ([Hailo AI Software Suite](https://hailo.ai/products/hailo-software/hailo-ai-software-suite/)). The Hailo-8 uses the 3.x compiler, paired with **HailoRT 4.23** on the Pi; the Hailo-10H uses the 5.x pair, and a `.hef` built for one chip does not load on the other.
+4. **Deploy.** Copy the `.hef` into `src/HailoModels/` and select it without rebuilding:
+   ```bash
+   WRO_HIWONDER_MODEL=../../HailoModels/<model>.hef ./run_hiwonder_h8.sh --solo-percepcion
+   ```
+   `--solo-percepcion` shows the camera detections and the LiDAR walls without opening the Hiwonder board, so the model can be checked on the track before arming the robot.
+
+<details>
+<summary><b>design v6 (national) model: YOLOv8n 320 for the Hailo-10H</b></summary>
 
 1. **Get the labeled dataset**:
 ```bash
@@ -1382,8 +1488,7 @@ Only needed if retraining the vision model rather than using the one already che
    Requires Hailo Dataflow Compiler **v5.x** (Hailo Developer Zone) for the Hailo-10H.
 4. **Deploy:** copy the resulting `.hef` onto the Pi, into `src/HailoModels/`.
 
-> [!WARNING]
-> **PENDING:** the steps above are the v6 (Hailo-10H) procedure. The v7 model (run `h10_yolov8n_640_v4`, YOLOv8n, imgsz 640, Ultralytics 8.4.115) was trained on `wro-dataset-completo` v1 ([D6](#d6)) and compiled with Dataflow Compiler **3.34 for Hailo-8**. Document the epochs, batch size and the exact compile command.
+</details>
 
 <details>
 <summary><b>design v6 (national) build instructions: SPIKE Hub + Oradar MS200k + Hailo-10H</b></summary>
@@ -1469,9 +1574,7 @@ sudo ./my_lidar_app
 
 ## 10. Construction Guide and Bill of Materials <a id="construction-guide"></a>
 
-Visit [Assembly instructions](other/Assembly_photos/Assembly_Process_EN.md) for all the details.
-
-**PENDING:** update the assembly guide for the v7 parts.
+See the [assembly guide](other/Assembly_photos/Assembly_Process_EN.md) for all the details.
 
 ### Bill of Materials
 
@@ -1554,17 +1657,37 @@ Visit [Assembly instructions](other/Assembly_photos/Assembly_Process_EN.md) for 
 ## 12. Resources <a id="resources"></a>
 
 ### About WRO
-- [WRO Official Site](https://wro-association.org/)
-- [Future Engineers Rules](other/WRO-2026-FE_GeneralRules.pdf)
+- [WRO Official Site](https://wro-association.org/) and the [2026 season page](https://wro-association.org/competition/2026-season/)
+- [WRO 2026 Future Engineers General Rules](https://wro-association.org/wp-content/uploads/WRO-2026-Future-Engineers-Self-Driving-Cars-General-Rules.pdf) (copy in [`other/WRO-2026-FE_GeneralRules.pdf`](other/WRO-2026-FE_GeneralRules.pdf))
+- [WRO 2026 Future Engineers Documentation Rubric](other/WRO-2026-FE_DocumentationRubric.pdf) ([source](https://wro-association.org/wp-content/uploads/WRO-2026-Future-Engineers-Documentation-Rubric.pdf))
+- [WRO 2026 Future Engineers Playfield](other/WRO-2026-FE_Playfield.pdf) ([source](https://wro-association.org/wp-content/uploads/WRO-2026_FutureEngineers_Playfield.pdf))
 
 ### GitHub Repositories
 - [2026 Repository (WRO_Future_Engineers_Queretaro_CSS)](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS)
 - [2025 Repository (WRO_2025_SSbots)](https://github.com/JRavenelco/WRO_2025_SSbots)
 
-### Datasheets
+### Datasheets and documentation: design v7
+- [Hiwonder ROS Robot Controller](https://hiwonder.com/products/ros-robot-control) (STM32F407VET6) and its [documentation](https://wiki.hiwonder.com/projects/ROS-Robot-Control-Board/en/latest/)
+- [Hiwonder JGB37-520 Hall-encoder DC gear motor](https://www.hiwonder.com/products/hall-encoder-dc-geared-motor) (specifications on the product page)
+- [Hiwonder HX-35H serial bus servo](https://www.hiwonder.com/products/hx-35h) (specifications on the product page)
+- [Slamtec RPLIDAR S2L](https://www.slamtec.com/en/s2) and [RPLIDAR SDK](https://github.com/Slamtec/rplidar_sdk)
+- [Raspberry Pi 5](https://www.raspberrypi.com/products/raspberry-pi-5/) and [USB Power Delivery on Raspberry Pi 5](other/datasheets/RP-009856-WP-1-USB-Power-Delivery-on-Raspberry-Pi-5.pdf) (5 V / 5 A supply; [source](https://pip-assets.raspberrypi.com/categories/685-app-notes-guides-whitepapers/documents/RP-009856-WP-1-USB%20Power%20delivery%20on%20Raspberry%20Pi%205.pdf))
+- [Raspberry Pi AI HAT+ (26 TOPS, Hailo-8) product brief](other/datasheets/RP-008133-DS-1-raspberry-pi-ai-hat-plus-product-brief.pdf) ([source](https://datasheets.raspberrypi.com/ai-hat-plus/raspberry-pi-ai-hat-plus-product-brief.pdf)) and [documentation](https://www.raspberrypi.com/documentation/accessories/ai-hat-plus.html)
+- [Hailo-8 AI accelerator](https://hailo.ai/products/ai-accelerators/hailo-8-ai-accelerator/), [Hailo AI Software Suite](https://hailo.ai/products/hailo-software/hailo-ai-software-suite/) (Dataflow Compiler) and [HailoRT, Hailo-8 branch](https://github.com/hailo-ai/hailort/tree/hailo8)
+- [Raspberry Pi Camera Module 3 product brief](other/datasheets/RP-008151-DS-1-camera-module-3-product-brief.pdf) ([source](https://pip-assets.raspberrypi.com/categories/786-raspberry-pi-camera-module-3/documents/RP-008151-DS-1-camera-module-3-product-brief.pdf))
+- [Panasonic NCR18650B datasheet](other/datasheets/Panasonic-NCR18650B-datasheet.pdf) ([source](https://e2e.ti.com/cfs-file/__key/communityserver-discussions-components-files/196/Panasonic-NCR18650B-datasheet.pdf)), [maximum continuous discharge](https://batterybro.com/products/panasonic-b-ncr18650b-3400mah-4-8a), [independent cell test](https://lygte-info.dk/review/batteries2012/Panasonic%20NCR18650B%203400mAh%20(Green)%20UK.html)
+- [3S BMS (BMS3S10A)](https://www.inteligenciaartificialyrobotica.com/products/balanceador-cargador-de-baterias-li-ion-bms3s10a)
+- [Grove LED Button](https://wiki.seeedstudio.com/Grove-LED_Button/)
+
+### Software
+- [Ultralytics YOLOv8](https://docs.ultralytics.com/models/yolov8/) and [training mode](https://docs.ultralytics.com/modes/train/)
+- [Roboflow dataset `wro-dataset-completo`](https://universe.roboflow.com/roboteam-x6iuc/wro-dataset-completo)
+- [libcamera](https://libcamera.org/) and [libgpiod](https://libgpiod.readthedocs.io/)
+
+### Datasheets: design v6 (national)
 - [Orbbec Oradar MS200k LiDAR](other/datasheets/MS200k-dToF-2D-LiDARSR-User-Manual-A2-1.pdf)
 - [Raspberry Pi 5 (16GB RAM)](other/datasheets/RP-008348-DS-6-raspberry-pi-5-product-brief.pdf)
-- [Raspberry Pi AI HAT+ 40 TOPS (Hailo-10H)](other/datasheets/RP-009655-MM-6-raspberry-pi-ai-hat-plus-2-product-brief.pdf)
+- [Raspberry Pi AI HAT+ 2 (40 TOPS, Hailo-10H)](other/datasheets/RP-009655-MM-6-raspberry-pi-ai-hat-plus-2-product-brief.pdf)
 - [Geekworm X1203 5.1V 5A UPS Shield for Raspberry Pi 5 Series](https://wiki.geekworm.com/X1203)
 - [LEGO SPIKE Prime Large Angular Motor (Part 45602)](other/datasheets/techspecs_techniclargeangularmotor-1b79e2f4fbb292aaf40c97fec0c31fff.pdf)
 - [LEGO SPIKE Prime Small Angular Motor (Part 45607)](other/datasheets/LE_SPIKE_Essential_Tech_fact_sheet_Small_Angular_Motor_45607_2HY21_Digital.pdf)

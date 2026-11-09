@@ -1,23 +1,60 @@
 # WRO Future Engineers - Startup Services
 
-Two systemd services are installed on this Raspberry Pi. They both use the
-same hardware (camera / lidar / serial), so only **one** of them should be
-running at a time. They are configured with `Conflicts=` so starting one
-will automatically stop the other.
+The robot can start either program at boot with a systemd service. Both
+programs use the same hardware (camera, LiDAR, Hiwonder board, GPIO), so only
+**one** of them may run at a time. Give both units `Conflicts=` on each other,
+so starting one automatically stops the other.
 
-1. **`object_detection.service`**
-   Runs:
+| Service | Program (design v7) | `ExecStart=` |
+|---|---|---|
+| `object_detection.service` | Obstacle Challenge: camera + Hailo-8 + RPLidar S2L + Hiwonder board | `/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/object_detection_hiwonder_h10/run_hiwonder_h8.sh --no-display` |
+| `my_lidar_app.service` | Open Challenge: RPLidar S2L + Hiwonder board | `/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/ondevice/my_lidar_app --no-display` |
+
+Build both programs first (README §9.5 and §9.6). `run_hiwonder_h8.sh` selects
+the `build/h8_s2l` build and the `wro_h8_yolov8n_v4.hef` model and runs the
+program from its build directory. `--no-display` disables the camera and LiDAR
+windows, which a service cannot open.
+
+Example unit file (`/etc/systemd/system/object_detection.service`):
+
+```ini
+[Unit]
+Description=WRO FE Obstacle Challenge (design v7)
+After=multi-user.target
+Conflicts=my_lidar_app.service
+
+[Service]
+Type=simple
+ExecStart=/home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/object_detection_hiwonder_h10/run_hiwonder_h8.sh --no-display
+Restart=no
+
+[Install]
+WantedBy=multi-user.target
+```
+
+`my_lidar_app.service` is the same with its own `Description`, `ExecStart`
+and `Conflicts=object_detection.service`. After creating or editing a unit,
+run `sudo systemctl daemon-reload`.
+
+At start-up both programs centre the steering and calibrate the gyroscope
+for 5 s, so the robot must stay still after power-on; the run itself starts
+with the button (GPIO4).
+
+<details>
+<summary>Design v6 (national) services</summary>
+
+1. **`object_detection.service`** ran
    ```
    /home/maker/WRO_Future_Engineers_Queretaro_CSS/src/cpp/object_detection_original_h10/build/h10_original/object_detection \
      --net /home/maker/WRO_Future_Engineers_Queretaro_CSS/src/HailoModels/roboflow_yolov8n_wro_h10.hef \
      --input rpi --no-display
    ```
-
-2. **`my_lidar_app.service`**
-   Runs:
+2. **`my_lidar_app.service`** ran
    ```
    /home/maker/WRO_Future_Engineers_Queretaro_CSS/src/ondevice/my_lidar_app
    ```
+
+</details>
 
 Service unit files live in `/etc/systemd/system/`.
 
@@ -73,17 +110,18 @@ sudo journalctl -u SERVICE -b
 
 ## Interrupting / stopping mid-run
 
-- If you ran the binary directly in a terminal (not via systemd), press
-  **Ctrl+C**. `object_detection` has a `SIGINT` handler for graceful shutdown.
-- If it's running as a systemd service (in the background, no terminal),
-  Ctrl+C does nothing because there's no attached terminal. Use:
+- If you ran the program directly in a terminal (not via systemd), press
+  **Ctrl+C**.
+- If it is running as a systemd service (in the background, no terminal),
+  use:
   ```sh
   sudo systemctl stop SERVICE
   ```
-  Note: `systemctl stop` sends `SIGTERM` by default, not `SIGINT`. If you need
-  the exact same graceful-shutdown behavior as Ctrl+C, add a line
-  `KillSignal=SIGINT` under `[Service]` in the `.service` file and run
-  `sudo systemctl daemon-reload`.
+  `systemctl stop` sends `SIGTERM`. In design v7 both programs install the
+  emergency stop (`src/ondevice/parada_emergencia.cpp`), which handles
+  `SIGINT` (Ctrl+C) and `SIGTERM` the same way: the motors go to COAST, the
+  steering servo torque is released, the LiDAR is stopped and the process
+  exits.
 
 ## Editing a service file
 
