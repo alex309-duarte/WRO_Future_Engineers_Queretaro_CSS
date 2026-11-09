@@ -22,3 +22,21 @@ other/additionalMedia/Videos/fpv.mp4
 # Binario de las pruebas del adaptador Hiwonder
 /src/ondevice/tests/spike_hiwonder_test
 .lidar_*
+
+# =========================================================
+# Build output and compiled binaries (rebuild with the
+# instructions in README §9; never commit them)
+# =========================================================
+/build/
+src/cpp/**/build/
+src/cpp/**/build_*/
+src/ondevice/my_lidar_app
+src/ondevice/controlc
+__pycache__/
+*.pyc
+
+# Windows reserved file name created by "> nul" on Linux
+nul
+
+# Large archives (GitHub rejects files over 100 MB)
+*.zip

@@ -35,6 +35,7 @@ For competition environments, quick maintenance is crucial. The mechanical desig
 
 ## Contents
 
+* **`v7_assembly/`**: 3D CAD assembly of design v7, the vehicle for the WRO 2026 International Final (Hiwonder ROS Robot Controller, RPLidar S2L, 3S 18650 battery pack).
+* **`v6_assembly/`**: 3D CAD assembly of design v6, the vehicle that placed 2nd at the Mexico National Final. The design notes above (LEGO Spike batteries, Oradar LiDAR) describe this version.
 * **`Iterations/`**: Contains previous design iterations, early prototypes, and testing models used throughout the development process.
-* **`Final_assembly/`**: Contains the final 3D CAD assembly of the robot, representing the definitive competition model.
 * **`Stl/`**: Contains the `.stl` files of all the custom components that were physically 3D printed to build the robot.
