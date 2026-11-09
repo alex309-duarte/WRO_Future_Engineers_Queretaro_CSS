@@ -42,7 +42,7 @@ constexpr double kAdvanceKd = 0.05;
 hiwonder::Brick &brick() {
     if (!g_attached || g_brick == nullptr) {
         throw std::logic_error(
-            "spike_compat: llamar a Spike_Attach() antes de usar la API");
+            "spike_compat: call Spike_Attach() before using the API");
     }
     return *g_brick;
 }
@@ -51,14 +51,14 @@ hiwonder::Brick &brick() {
 void require_steering_calibration() {
     if (g_config.pd_output_to_steering == 0.0) {
         throw std::logic_error(
-            "spike_compat: pd_output_to_steering sin calibrar; el factor 6.4 "
-            "del LEGO no es trasladable al varillaje Ackermann del HX-35H");
+            "spike_compat: pd_output_to_steering not calibrated; the LEGO factor 6.4 "
+            "does not carry over to the HX-35H Ackermann linkage");
     }
 }
 
 void require_speed_calibration() {
     if (g_config.rps_at_speed_100 <= 0.0) {
-        throw std::logic_error("spike_compat: rps_at_speed_100 sin calibrar");
+        throw std::logic_error("spike_compat: rps_at_speed_100 not calibrated");
     }
 }
 
@@ -152,7 +152,7 @@ void Steer_Tire_Turn(int direction, int tire_turn) {
     auto &b = detail::brick();
     if (detail::g_config.tire_turn_to_steering == 0.0) {
         throw std::logic_error(
-            "spike_compat: tire_turn_to_steering sin calibrar");
+            "spike_compat: tire_turn_to_steering not calibrated");
     }
     b.set_steering(detail::clamp_unit(static_cast<double>(tire_turn) *
                                       detail::g_config.tire_turn_to_steering *
@@ -372,7 +372,7 @@ void turn_impl(int direction, int speed, float degrees, int tire_turn,
     auto &b = sd::brick();
     if (sd::g_config.tire_turn_to_steering == 0.0) {
         throw std::logic_error(
-            "spike_compat: tire_turn_to_steering sin calibrar");
+            "spike_compat: tire_turn_to_steering not calibrated");
     }
     sd::require_speed_calibration();  /* before moving the steering */
     spike_compat::Steer_Tire_Turn(direction, tire_turn);

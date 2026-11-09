@@ -70,7 +70,7 @@ std::runtime_error system_error(const std::string &what) {
 
 Brick::Brick(Config config) : config_(std::move(config)) {
     if (config_.position_motor_id > 3) {
-        throw std::invalid_argument("position_motor_id debe estar entre 0 y 3");
+        throw std::invalid_argument("position_motor_id must be between 0 and 3");
     }
 }
 
@@ -85,7 +85,7 @@ void Brick::open() {
         config_.device.empty() ? discover_device() : config_.device;
     const int fd = ::open(device.c_str(), O_RDWR | O_NOCTTY | O_NONBLOCK);
     if (fd < 0) {
-        throw system_error("no se pudo abrir " + device);
+        throw system_error("could not open " + device);
     }
 
     // Raw 8N1 at 1 Mbaud, no flow control. VMIN = VTIME = 0 makes read()
@@ -103,7 +103,7 @@ void Brick::open() {
         cfsetospeed(&options, B1000000) != 0 ||
         tcsetattr(fd, TCSANOW, &options) != 0) {
         ::close(fd);
-        throw system_error("no se pudo configurar el puerto a 1000000 baud");
+        throw system_error("could not set the port to 1000000 baud");
     }
     tcflush(fd, TCIFLUSH);   // drop stale bytes received before opening
 
@@ -140,15 +140,15 @@ std::string Brick::discover_device(const std::string &by_id_dir) {
     std::sort(found.begin(), found.end());
     if (found.empty()) {
         throw std::runtime_error(
-            "no se encontró la placa Hiwonder en " + by_id_dir +
-            " (¿está conectado el USB-C de UART2?); para forzar un puerto, "
+            "Hiwonder board not found in " + by_id_dir +
+            " (is the UART2 USB-C cable connected?); to force a port, set "
             "HIWONDER_DEVICE=/dev/...");
     }
     if (found.size() > 1) {
         std::string list;
         for (const auto &path : found) list += "\n  " + path;
         throw std::runtime_error(
-            "hay varias placas Hiwonder conectadas; elige una con "
+            "several Hiwonder boards are connected; choose one with "
             "HIWONDER_DEVICE:" + list);
     }
     return found.front();
@@ -192,11 +192,11 @@ bool Brick::is_open() const noexcept {
 
 void Brick::set_motor_speed(std::uint8_t motor_id, float speed_rps) {
     if (motor_id > 3) {
-        throw std::invalid_argument("motor_id debe estar entre 0 y 3");
+        throw std::invalid_argument("motor_id must be between 0 and 3");
     }
     if (!std::isfinite(speed_rps) ||
         std::abs(speed_rps) > config_.max_speed_rps) {
-        throw std::invalid_argument("speed_rps fuera del límite configurado");
+        throw std::invalid_argument("speed_rps outside the configured limit");
     }
     // Sub-command 0 = set speed: [0, motor, float rev/s].
     std::vector<std::uint8_t> payload{0, motor_id};
@@ -206,7 +206,7 @@ void Brick::set_motor_speed(std::uint8_t motor_id, float speed_rps) {
 
 void Brick::stop_motor(std::uint8_t motor_id) {
     if (motor_id > 3) {
-        throw std::invalid_argument("motor_id debe estar entre 0 y 3");
+        throw std::invalid_argument("motor_id must be between 0 and 3");
     }
     send_frame(kFunctionMotor, {2, motor_id});   // sub-command 2 = stop
 }
@@ -236,7 +236,7 @@ MotorPositionCapabilities Brick::motor_position_capabilities(
             return motor_position_capabilities_.sequence != initial;
         })) {
         throw std::runtime_error(
-            "el firmware no respondió a capacidades de posición");
+            "the firmware did not answer the position capabilities query");
     }
     return motor_position_capabilities_;
 }
@@ -246,14 +246,14 @@ MotorPositionStatus Brick::move_motor_relative(
     std::uint16_t tolerance_ticks, std::uint16_t motion_timeout_ms,
     std::chrono::milliseconds reply_timeout) {
     if (delta_ticks == 0) {
-        throw std::invalid_argument("delta_ticks no puede ser cero");
+        throw std::invalid_argument("delta_ticks cannot be zero");
     }
     if (!std::isfinite(max_rps) || max_rps <= 0.0F ||
         max_rps > config_.max_speed_rps) {
-        throw std::invalid_argument("max_rps fuera del límite configurado");
+        throw std::invalid_argument("max_rps outside the configured limit");
     }
     if (tolerance_ticks == 0 || motion_timeout_ms < 100) {
-        throw std::invalid_argument("tolerancia o timeout de movimiento inválido");
+        throw std::invalid_argument("invalid motion tolerance or timeout");
     }
     std::uint64_t initial = 0;
     {
@@ -273,7 +273,7 @@ MotorPositionStatus Brick::move_motor_relative(
             return motor_position_status_.sequence != initial &&
                    motor_position_status_.command == 0x01;
         })) {
-        throw std::runtime_error("sin confirmación del movimiento de posición");
+        throw std::runtime_error("no acknowledgement of the position move");
     }
     return motor_position_status_;
 }
@@ -291,7 +291,7 @@ MotorPositionStatus Brick::motor_position_status(
             return motor_position_status_.sequence != initial &&
                    motor_position_status_.command == 0x04;
         })) {
-        throw std::runtime_error("sin respuesta de estado de posición");
+        throw std::runtime_error("no position status response");
     }
     return motor_position_status_;
 }
@@ -309,7 +309,7 @@ MotorPositionStatus Brick::cancel_motor_position(
             return motor_position_status_.sequence != initial &&
                    motor_position_status_.command == 0x02;
         })) {
-        throw std::runtime_error("sin confirmación de cancelación de posición");
+        throw std::runtime_error("no acknowledgement of the position cancel");
     }
     return motor_position_status_;
 }
@@ -327,7 +327,7 @@ MotorPositionStatus Brick::zero_motor_position(
             return motor_position_status_.sequence != initial &&
                    motor_position_status_.command == 0x03;
         })) {
-        throw std::runtime_error("sin confirmación de cero de posición");
+        throw std::runtime_error("no acknowledgement of the position zeroing");
     }
     return motor_position_status_;
 }
@@ -337,10 +337,10 @@ MotorPositionStatus Brick::hold_motor_position(
     std::chrono::milliseconds reply_timeout) {
     if (!std::isfinite(max_rps) || max_rps <= 0.0F ||
         max_rps > config_.max_speed_rps) {
-        throw std::invalid_argument("max_rps fuera del límite configurado");
+        throw std::invalid_argument("max_rps outside the configured limit");
     }
     if (tolerance_ticks == 0 || max_pulse < 300 || max_pulse > 1000) {
-        throw std::invalid_argument("tolerancia o tope de PWM del HOLD inválido");
+        throw std::invalid_argument("invalid HOLD tolerance or PWM limit");
     }
     std::uint64_t initial = 0;
     {
@@ -358,7 +358,7 @@ MotorPositionStatus Brick::hold_motor_position(
             return motor_position_status_.sequence != initial &&
                    motor_position_status_.command == 0x05;
         })) {
-        throw std::runtime_error("sin confirmación del HOLD");
+        throw std::runtime_error("no acknowledgement of the HOLD");
     }
     return motor_position_status_;
 }
@@ -375,20 +375,20 @@ MotorPositionStatus Brick::wait_motor_position(
         }
         std::this_thread::sleep_for(poll_period);
     } while (std::chrono::steady_clock::now() < deadline);
-    throw std::runtime_error("tiempo agotado esperando posición M1");
+    throw std::runtime_error("timed out waiting for the M1 position");
 }
 
 void Brick::set_bus_servo_position(std::uint8_t servo_id,
                                    std::uint16_t position,
                                    std::uint16_t duration_ms) {
     if (servo_id > 253) {
-        throw std::invalid_argument("servo_id debe estar entre 0 y 253");
+        throw std::invalid_argument("servo_id must be between 0 and 253");
     }
     if (position > 1000) {
-        throw std::invalid_argument("posición HX-35H debe estar entre 0 y 1000");
+        throw std::invalid_argument("HX-35H position must be between 0 and 1000");
     }
     if (duration_ms < 20 || duration_ms > 30000) {
-        throw std::invalid_argument("duración debe estar entre 20 y 30000 ms");
+        throw std::invalid_argument("duration must be between 20 and 30000 ms");
     }
     // Sub-command 0x01 = move: [0x01, uint16 duration ms, servo count,
     // then per servo: id, uint16 position].
@@ -402,7 +402,7 @@ void Brick::set_bus_servo_position(std::uint8_t servo_id,
 
 void Brick::set_bus_servo_power(std::uint8_t servo_id, bool enabled) {
     if (servo_id > 253) {
-        throw std::invalid_argument("servo_id debe estar entre 0 y 253");
+        throw std::invalid_argument("servo_id must be between 0 and 253");
     }
     // 0x0C = torque on, 0x0B = torque off (unload).
     send_frame(kFunctionBusServo,
@@ -424,7 +424,7 @@ std::uint8_t Brick::read_bus_servo_id(
         return bus_servo_.sequence != initial && bus_servo_.valid;
     });
     if (!received) {
-        throw std::runtime_error("tiempo agotado leyendo ID del bus servo");
+        throw std::runtime_error("timed out reading the bus servo ID");
     }
     return bus_servo_.id;
 }
@@ -432,7 +432,7 @@ std::uint8_t Brick::read_bus_servo_id(
 BusServoFeedback Brick::read_bus_servo_position(
     std::uint8_t servo_id, std::chrono::milliseconds timeout) const {
     if (servo_id > 253) {
-        throw std::invalid_argument("servo_id debe estar entre 0 y 253");
+        throw std::invalid_argument("servo_id must be between 0 and 253");
     }
     std::uint64_t initial = 0;
     {
@@ -447,7 +447,7 @@ BusServoFeedback Brick::read_bus_servo_position(
         return bus_servo_.sequence != initial && bus_servo_.id == servo_id;
     });
     if (!received) {
-        throw std::runtime_error("tiempo agotado leyendo posición del bus servo");
+        throw std::runtime_error("timed out reading the bus servo position");
     }
     return bus_servo_;
 }
@@ -455,11 +455,11 @@ BusServoFeedback Brick::read_bus_servo_position(
 void Brick::set_steering(double normalized,
                          const SteeringCalibration &calibration) {
     if (!std::isfinite(normalized) || normalized < -1.0 || normalized > 1.0) {
-        throw std::invalid_argument("dirección normalizada debe estar entre -1 y 1");
+        throw std::invalid_argument("normalized steering must be between -1 and 1");
     }
     if (calibration.left > 1000 || calibration.center > 1000 ||
         calibration.right > 1000) {
-        throw std::invalid_argument("calibración de dirección fuera de 0..1000");
+        throw std::invalid_argument("steering calibration outside 0..1000");
     }
     // Linear interpolation on each side of the centre: negative values move
     // toward `left`, positive toward `right`. The two halves may have
@@ -496,10 +496,10 @@ bool Brick::wait_for_imu(std::chrono::milliseconds timeout) const {
 // when the yaw is integrated in process_frame().
 void Brick::calibrate_gyro(std::chrono::milliseconds duration) {
     if (duration < std::chrono::milliseconds(500)) {
-        throw std::invalid_argument("la calibración debe durar al menos 500 ms");
+        throw std::invalid_argument("calibration must last at least 500 ms");
     }
     if (!wait_for_imu(std::chrono::seconds(2))) {
-        throw std::runtime_error("no se recibió telemetría IMU");
+        throw std::runtime_error("no IMU telemetry received");
     }
 
     const auto deadline = std::chrono::steady_clock::now() + duration;
@@ -521,7 +521,7 @@ void Brick::calibrate_gyro(std::chrono::milliseconds duration) {
         ++count;
     }
     if (count < 10) {
-        throw std::runtime_error("muestras insuficientes para calibrar el IMU");
+        throw std::runtime_error("not enough samples to calibrate the IMU");
     }
     std::lock_guard<std::mutex> lock(state_mutex_);
     gyro_bias_[0] = sum[0] / static_cast<double>(count);
@@ -542,11 +542,11 @@ void Brick::reset_yaw(double yaw_deg) {
 std::int64_t Brick::motor_degrees_to_ticks(
     double degrees, const EncoderCalibration &calibration) {
     if (!std::isfinite(degrees)) {
-        throw std::invalid_argument("degrees debe ser finito");
+        throw std::invalid_argument("degrees must be finite");
     }
     if (calibration.ticks_per_output_revolution <= 0) {
         throw std::invalid_argument(
-            "ticks_per_output_revolution debe ser positivo");
+            "ticks_per_output_revolution must be positive");
     }
     return static_cast<std::int64_t>(std::llround(
         degrees * calibration.ticks_per_output_revolution / 360.0));
@@ -556,7 +556,7 @@ double Brick::motor_ticks_to_degrees(
     std::int64_t ticks, const EncoderCalibration &calibration) {
     if (calibration.ticks_per_output_revolution <= 0) {
         throw std::invalid_argument(
-            "ticks_per_output_revolution debe ser positivo");
+            "ticks_per_output_revolution must be positive");
     }
     return static_cast<double>(ticks) * 360.0 /
            calibration.ticks_per_output_revolution;
@@ -602,7 +602,7 @@ std::vector<std::uint8_t>
 Brick::encode_frame(std::uint8_t function,
                     const std::vector<std::uint8_t> &payload) {
     if (payload.size() > 255) {
-        throw std::invalid_argument("payload demasiado grande");
+        throw std::invalid_argument("payload too large");
     }
     std::vector<std::uint8_t> frame;
     frame.reserve(payload.size() + 5);
@@ -628,7 +628,7 @@ void Brick::send_frame(std::uint8_t function,
         fd = fd_;
     }
     if (fd < 0) {
-        throw std::runtime_error("la controladora no está abierta");
+        throw std::runtime_error("the controller board is not open");
     }
     const auto frame = encode_frame(function, payload);
     std::size_t offset = 0;
@@ -638,7 +638,7 @@ void Brick::send_frame(std::uint8_t function,
         if (written > 0) {
             offset += static_cast<std::size_t>(written);
         } else if (written < 0 && errno != EINTR && errno != EAGAIN) {
-            throw system_error("error escribiendo a la controladora");
+            throw system_error("error writing to the controller board");
         }
     }
     tcdrain(fd);   // wait until the bytes have physically left the UART

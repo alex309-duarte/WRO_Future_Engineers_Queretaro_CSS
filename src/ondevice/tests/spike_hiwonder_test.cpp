@@ -1,4 +1,4 @@
-// Offline tests of the reto1-hiwonder branch adapter (spike_hiwonder.cpp +
+// Offline tests of the Hiwonder board adapter (spike_hiwonder.cpp +
 // spike_compat) against a fake board (fake_brick.cpp). They cover the
 // hub-to-board translations, which compile the same even when they are
 // wrong: gyro units, full-lock steering, speed limit and startup order.
@@ -25,7 +25,7 @@ void check(bool ok, const char *que) {
     ++g_checks;
     if (!ok) {
         ++g_fallos;
-        std::printf("  FALLO: %s\n", que);
+        std::printf("  FAIL: %s\n", que);
     }
 }
 
@@ -54,10 +54,10 @@ void test_arranque_rechaza_firmware_sin_posicion() {
     fake::reiniciar();
     unsetenv("WRO_MAX_RPS");
     fake::estado().motor_mask = 0;
-    check(Spike_Hiwonder_Init() != 0, "sin posición en M4 el arranque falla");
-    check(!spike_compat::Spike_Is_Attached(), "y la capa queda sin asociar");
+    check(Spike_Hiwonder_Init() != 0, "startup fails without position control on M4");
+    check(!spike_compat::Spike_Is_Attached(), "and the layer is left detached");
     check(posicion(fake::estado().eventos, "calibrate 5000") < 0,
-          "y no llega a calibrar ni a mover nada");
+          "and it neither calibrates nor moves anything");
 }
 
 // True if any servo position or centring command was sent.
@@ -77,14 +77,14 @@ void test_arranque_rechaza_servo_fuera_de_recorrido() {
         fake::reiniciar();
         unsetenv("WRO_MAX_RPS");
         fake::estado().posicion_servo = static_cast<std::int16_t>(pos);
-        const std::string que = "servo en " + std::to_string(pos);
-        check(Spike_Hiwonder_Init() != 0, (que + ": el arranque falla").c_str());
-        check(!movio_el_servo(), (que + ": y no manda ninguna posición al servo").c_str());
+        const std::string que = "servo at " + std::to_string(pos);
+        check(Spike_Hiwonder_Init() != 0, (que + ": startup fails").c_str());
+        check(!movio_el_servo(), (que + ": and no position is sent to the servo").c_str());
     }
     fake::reiniciar();
     fake::estado().servo_responde = false;
-    check(Spike_Hiwonder_Init() != 0, "servo sin respuesta: el arranque falla");
-    check(!movio_el_servo(), "servo sin respuesta: no se mueve");
+    check(Spike_Hiwonder_Init() != 0, "servo not responding: startup fails");
+    check(!movio_el_servo(), "servo not responding: nothing moves");
 }
 
 // Positions exactly on the edge of the allowed range, and the centre, start.
@@ -96,7 +96,7 @@ void test_arranque_acepta_servo_en_el_borde() {
         unsetenv("WRO_MAX_RPS");
         fake::estado().posicion_servo = static_cast<std::int16_t>(pos);
         check(Spike_Hiwonder_Init() == 0,
-              ("servo en " + std::to_string(pos) + ": arranca").c_str());
+              ("servo at " + std::to_string(pos) + ": starts").c_str());
     }
 }
 
@@ -104,39 +104,39 @@ void test_arranque_acepta_servo_en_el_borde() {
 void test_recorrido_de_35_grados() {
     check(kDireccionIzquierda - kDireccionCentro <= 35.0 / 0.24 &&
           kDireccionCentro - kDireccionDerecha <= 35.0 / 0.24,
-          "la dirección no pasa de ±35° desde el centro");
+          "steering stays within ±35° of centre");
 }
 
 // Invalid WRO_MAX_RPS values must fail before the board is opened.
 void test_arranque_rechaza_tope_invalido() {
-    check(arrancar("9") != 0, "WRO_MAX_RPS=9 supera el firmware: falla");
-    check(arrancar("abc") != 0, "WRO_MAX_RPS=abc: falla");
-    check(arrancar("0") != 0, "WRO_MAX_RPS=0: falla");
+    check(arrancar("9") != 0, "WRO_MAX_RPS=9 exceeds the firmware: fails");
+    check(arrancar("abc") != 0, "WRO_MAX_RPS=abc: fails");
+    check(arrancar("0") != 0, "WRO_MAX_RPS=0: fails");
     check(posicion(fake::estado().eventos, "open") < 0,
-          "un tope inválido falla antes de abrir la placa");
+          "an invalid limit fails before the board is opened");
 }
 
 // Normal startup: checks the order open -> emergency stop -> centre servo
 // -> gyro calibration, and the port and speed limit that result.
 void test_arranque_ok() {
-    check(arrancar(nullptr) == 0, "arranque correcto con la placa falsa");
+    check(arrancar(nullptr) == 0, "startup succeeds with the fake board");
     const auto &ev = fake::estado().eventos;
     const int centrar = posicion(ev, "servo 1 " + std::to_string(kDireccionCentro) + " 1000");
     const int calibrar = posicion(ev, "calibrate " + std::to_string(kSegundosCalibracionGiro * 1000));
     const int parada = posicion(ev, std::string("parada_emergencia 1") +
                                         (kSoltarDireccionAlParar ? " soltar" : " sostener"));
-    check(posicion(ev, "open") == 0, "abre la placa primero");
+    check(posicion(ev, "open") == 0, "opens the board first");
     check(fake::estado().dispositivo_config.empty(),
-          "no fija el puerto: la Brick lo descubre, así sirve cualquier placa");
+          "does not fix the port: the Brick discovers it, so any board works");
     check(fake::estado().dispositivo_parada == fake::kDispositivoDescubierto,
-          "la parada de emergencia abre el mismo puerto que la placa");
-    check(parada == 1, "instala la parada de emergencia justo después de abrir");
-    check(centrar > parada, "y antes de mover el servo");
-    check(centrar > 0, "centra la dirección despacio (1 s)");
-    check(calibrar > centrar, "calibra el giroscopio DESPUÉS de centrar");
-    check(spike_compat::Spike_Is_Attached(), "deja la capa asociada");
+          "the emergency stop opens the same port as the board");
+    check(parada == 1, "installs the emergency stop right after opening");
+    check(centrar > parada, "and before moving the servo");
+    check(centrar > 0, "centres the steering slowly (1 s)");
+    check(calibrar > centrar, "calibrates the gyroscope AFTER centring");
+    check(spike_compat::Spike_Is_Attached(), "leaves the layer attached");
     check(cerca(spike_compat::Spike_Get_Config().max_rps_limit, kRpsVelocidad100),
-          "sin WRO_MAX_RPS el tope es el del firmware");
+          "without WRO_MAX_RPS the limit is the firmware's");
 }
 
 // Spike_Reset_Gyro(int) takes decidegrees.
@@ -161,12 +161,12 @@ void test_giro_a_tope(int sentido, std::uint16_t posicion_esperada, const std::s
     // Brick::set_steering maps +1 to calibration.right and -1 to calibration.left.
     const auto &cal = e.ultima_calibracion;
     const std::uint16_t destino = e.ultima_direccion > 0 ? cal.right : cal.left;
-    check(cerca(e.ultima_direccion, sentido), (nombre + ": dirección a tope").c_str());
-    check(destino == posicion_esperada, (nombre + ": el servo va a la posición configurada").c_str());
+    check(cerca(e.ultima_direccion, sentido), (nombre + ": steering at full lock").c_str());
+    check(destino == posicion_esperada, (nombre + ": the servo goes to the configured position").c_str());
     check(std::fabs(e.yaw_deg) >= 70.0 && std::fabs(e.yaw_deg) < 85.0,
-          (nombre + ": gira hasta |yaw| >= 70°").c_str());
-    check(e.yaw_deg * sentido < 0.0, (nombre + ": el yaw va en el sentido del hub").c_str());
-    check(e.paradas > 0 && e.holds > 0, (nombre + ": al final para y sostiene").c_str());
+          (nombre + ": turns until |yaw| >= 70°").c_str());
+    check(e.yaw_deg * sentido < 0.0, (nombre + ": the yaw changes in the hub's direction").c_str());
+    check(e.paradas > 0 && e.holds > 0, (nombre + ": stops and holds at the end").c_str());
 }
 
 // cvca() drives at 70 % of speed 100, but never above the WRO_MAX_RPS limit.
@@ -174,13 +174,13 @@ void test_tope_de_velocidad() {
     arrancar(nullptr);
     Spike_Center_Vehicle_Short(true);
     check(cerca(fake::estado().ultima_velocidad_rps, 0.7 * kRpsVelocidad100),
-          "cvca sin tope: 70 % de speed 100");
+          "cvca without limit: 70 % of speed 100");
 
     arrancar("1.5");
-    check(cerca(spike_compat::Spike_Get_Config().max_rps_limit, 1.5), "WRO_MAX_RPS=1.5 fija el tope");
+    check(cerca(spike_compat::Spike_Get_Config().max_rps_limit, 1.5), "WRO_MAX_RPS=1.5 sets the limit");
     Spike_Center_Vehicle_Short(true);
-    check(cerca(fake::estado().ultima_velocidad_rps, 1.5), "cvca con tope 1.5 queda en 1.5 r/s");
-    check(posicion(fake::estado().eventos, "centrar") >= 0, "cvca centra la dirección");
+    check(cerca(fake::estado().ultima_velocidad_rps, 1.5), "cvca with limit 1.5 stays at 1.5 r/s");
+    check(posicion(fake::estado().eventos, "centrar") >= 0, "cvca centres the steering");
 }
 
 // Hub motor degrees are converted to encoder ticks (1320 per revolution).
@@ -188,13 +188,13 @@ void test_avance_en_ticks() {
     arrancar(nullptr);
     Spike_Advance_For_Degrees(100, 1350, -90);
     check(fake::estado().ultimo_avance_ticks == 4950,
-          "1350° del motor del hub -> 4950 ticks (1320 por vuelta)");
+          "1350° of the hub motor -> 4950 ticks (1320 per revolution)");
 }
 
 }  // namespace
 
 int main() {
-    std::printf("Pruebas del adaptador Hiwonder (placa falsa)\n");
+    std::printf("Hiwonder adapter tests (fake board)\n");
     test_arranque_rechaza_firmware_sin_posicion();
     test_arranque_rechaza_tope_invalido();
     test_arranque_rechaza_servo_fuera_de_recorrido();
@@ -202,11 +202,11 @@ int main() {
     test_recorrido_de_35_grados();
     test_arranque_ok();
     test_reset_gyro_en_decigrados();
-    test_giro_a_tope(1, kDireccionDerecha, "derecha");
-    test_giro_a_tope(-1, kDireccionIzquierda, "izquierda");
+    test_giro_a_tope(1, kDireccionDerecha, "right");
+    test_giro_a_tope(-1, kDireccionIzquierda, "left");
     test_tope_de_velocidad();
     test_avance_en_ticks();
     spike_compat::Spike_Detach();
-    std::printf("%d comprobaciones, %d fallos\n", g_checks, g_fallos);
+    std::printf("%d checks, %d failures\n", g_checks, g_fallos);
     return g_fallos == 0 ? 0 : 1;
 }

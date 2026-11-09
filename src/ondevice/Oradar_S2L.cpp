@@ -334,7 +334,7 @@ void Oradar_S2L_Advance_Until_Left_Gap(int speed, int reference){
         left_distance = oradar_shared_buffer[RP_TO_ORADAR_IDX(LEFT)];
         Spike_Forward(speed,reference);
         usleep(2000);
-        printf("dsitancia izquierda : %f\n", left_distance);
+        printf("left distance: %f\n", left_distance);
         //printf("front distance : %f\n", front_distance);
     }
 
@@ -376,7 +376,7 @@ int Oradar_S2L_Advance_And_Measure_Left_Slope(int speed, int degrees, int refere
 
     float distance_delta = y1-y2;
     int slope = (int)(10 *(Oradar_S2L_Radians_To_Degrees(atan(distance_delta/(175.0*degrees/360.0)))));
-    printf("pendiente: %d\n", slope);
+    printf("slope: %d\n", slope);
     return slope;
 }
 
@@ -390,7 +390,7 @@ int Oradar_S2L_Advance_And_Measure_Right_Slope(int speed, int degrees, int refer
 
     float distance_delta = y1-y2;
     int slope = (int)(-10 *(Oradar_S2L_Radians_To_Degrees(atan(distance_delta/(175.0*degrees/360.0)))));
-    printf("pendiente: %d, y1: %f, y2: %f\n", slope, y1, y2);
+    printf("slope: %d, y1: %f, y2: %f\n", slope, y1, y2);
     return slope;
 }
 
@@ -441,7 +441,7 @@ int Oradar_S2L_Correction_For_Triangles_Left(int degree){
     float correction_angle = (pow(CA,2) + pow(missing_side,2) - pow(H,2))/(2*CA*missing_side);
     float computed_angle = Oradar_S2L_Radians_To_Degrees(acos(correction_angle));
     float final_correction = 90 - computed_angle;
-    printf("H: %f, CA: %f, lado_faltante: %f, angulo_correcion: %f, comparacion: %f, correcion_final: %f\n", H, CA, missing_side, correction_angle, computed_angle, final_correction);
+    printf("H: %f, CA: %f, missing_side: %f, correction_angle: %f, computed_angle: %f, final_correction: %f\n", H, CA, missing_side, correction_angle, computed_angle, final_correction);
     return (int)(final_correction*10);
 
 }
@@ -543,7 +543,7 @@ int Oradar_S2L_Slope(const int point, const int middle_point){
 
     int n = Oradar_S2L_Collect_Slope_Points(point, middle_point, x_point, y_point);
     if(n < 3){
-        printf("Error: no hay suficientes lecturas validas del lidar para calcular la pendiente.\n");
+        printf("Error: not enough valid lidar readings to compute the slope.\n");
         return 0;
     }
 
@@ -557,11 +557,11 @@ int Oradar_S2L_Slope(const int point, const int middle_point){
     double det = n * sum_x2 - sum_x * sum_x;
 
     if (det == 0) {
-        printf("Error: El sistema no tiene solución única (todos los X son iguales).\n");
+        printf("Error: the system has no unique solution (all X values are equal).\n");
         return 0;
     }
     int p = (10)*(Oradar_S2L_Radians_To_Degrees(atan((n * sum_xy - sum_x * sum_y) / det)));
-    printf("pendiente : %d\n",p);
+    printf("slope: %d\n",p);
     return (p);
 
 }
@@ -895,11 +895,11 @@ static Oradar_S2L_WallSelection Oradar_S2L_Select_Wall(int middle_point, bool up
 int Oradar_S2L_Wall_Slope(int middle_point){
     Oradar_S2L_WallSelection sel = Oradar_S2L_Select_Wall(middle_point);
     if(!sel.found){
-        printf("Error: no se encontro una pared valida para calcular la pendiente.\n");
+        printf("Error: no valid wall found to compute the slope.\n");
         return 0;
     }
     int p = (int)(10 * Oradar_S2L_Fit_Line_Orientation(sel.pts, sel.chosen_indices));
-    printf("pendiente (pared): %d\n", p);
+    printf("slope (wall): %d\n", p);
     return p;
 }
 
@@ -930,7 +930,7 @@ Oradar_S2L_Wall_Info Oradar_S2L_Get_Wall_Info(int middle_point){
 // Integer mean of two readings (prints it).
 int Oradar_S2L_Average(int arg_1, int arg_2){
     int average = (arg_1 + arg_2)/2;
-    printf("correcion: %d\n",average);
+    printf("correction: %d\n",average);
     return average;
 }
 

@@ -74,8 +74,8 @@ void manejador(int senal) {
         pthread_kill(g_hilo_principal, senal);
         return;
     }
-    static const char aviso[] = "\nParada de emergencia: motores en COAST\n";
-    static const char aviso_extra[] = "Parada de emergencia: lidar parado\n";
+    static const char aviso[] = "\nEmergency stop: motors in COAST\n";
+    static const char aviso_extra[] = "Emergency stop: lidar stopped\n";
 
     // Before the board is installed g_fd is -1 and only the extra ports are stopped.
     if (g_fd >= 0) {
@@ -103,7 +103,7 @@ void manejador(int senal) {
 void agregar(std::uint8_t funcion, const std::vector<std::uint8_t> &datos) {
     const auto trama = hiwonder::Brick::encode_frame(funcion, datos);
     if (g_largo + trama.size() > sizeof(g_tramas)) {
-        throw std::logic_error("parada de emergencia: tramas demasiado largas");
+        throw std::logic_error("emergency stop: frames too long");
     }
     std::memcpy(g_tramas + g_largo, trama.data(), trama.size());
     g_largo += trama.size();
@@ -131,11 +131,11 @@ void Parada_Emergencia_Agregar_Puerto(const char *dispositivo, const unsigned ch
                                       std::size_t largo) {
     if (g_num_extras >= static_cast<int>(sizeof(g_extras) / sizeof(g_extras[0])) ||
         largo > sizeof(g_extras[0].tramas)) {
-        throw std::logic_error("parada de emergencia: demasiados puertos o tramas");
+        throw std::logic_error("emergency stop: too many ports or frames");
     }
     const int fd = ::open(dispositivo, O_WRONLY | O_NOCTTY | O_CLOEXEC);
     if (fd < 0) {
-        throw std::runtime_error(std::string("parada de emergencia: no se pudo abrir ") +
+        throw std::runtime_error(std::string("emergency stop: could not open ") +
                                  dispositivo + ": " + std::strerror(errno));
     }
     PuertoExtra &extra = g_extras[g_num_extras];
@@ -161,7 +161,7 @@ void Parada_Emergencia_Instalar(const char *dispositivo, std::uint8_t servo_dire
 
     const int fd = ::open(dispositivo, O_WRONLY | O_NOCTTY | O_CLOEXEC);
     if (fd < 0) {
-        throw std::runtime_error(std::string("parada de emergencia: no se pudo abrir ") +
+        throw std::runtime_error(std::string("emergency stop: could not open ") +
                                  dispositivo + ": " + std::strerror(errno));
     }
     if (g_fd >= 0) ::close(g_fd);

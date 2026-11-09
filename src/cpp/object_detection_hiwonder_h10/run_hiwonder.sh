@@ -29,20 +29,20 @@ done
 
 # Fail early with a hint if the executable or the model file is missing.
 if [[ ! -x "$build_dir/object_detection" ]]; then
-    echo "No existe $build_dir/object_detection" >&2
-    echo "Compile primero: cmake -S '$source_dir' -B '$build_dir' -DCMAKE_BUILD_TYPE=Release && make -C '$build_dir' -j\$(nproc)" >&2
+    echo "$build_dir/object_detection does not exist" >&2
+    echo "Build it first: cmake -S '$source_dir' -B '$build_dir' -DCMAKE_BUILD_TYPE=Release && make -C '$build_dir' -j\$(nproc)" >&2
     exit 1
 fi
 if [[ ! -f "$model" ]]; then
-    echo "No existe el modelo $model" >&2
+    echo "Model file $model does not exist" >&2
     exit 1
 fi
 
 if [[ "$solo_percepcion" == 1 ]]; then
-    echo "Solo percepción: cámara + Hailo + lidar; la placa Hiwonder no se abre."
+    echo "Perception only: camera + Hailo + lidar; the Hiwonder board is not opened."
 else
-    echo "Reto 2: al arrancar centra la dirección y calibra el giroscopio 5 s (robot QUIETO);"
-    echo "el movimiento espera el botón. Ctrl+C = parada de emergencia."
+    echo "Obstacle Challenge: at startup it centres the steering and calibrates the gyroscope for 5 s (keep the robot STILL);"
+    echo "motion waits for the button. Ctrl+C = emergency stop."
 fi
 
 # The configuration .yaml files are copied next to the executable, so run from

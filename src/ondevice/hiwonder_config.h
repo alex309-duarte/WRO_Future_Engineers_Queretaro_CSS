@@ -37,14 +37,14 @@ constexpr std::uint16_t kDireccionDerecha   = kDireccionCentro - kDireccionRecor
 constexpr std::uint16_t kDireccionIzquierda = kDireccionCentro + kDireccionRecorrido;  // 895
 constexpr std::uint16_t kDireccionMs        = 50;       // ms, servo move time per command
 static_assert(kDireccionRecorrido * kGradosPorUnidadServo <= kDireccionMaxGrados,
-              "el recorrido de la dirección supera el tope de grados");
+              "steering travel exceeds the maximum steering angle");
 // The servo only accepts commands 0..1000: the centre must leave ±145 units
 // free on both sides. With the centre at 0 one side would be at -145, which
 // cannot be commanded. If "straight" falls near 0 or 1000, the servo horn must
 // be remounted.
 static_assert(kDireccionCentro >= kDireccionRecorrido &&
               kDireccionCentro + kDireccionRecorrido <= 1000,
-              "kDireccionCentro no deja ±35° dentro de 0..1000: remontar el horn");
+              "kDireccionCentro does not leave ±35° inside 0..1000: remount the horn");
 // At startup the servo must already be inside [right, left] plus this margin
 // (21 units = ~5°, i.e. 584..916); otherwise Spike_Hiwonder_Init() refuses to
 // move it. Centring from outside the travel would drive the wheel into the

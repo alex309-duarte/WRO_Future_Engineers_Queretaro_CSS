@@ -53,7 +53,7 @@ void Rasp_Gpio_Clean(void){
     gpiod_line_settings_free(settings_input);
     gpiod_line_settings_free(settings_outputs);
     gpiod_chip_close(chip);
-    printf("Pines liberados correctamente.\n");
+    printf("GPIO lines released.\n");
 }
 
 // Blocks until the start button is pressed. The input reads ACTIVE (high,

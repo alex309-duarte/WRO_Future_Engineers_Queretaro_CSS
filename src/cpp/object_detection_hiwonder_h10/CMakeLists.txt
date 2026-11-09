@@ -4,7 +4,7 @@ project(object_detection LANGUAGES C CXX)
 # Obstacle Challenge (reto 2) build on the Hiwonder controller board: camera +
 # Hailo-8 detection of traffic signs and parking markers, LiDAR and SPIKE-style
 # motion API. The board layer, the calibration and the LiDAR driver are the
-# Open Challenge ones (src/ondevice, branch reto1-hiwonder): they are compiled
+# Open Challenge ones (src/ondevice, main branch): they are compiled
 # from there, not copied, so a calibration change in one challenge also
 # applies to the other. See README.md.
 
@@ -123,7 +123,7 @@ endif()
 
 # ============================================================
 # Hiwonder board layer and LiDAR from the Open Challenge (src/ondevice,
-# branch reto1-hiwonder); stop with a clear message if any file is missing
+# main branch); stop with a clear message if any file is missing
 # ============================================================
 set(ONDEVICE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../ondevice")
 foreach(archivo
@@ -132,8 +132,8 @@ foreach(archivo
         hiwonder/include/spike_compat/spike_compat.h)
     if(NOT EXISTS "${ONDEVICE_DIR}/${archivo}")
         message(FATAL_ERROR
-            "Falta ${ONDEVICE_DIR}/${archivo}: el reto 2 compila la capa Hiwonder "
-            "del reto 1 (rama reto1-hiwonder). Haz checkout de esa rama.")
+            "Missing ${ONDEVICE_DIR}/${archivo}: the Obstacle Challenge builds the Hiwonder layer "
+            "of the Open Challenge (src/ondevice). Use the main branch.")
     endif()
 endforeach()
 
@@ -185,25 +185,25 @@ add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
 # Both drivers (src/ondevice/Oradar_S2L.cpp) fill the same 360-entry buffer
 # using the Oradar angle orientation.
 # ============================================================
-set(WRO_LIDAR "RPLIDAR_S2L" CACHE STRING "Lidar del robot: ORADAR o RPLIDAR_S2L")
+set(WRO_LIDAR "RPLIDAR_S2L" CACHE STRING "Robot lidar: ORADAR or RPLIDAR_S2L")
 set_property(CACHE WRO_LIDAR PROPERTY STRINGS ORADAR RPLIDAR_S2L)
 message(STATUS "Lidar: ${WRO_LIDAR}")
 
 if(WRO_LIDAR STREQUAL "RPLIDAR_S2L")
     # Slamtec SDK built separately (make in its root), same commit 99478e5
     # as the src/ondevice/rplidar_sdk submodule.
-    set(RPLIDAR_SDK_DIR "$ENV{HOME}/rplidar_sdk" CACHE PATH "Raiz del rplidar_sdk de Slamtec")
+    set(RPLIDAR_SDK_DIR "$ENV{HOME}/rplidar_sdk" CACHE PATH "Root of the Slamtec rplidar_sdk")
     set(RPLIDAR_LIB "${RPLIDAR_SDK_DIR}/output/Linux/Release/libsl_lidar_sdk.a")
     if(NOT EXISTS "${RPLIDAR_LIB}")
         message(FATAL_ERROR
-            "No existe ${RPLIDAR_LIB}. Clona https://github.com/Slamtec/rplidar_sdk "
-            "en ${RPLIDAR_SDK_DIR} y compila con make, o pasa -DRPLIDAR_SDK_DIR=...")
+            "${RPLIDAR_LIB} does not exist. Clone https://github.com/Slamtec/rplidar_sdk "
+            "into ${RPLIDAR_SDK_DIR} and build it with make, or pass -DRPLIDAR_SDK_DIR=...")
     endif()
     # Mounting of the S2L on the robot: LiDAR angle (deg) that faces the
     # front, and rotation sense. Same values the Open Challenge ran with on
     # the track (src/ondevice/Makefile without LIDAR_FLAGS).
-    set(RPLIDAR_FRONT_DEG 0 CACHE STRING "Angulo del RPLidar que apunta al frente del robot")
-    set(RPLIDAR_CLOCKWISE 1 CACHE STRING "1 si el angulo del RPLidar crece en sentido horario visto desde arriba")
+    set(RPLIDAR_FRONT_DEG 0 CACHE STRING "RPLidar angle that points to the front of the robot")
+    set(RPLIDAR_CLOCKWISE 1 CACHE STRING "1 if the RPLidar angle increases clockwise seen from above")
     set(LIDAR_INCLUDE_DIRS "${RPLIDAR_SDK_DIR}/sdk/include" "${RPLIDAR_SDK_DIR}/sdk/src")
     set(LIDAR_LIBS "${RPLIDAR_LIB}")
     set(LIDAR_DEFINITIONS
@@ -224,7 +224,7 @@ elseif(WRO_LIDAR STREQUAL "ORADAR")
     set(LIDAR_LIBS oradar_sdk)
     set(LIDAR_DEFINITIONS "")
 else()
-    message(FATAL_ERROR "WRO_LIDAR debe ser ORADAR o RPLIDAR_S2L, no '${WRO_LIDAR}'")
+    message(FATAL_ERROR "WRO_LIDAR must be ORADAR or RPLIDAR_S2L, not '${WRO_LIDAR}'")
 endif()
 target_compile_definitions(${PROJECT_NAME} PRIVATE ${LIDAR_DEFINITIONS})
 

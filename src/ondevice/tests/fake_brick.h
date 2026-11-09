@@ -21,7 +21,7 @@ constexpr const char *kDispositivoDescubierto =
 // Recorded state of the fake board; tests set the inputs and read the outputs.
 struct Estado {
     std::vector<std::string> eventos;  // "open", "servo 1 500 1000", "calibrate 5000"...
-    std::string dispositivo_config = "sin construir";  // Config::device received
+    std::string dispositivo_config = "not constructed";  // Config::device received
     std::string dispositivo_parada;    // port opened by the emergency stop
     std::uint8_t motor_mask = 1U << 3; // capabilities: position control on M4
     double yaw_deg = 0.0;              // simulated yaw, deg

@@ -3,7 +3,8 @@
 The Obstacle Challenge mission from `../object_detection_original_h10` (the one
 from the national competition, with parking) running on the Hiwonder board
 instead of the LEGO SPIKE hub, with the **same layer the Open Challenge already
-proved on the track** (`src/ondevice`, branch `reto1-hiwonder`). RPi camera,
+proved on the track** (`src/ondevice`; developed on branch `reto1-hiwonder`,
+merged into `main` on 2026-11-08). RPi camera,
 Hailo-8, RPLidar S2L, GPIO4 button.
 
 | Robot | Accelerator | Lidar | Build | Startup |
@@ -63,12 +64,11 @@ direction is decided by the lidar when leaving the parking box
 **Ctrl+C stops the robot at any time** (so do `kill`, closing the terminal or a
 crash): motors in COAST, servo torque off and process exit. It is the Open
 Challenge `parada_emergencia`; it does not cover `kill -9` or a power loss on
-the Pi (in that case: motor switch or cut the 12 V supply).
+the Pi (in that case: the Hiwonder board's main power switch).
 
 ## Before the first run: calibrate
 
-With the wheels lifted, in this order. The Open Challenge tools apply
-(`~/Jetson_cerebro/robotica/hiwonder_brick/hiwonder-analisis-estatico/tools/`).
+With the wheels lifted, in this order.
 
 1. **Open Challenge items** (yaw sign, steering side): already proven on the
    track; if `hiwonder_config.h` is changed, it changes for both challenges.
@@ -116,14 +116,15 @@ With the wheels lifted, in this order. The Open Challenge tools apply
 
 - Builds on the Pi 5 (GCC 14.2, HailoRT 4.23, OpenCV 4.10) with only the
   warnings the original already had.
-- `reto2_test`: 31 checks, 0 failures. Open Challenge `make test`: 51, 0 failures.
+- `reto2_test`: 31 checks, 0 failures. Open Challenge `make test`: 51, 0 failures
+  (53 in the current version).
   The Open Challenge (`my_lidar_app`) still builds with the shared layer.
 - `--solo-percepcion --no-display` for 20 s: RPLidar on `/dev/ttyUSB0` (front
   1848 mm, right 629, left 258), camera 800x600, Hailo-8 at 29.97 FPS,
   clean exit with Ctrl+C.
 - Armed for 30 s: servo read at 854 (within the startup range 584..916),
   centred, gyroscope calibrated, `tire_turn 40 = 0.96`, lidar ready, pipeline
-  up, waiting for the button; Ctrl+C → "Parada de emergencia: motores en COAST",
+  up, waiting for the button; Ctrl+C → "Emergency stop: motors in COAST",
   process terminated and board port released.
 
 Track runs started with the button (2026-11-08): see

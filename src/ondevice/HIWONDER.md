@@ -1,6 +1,7 @@
 # Open Challenge with the Hiwonder board
 
-On the `reto1-hiwonder` branch, the Open Challenge in `main.cpp` runs on the
+In design v7 (developed on branch `reto1-hiwonder`, merged into `main` on
+2026-11-08), the Open Challenge in `main.cpp` runs on the
 Hiwonder board (STM32, firmware `pos-v8`) instead of the SPIKE hub, without a
 relay. The challenge logic, the lidar (RPLidar S2L, through the `Oradar_S2L`
 driver) and the button are unchanged.
@@ -42,17 +43,15 @@ make test   # offline tests with a fake board: does not open the port
 
 With the wheels lifted. The calibration in `hiwonder_config.h` comes from the
 test bench, and these checks determine whether the challenge turns towards the
-correct side. The tools are in
-`~/Jetson_cerebro/robotica/hiwonder_brick/hiwonder-analisis-estatico/tools/` and
-use the same port, so `my_lidar_app` must not be running.
+correct side.
 
-1. **Yaw sign.** With `python3 imu_live.py`, turn the robot by hand to the
+1. **Yaw sign.** Turn the robot by hand to the
    right (clockwise seen from above): the yaw must **decrease**, as on the
    hub. The challenge depends on this: after turning right it continues with
    reference -90.
-2. **Steering side.** With `python3 servo_hx12h.py --goto 605 --si-quiero-mover`
-   (the right position in `hiwonder_config.h`), the wheels must point to the
-   **right**. Return to centre with `--goto 750` (180°).
+2. **Steering side.** Commanded to the right position (605, `kDireccionDerecha`
+   in `hiwonder_config.h`), the wheels must point to the **right**; 750 (180°)
+   is the centre.
 3. **Distance.** `Spike_Advance_For_Degrees(100, 1350, 0)` must cover the same
    distance as with the hub. If it does not, adjust `kGradosSpikeATicks`.
 
@@ -76,8 +75,10 @@ robot must stay still** until the button LED blinks. `WRO_MAX_RPS` lowers the
 speed limit without recompiling; distances and angles do not change.
 
 **First thing to watch on the track:** the lidar loops call `Spike_Forward`
-every 2 ms, and the IMU arrives at 20 Hz. The D term of the PD only sees a
-change in 1 of every ~25 calls, and applies it all at once. If the steering
+every 1 ms (every 2 ms in the gap searches `Oradar_S2L_Advance_Until_Left_Gap`
+and `Oradar_S2L_Advance_Until_Right_Gap`), and the IMU arrives at 20 Hz. The D
+term of the PD only sees a change in 1 of every ~50 calls (~25 in the gap
+searches), and applies it all at once. If the steering
 oscillates on the straights, this is the cause.
 
 ## Emergency stop
@@ -102,10 +103,6 @@ with Ctrl+Z (which previously suspended the process with the motor running) and
 if the program crashes (segfault, abort). Before `Spike_Hiwonder_Init()`, Ctrl+C
 still interrupts the wait for the lidar as usual.
 
-It does not cover `kill -9` or a power loss on the Raspberry Pi. For those cases:
-
-```bash
-python3 ~/Jetson_cerebro/robotica/hiwonder_brick/hiwonder-analisis-estatico/tools/motor_move.py --stop
-```
-
-or cut the 12 V supply.
+It does not cover `kill -9` or a power loss on the Raspberry Pi. For those cases,
+switch off the Hiwonder board with its main power switch, which cuts the power
+to the motor, the servo and the whole robot.

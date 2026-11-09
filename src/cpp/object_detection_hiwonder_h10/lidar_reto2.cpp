@@ -26,7 +26,7 @@ void Oradar_S2L_Advance_Until_Distance(int vel, int referencia, int distancia_ob
         Oradar_S2L_Get_Buffer(&lidar[0]);
         distancia_frente = lidar[RP_TO_ORADAR_IDX(FRONT)];
     }
-    printf("distancia a la cual sale = %f\n", distancia_frente);
+    printf("exit distance = %f\n", distancia_frente);
     if((brake == Hold) || (brake == Brake)){
         Spike_Hold_Motors();
     }

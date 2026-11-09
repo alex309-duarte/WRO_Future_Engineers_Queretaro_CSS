@@ -349,7 +349,7 @@ static void draw_scan(cv::Mat &lidar_canvas, unsigned long scan_seq) {
             snprintf(dist_text, sizeof(dist_text), "%s %.0fmm %.1fdeg", sh.label, wall.distance_mm, tilt_deg);
             cv::putText(lidar_canvas, dist_text, text_pos, cv::FONT_HERSHEY_SIMPLEX, 0.5, sh.color, 2);
         } else {
-            snprintf(dist_text, sizeof(dist_text), "%s: sin pared", sh.label);
+            snprintf(dist_text, sizeof(dist_text), "%s: no wall", sh.label);
         }
         // Summary in the corner, readable even if the label is off-canvas
         cv::putText(lidar_canvas, dist_text, cv::Point(10, 25 + 22 * text_row++),
@@ -363,10 +363,10 @@ static void draw_scan(cv::Mat &lidar_canvas, unsigned long scan_seq) {
         try {
             snprintf(gyro_text, sizeof(gyro_text), "gyro: %.1f deg", Spike_Get_Gyro());
         } catch (const std::exception &) {
-            snprintf(gyro_text, sizeof(gyro_text), "gyro: sin placa");
+            snprintf(gyro_text, sizeof(gyro_text), "gyro: no board");
         }
     } else {
-        snprintf(gyro_text, sizeof(gyro_text), "gyro: esperando placa");
+        snprintf(gyro_text, sizeof(gyro_text), "gyro: waiting for board");
     }
     int baseline = 0;
     const cv::Size gyro_size = cv::getTextSize(gyro_text, cv::FONT_HERSHEY_SIMPLEX, 1.0, 2, &baseline);
@@ -376,7 +376,7 @@ static void draw_scan(cv::Mat &lidar_canvas, unsigned long scan_seq) {
     cv::putText(lidar_canvas, gyro_text, gyro_pos, cv::FONT_HERSHEY_SIMPLEX, 1.0, cv::Scalar(0, 0, 0), 2);
 
     char seq_text[48];
-    snprintf(seq_text, sizeof(seq_text), "barrido %lu, %zu puntos", scan_seq, points_mm.size());
+    snprintf(seq_text, sizeof(seq_text), "scan %lu, %zu points", scan_seq, points_mm.size());
     cv::putText(lidar_canvas, seq_text, cv::Point(10, canvas_size - 12),
                 cv::FONT_HERSHEY_PLAIN, 1.2, axis_color, 1);
 }
@@ -385,8 +385,8 @@ static void draw_scan(cv::Mat &lidar_canvas, unsigned long scan_seq) {
 bool Lidar_Display_Available(void) {
     const char *display = std::getenv("DISPLAY");
     if (display == nullptr || *display == '\0') {
-        printf("Aviso: sin DISPLAY no se abre la ventana del lidar; sigue sin ella "
-               "(en VNC: export DISPLAY=:0, o usa --no-display).\n");
+        printf("Warning: no DISPLAY, so the lidar window is not opened; continuing without it "
+               "(on VNC: export DISPLAY=:0, or use --no-display).\n");
         return false;
     }
     return true;
@@ -414,7 +414,7 @@ void Lidar_Display_Loop(volatile int *terminado) {
         }
         cv::destroyAllWindows();
     } catch (const std::exception &e) {
-        printf("Aviso: se cerro la ventana del lidar (%s); el robot sigue.\n", e.what());
+        printf("Warning: the lidar window was closed (%s); the robot keeps running.\n", e.what());
         while (*terminado == 0) usleep(100000);
     }
 }

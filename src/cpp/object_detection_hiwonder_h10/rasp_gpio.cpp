@@ -79,7 +79,7 @@ void Rasp_Gpio_Clean(void){
     settings_input = nullptr;
     settings_outputs = nullptr;
     chip = nullptr;
-    printf("Pines liberados correctamente.\n");
+    printf("GPIO lines released.\n");
 }
 
 // Blocks until the start button is pressed (input goes low) or Ctrl+C sets

@@ -1,7 +1,7 @@
 #ifndef SPIKE_H
 #define SPIKE_H
 
-// Branch reto1-hiwonder: the team's SPIKE API, backed by the Hiwonder board
+// Design v7 (main branch): the team's SPIKE API, backed by the Hiwonder board
 // (STM32 with firmware pos-v8) through spike_compat. The hub REPL driver
 // (spike.cpp) is no longer compiled; see HIWONDER.md. Included by the mission
 // code of the Open Challenge and the Obstacle Challenge.

@@ -54,10 +54,10 @@ static float Lidar_Debounced_Read(int angle_index){
 
 // Prints the command-line usage ("Uso" = usage).
 static void Uso(const char *programa){
-    printf("Uso: %s [--no-display]\n"
-           "  sin argumentos: abre la ventana \"Lidar Coordinates\" (VNC) con los\n"
-           "                  puntos, las paredes detectadas, su distancia y sus grados\n"
-           "  --no-display:   sin ventana\n", programa);
+    printf("Usage: %s [--no-display]\n"
+           "  no arguments:  opens the \"Lidar Coordinates\" window (VNC) with the\n"
+           "                 points, the detected walls, their distance and their angle\n"
+           "  --no-display:  no window\n", programa);
 }
 
 // The complete Open Challenge run ("recorrido"). With the window it runs in
@@ -89,7 +89,7 @@ static int Recorrido(void){
             try{
                 Parada_Emergencia_Agregar_Puerto(Oradar_S2L_Port(), parada_lidar, largo);
             } catch(const std::exception &e){
-                printf("Aviso: Ctrl+C no parara el lidar (%s)\n", e.what());
+                printf("Warning: Ctrl+C will not stop the lidar (%s)\n", e.what());
             }
         }
     }
@@ -115,7 +115,7 @@ static int Recorrido(void){
         usleep(100000);
     }
     if(Oradar_S2L_Get_Scan_Seq() == 0){
-        printf("ERROR: el lidar no envia datos (5 s sin barridos). No se mueve nada.\n");
+        printf("ERROR: the lidar is not sending data (no scans for 5 s). Nothing will move.\n");
         Rasp_Gpio_Clean();
         Spike_Coast_Motors();
         Spike_Close_Serial();
@@ -124,7 +124,7 @@ static int Recorrido(void){
         Oradar_S2L_Close();
         return 1;
     }
-    printf("Lidar listo: frente %.0f mm, derecha %.0f mm, izquierda %.0f mm\n",
+    printf("Lidar ready: front %.0f mm, right %.0f mm, left %.0f mm\n",
            Lidar_Debounced_Read(RP_TO_ORADAR_IDX(FRONT)),
            Lidar_Debounced_Read(RP_TO_ORADAR_IDX(RIGHT)),
            Lidar_Debounced_Read(RP_TO_ORADAR_IDX(LEFT)));
@@ -154,9 +154,9 @@ static int Recorrido(void){
     distancia_derecha = Lidar_Debounced_Read(0);
     distancia_izquierda = Lidar_Debounced_Read(180);
 
-    printf("dsitancia derecha : %f\n", distancia_derecha);
-    printf("dsitancia izquierda : %f\n", distancia_izquierda);
-    printf("dsitancia frente : %f\n", distancia_frente);
+    printf("right distance: %f\n", distancia_derecha);
+    printf("left distance: %f\n", distancia_izquierda);
+    printf("front distance: %f\n", distancia_frente);
 
     
     // If one side wall is farther than 800 mm the robot starts with room on
@@ -179,11 +179,11 @@ static int Recorrido(void){
     // times: 12 corners = 3 laps.
     if((distancia_derecha > 800) || (distancia_izquierda > 800)){
 
-        printf("caso afuera\n");
+        printf("outer start case\n");
 
         // Drive to the first corner and find the driving direction.
         sentido = Oradar_S2L_Advance_And_Detect_Side(30, 0);
-        printf("sentido %d :\n", sentido);
+        printf("direction: %d\n", sentido);
 
         if(sentido == right){
             // Clockwise run: inner wall on the right, outer wall on the left.
@@ -229,10 +229,10 @@ static int Recorrido(void){
 
     else{
 
-        printf("caso adentro\n");
+        printf("inner start case\n");
 
         sentido = Oradar_S2L_Advance_And_Detect_Side(30, 0);
-        printf("sentido : %d \n", sentido);
+        printf("direction: %d\n", sentido);
 
         if(sentido == right){
             Spike_Turn_For_Degrees(der, 30, 70);
@@ -337,7 +337,7 @@ static int Recorrido(void){
 
     }*/
 
-    printf("acabe");
+    printf("finished");
     
     Rasp_Gpio_Clean();
     Spike_Coast_Motors();
@@ -378,7 +378,7 @@ int main(int argc, char **argv){
             Uso(argv[0]);
             return 0;
         } else {
-            printf("Argumento desconocido: %s\n", argv[i]);
+            printf("Unknown argument: %s\n", argv[i]);
             Uso(argv[0]);
             return 1;
         }
@@ -392,7 +392,7 @@ int main(int argc, char **argv){
     // or without it. It closes when the run ends.
     pthread_t recorrido;
     if(pthread_create(&recorrido, NULL, Recorrido_Thread, NULL) != 0){
-        printf("Aviso: no se pudo crear el hilo del recorrido; sigue sin ventana.\n");
+        printf("Warning: could not create the run thread; continuing without the window.\n");
         return Recorrido();
     }
     Lidar_Display_Loop(&recorrido_terminado);
@@ -403,7 +403,7 @@ int main(int argc, char **argv){
 // SIGINT handler used until the emergency stop is installed: tells the lidar
 // thread and loops to finish, and restores the default action for a second Ctrl+C.
 void signal_handler(int signum){
-    printf("\nCtrl+C detceted\n");
+    printf("\nCtrl+C detected\n");
     Oradar_S2L_Set_Terminating();
     signal(SIGINT, SIG_DFL);
 }

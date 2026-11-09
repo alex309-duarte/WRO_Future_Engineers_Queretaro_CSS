@@ -1,4 +1,4 @@
-// Branch reto1-hiwonder: startup of the Hiwonder board and the variants of the
+// Design v7 (main branch): startup of the Hiwonder board and the variants of the
 // team's SPIKE API that spike_compat does not provide with the same signature
 // (see spike.h). Spike_Hiwonder_Init() opens the board, installs the
 // emergency stop, checks firmware and steering servo, centres the steering
@@ -31,7 +31,7 @@ std::unique_ptr<hiwonder::Brick> g_brick;   // owned here, lent to spike_compat
 // Returns the board; throws if Spike_Hiwonder_Init() has not succeeded.
 hiwonder::Brick &placa() {
     if (!g_brick || !spike_compat::Spike_Is_Attached()) {
-        throw std::logic_error("llamar a Spike_Hiwonder_Init() antes de usar la API");
+        throw std::logic_error("call Spike_Hiwonder_Init() before using the API");
     }
     return *g_brick;
 }
@@ -64,7 +64,7 @@ float tope_rps() {
     const double valor = std::strtod(texto, &fin);
     if (fin == texto || *fin != '\0' || !(valor > 0.0) || valor > kRpsVelocidad100) {
         throw std::invalid_argument(std::string("WRO_MAX_RPS=") + texto +
-                                    ": debe estar entre 0 y 5.7 r/s");
+                                    ": must be between 0 and 5.7 r/s");
     }
     return static_cast<float>(valor);
 }
@@ -113,7 +113,7 @@ int Spike_Hiwonder_Init(void) {
         const auto caps = g_brick->motor_position_capabilities();
         if (!caps.valid || !(caps.motor_mask & (1U << g_brick->position_motor_id()))) {
             throw std::runtime_error(
-                "el firmware no controla la posición de M4 (¿está cargado pos-v8?)");
+                "the firmware has no position control on M4 (is pos-v8 loaded?)");
         }
 
         // Before sending ANY position to the servo: if it is not already inside
@@ -126,31 +126,31 @@ int Spike_Hiwonder_Init(void) {
         const int minimo = std::min(kDireccionDerecha, kDireccionIzquierda) - kDireccionMargenArranque;
         const int maximo = std::max(kDireccionDerecha, kDireccionIzquierda) + kDireccionMargenArranque;
         if (!actual.valid || actual.id != kServoDireccion) {
-            throw std::runtime_error("el servo de dirección no respondió; no se mueve nada");
+            throw std::runtime_error("the steering servo did not respond; nothing will move");
         }
         if (actual.position < minimo || actual.position > maximo) {
             throw std::runtime_error(
-                "el servo de dirección está en " + std::to_string(actual.position) +
-                ", fuera del recorrido permitido " + std::to_string(minimo) + ".." +
-                std::to_string(maximo) + ". Centrarlo lo llevaría contra el tope. "
-                "Revisa kDireccionCentro en hiwonder_config.h o el montaje del horn");
+                "the steering servo is at " + std::to_string(actual.position) +
+                ", outside the allowed travel " + std::to_string(minimo) + ".." +
+                std::to_string(maximo) + ". Centring it would drive it against the end stop. "
+                "Check kDireccionCentro in hiwonder_config.h or the horn mounting");
         }
-        std::printf("Servo de dirección en %d (permitido %d..%d)\n",
+        std::printf("Steering servo at %d (allowed %d..%d)\n",
                     actual.position, minimo, maximo);
 
         // Centre slowly (1 s) BEFORE calibrating: a moving servo shakes the IMU.
         g_brick->set_bus_servo_position(kServoDireccion, kDireccionCentro, 1000);
         std::this_thread::sleep_for(std::chrono::milliseconds(1200));
-        std::printf("Calibrando giroscopio %d s: NO mover el robot\n",
+        std::printf("Calibrating gyroscope for %d s: do NOT move the robot\n",
                     kSegundosCalibracionGiro);
         g_brick->calibrate_gyro(std::chrono::seconds(kSegundosCalibracionGiro));
 
         spike_compat::Spike_Attach(g_brick.get(), cfg);
-        std::printf("Placa Hiwonder lista en %s; tope de velocidad %.2f r/s\n",
+        std::printf("Hiwonder board ready on %s; speed limit %.2f r/s\n",
                     g_brick->device().c_str(), cfg.max_rps_limit);
         return 0;
     } catch (const std::exception &error) {
-        std::fprintf(stderr, "Placa Hiwonder: %s\n", error.what());
+        std::fprintf(stderr, "Hiwonder board: %s\n", error.what());
         parar_motores();
         spike_compat::Spike_Detach();
         g_brick.reset();

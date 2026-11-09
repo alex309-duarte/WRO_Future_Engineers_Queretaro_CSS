@@ -24,7 +24,7 @@ static volatile float rplidar_shared_buffer[360]; // distance in mm per degree o
 void RPLidar_S2L_Init_Lidar(void){
     lidar_driver = *createLidarDriver();
     if (!lidar_driver) {
-        fprintf(stderr, "insufficent memory, exit\n");
+        fprintf(stderr, "insufficient memory, exit\n");
         exit(-2);
     }
     sl_lidar_response_device_info_t devinfo;
@@ -139,10 +139,10 @@ direction RPLidar_S2L_Advance_And_Detect_Side(int speed, int reference){
         back_distance = rplidar_shared_buffer[LEFT];
         //Spike_Forward(speed,reference);
         usleep(1000);
-        printf("dsitancia derecha : %f\n", right_distance);
-        printf("dsitancia izquierda : %f\n", left_distance);
-        printf("dsitancia frente : %f\n", front_distance);
-        printf("dsitancia atras : %f\n", back_distance);
+        printf("right distance: %f\n", right_distance);
+        printf("left distance: %f\n", left_distance);
+        printf("front distance: %f\n", front_distance);
+        printf("rear distance: %f\n", back_distance);
     }
 
     if(right_distance > 1350){
@@ -212,7 +212,7 @@ int RPLidar_S2L_Advance_And_Measure_Left_Slope(int speed, int degrees, int refer
 
     float distance_delta = y1-y2;
     int slope = (int)(10 *(RPLidar_S2L_Radians_To_Degrees(atan(distance_delta/(175.0*degrees/360.0)))));
-    printf("pendiente: %d\n", slope);
+    printf("slope: %d\n", slope);
     return slope;
 }
 
@@ -226,7 +226,7 @@ int RPLidar_S2L_Advance_And_Measure_Right_Slope(int speed, int degrees, int refe
 
     float distance_delta = y1-y2;
     int slope = (int)(-10 *(RPLidar_S2L_Radians_To_Degrees(atan(distance_delta/(175.0*degrees/360.0)))));
-    printf("pendiente: %d, y1: %f, y2: %f\n", slope, y1, y2);
+    printf("slope: %d, y1: %f, y2: %f\n", slope, y1, y2);
     return slope;
 }
 
@@ -255,7 +255,7 @@ int RPLidar_S2L_Correction_For_Triangles_Left(int degree){
     float correction_angle = (pow(CA,2) + pow(missing_side,2) - pow(H,2))/(2*CA*missing_side);
     float computed_angle = RPLidar_S2L_Radians_To_Degrees(acos(correction_angle));
     float final_correction = 90 - computed_angle;
-    printf("H: %f, CA: %f, lado_faltante: %f, angulo_correcion: %f, comparacion: %f, correcion_final: %f\n", H, CA, missing_side, correction_angle, computed_angle, final_correction);
+    printf("H: %f, CA: %f, missing_side: %f, correction_angle: %f, computed_angle: %f, final_correction: %f\n", H, CA, missing_side, correction_angle, computed_angle, final_correction);
     return (int)(final_correction*10);
 
 }
@@ -319,11 +319,11 @@ int RPLidar_S2L_Slope(const int point, const int middle_point){
     double det = point * sum_x2 - sum_x * sum_x;
 
     if (det == 0) {
-        printf("Error: El sistema no tiene solución única (todos los X son iguales).\n");
+        printf("Error: the system has no unique solution (all X values are equal).\n");
         return 0;
     }
     int p = (10)*(RPLidar_S2L_Radians_To_Degrees(atan((point * sum_xy - sum_x * sum_y) / det)));
-    printf("pendiente : %d\n",p);
+    printf("slope: %d\n",p);
     return (p);
 
 }
@@ -365,14 +365,14 @@ int RPLidar_S2L_Slope2(const int point, const int middle_point){
     }
 
     int p = (10)*(RPLidar_S2L_Radians_To_Degrees(0.5 * atan2(2.0 * sxy, sxx - syy)));
-    printf("pendiente2 : %d\n",p);
+    printf("slope2: %d\n",p);
     return (p);
 }
 
 // Integer mean of two readings (prints it).
 int RPLidar_S2L_Average(int arg_1, int arg_2){
     int average = (arg_1 + arg_2)/2;
-    printf("correcion: %d\n",average);
+    printf("correction: %d\n",average);
     return average;
 }
 

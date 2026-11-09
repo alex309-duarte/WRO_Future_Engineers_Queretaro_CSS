@@ -30,8 +30,8 @@ int Spike_Reto2_Init(void) {
         kMmPorGradoSpike / (M_PI * kDiametroRuedaMm) *
         static_cast<double>(hiwonder::EncoderCalibration{}.ticks_per_output_revolution);
     spike_compat::Spike_Update_Config(cfg);
-    std::printf("Reto 2: tire_turn 40 = %.2f del tope de dirección; %.3f ticks por grado del hub "
-                "(rueda de %.1f mm; 1000 mm = %ld ticks)\n",
+    std::printf("Obstacle Challenge: tire_turn 40 = %.2f of full steering lock; %.3f ticks per hub degree "
+                "(%.1f mm wheel; 1000 mm = %ld ticks)\n",
                 40.0 * cfg.tire_turn_to_steering, cfg.spike_degrees_to_ticks, kDiametroRuedaMm,
                 std::lround(1000.0 / (M_PI * kDiametroRuedaMm) *
                             hiwonder::EncoderCalibration{}.ticks_per_output_revolution));

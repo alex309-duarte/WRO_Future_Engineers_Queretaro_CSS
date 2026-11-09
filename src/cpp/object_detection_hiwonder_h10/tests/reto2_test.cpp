@@ -29,7 +29,7 @@ void check(bool ok, const char *que) {
     ++g_checks;
     if (!ok) {
         ++g_fallos;
-        std::printf("  FALLO: %s\n", que);
+        std::printf("  FAIL: %s\n", que);
     }
 }
 
@@ -55,26 +55,26 @@ double ticks_por_grado_hub() {
 }
 
 void test_init() {
-    check(arrancar() == 0, "Spike_Reto2_Init arranca con la placa falsa");
+    check(arrancar() == 0, "Spike_Reto2_Init starts with the fake board");
     const auto &cfg = spike_compat::Spike_Get_Config();
     check(cerca(cfg.tire_turn_to_steering * 40.0, 40.0 * 4.29 / 179.0),
-          "tire_turn 40 del hub = 0.96 del tope de dirección");
-    check(cfg.tire_turn_to_steering * 45.0 > 1.0, "tire_turn 45 pasa del tope (se acota a 1)");
+          "hub tire_turn 40 = 0.96 of full steering lock");
+    check(cfg.tire_turn_to_steering * 45.0 > 1.0, "tire_turn 45 exceeds full lock (clamped to 1)");
     check(cerca(cfg.spike_degrees_to_ticks, ticks_por_grado_hub()),
-          "grados del hub -> ticks por la rueda real");
+          "hub degrees -> ticks for the real wheel");
     check(cerca(cfg.pd_output_to_steering, kPdADireccion) &&
               cfg.steering.center == kDireccionCentro && cfg.steering.right == kDireccionDerecha &&
               cerca(cfg.rps_at_speed_100, kRpsVelocidad100),
-          "conserva la calibración del reto 1 (servo, PD, velocidad)");
-    check(spike_compat::Spike_Is_Attached(), "deja la capa asociada");
+          "keeps the Open Challenge calibration (servo, PD, speed)");
+    check(spike_compat::Spike_Is_Attached(), "leaves the layer attached");
 }
 
 void test_init_falla_si_falla_el_reto1() {
     fake::reiniciar();
     unsetenv("WRO_MAX_RPS");
     fake::estado().servo_responde = false;
-    check(Spike_Reto2_Init() != 0, "si el arranque del reto 1 falla, el del reto 2 también");
-    check(!spike_compat::Spike_Is_Attached(), "y no deja la capa asociada");
+    check(Spike_Reto2_Init() != 0, "if the Open Challenge startup fails, the Obstacle Challenge one fails too");
+    check(!spike_compat::Spike_Is_Attached(), "and the layer is left detached");
 }
 
 void test_giro_con_await() {
@@ -82,9 +82,9 @@ void test_giro_con_await() {
     Spike_Reset_Gyro(0);
     Spike_Turn_For_Degrees(1, 60, 86, 40, true);   // Corner_Case
     const auto &e = fake::estado();
-    check(cerca(e.ultima_direccion, 40.0 * 4.29 / 179.0), "giro a la derecha con tire_turn 40: dirección 0.96");
-    check(e.yaw_deg <= -86.0 && e.yaw_deg > -100.0, "gira hasta |yaw| >= 86 (la derecha baja el yaw)");
-    check(e.paradas > 0 && e.holds > 0, "al final para y sostiene");
+    check(cerca(e.ultima_direccion, 40.0 * 4.29 / 179.0), "right turn with tire_turn 40: steering 0.96");
+    check(e.yaw_deg <= -86.0 && e.yaw_deg > -100.0, "turns until |yaw| >= 86 (right decreases the yaw)");
+    check(e.paradas > 0 && e.holds > 0, "stops and holds at the end");
 }
 
 void test_giro_sin_await_usa_la_misma_escala() {
@@ -92,7 +92,7 @@ void test_giro_sin_await_usa_la_misma_escala() {
     Spike_Reset_Gyro(0);
     Spike_Turn_For_Degrees(-1, 60, 30, 30);        // 4 arguments: goes straight to spike_compat
     check(cerca(fake::estado().ultima_direccion, -30.0 * 4.29 / 179.0),
-          "tire_turn 30 a la izquierda = -0.72 también sin await");
+          "tire_turn 30 to the left = -0.72, also without await");
 }
 
 void test_giro_en_reversa() {
@@ -100,8 +100,8 @@ void test_giro_en_reversa() {
     Spike_Reset_Gyro(0);
     Spike_Turn_For_Degrees(-1, -40, 16, 45, true);  // as in estacionamiento_clockwise (parking)
     const auto &e = fake::estado();
-    check(cerca(e.ultima_direccion, -1.0), "tire_turn 45 a la izquierda = tope -1");
-    check(std::fabs(e.yaw_deg) >= 16.0, "en reversa también termina cuando |yaw| >= grados");
+    check(cerca(e.ultima_direccion, -1.0), "tire_turn 45 to the left = full lock -1");
+    check(std::fabs(e.yaw_deg) >= 16.0, "in reverse it also ends when |yaw| >= degrees");
 }
 
 void test_small_turn_vuelve_al_rumbo() {
@@ -109,8 +109,8 @@ void test_small_turn_vuelve_al_rumbo() {
     Spike_Reset_Gyro(0);
     fake::estado().yaw_deg = 40.0;                  // after swerving left around a pillar
     Spike_Small_Turn(1, 60, 0, 40, false);
-    check(fake::estado().yaw_deg <= 0.0, "small_turn a la derecha sigue hasta que yaw <= 0");
-    check(fake::estado().holds > 0, "y sostiene al terminar");
+    check(fake::estado().yaw_deg <= 0.0, "small_turn to the right continues until yaw <= 0");
+    check(fake::estado().holds > 0, "and holds at the end");
 }
 
 void test_avance_adelante() {
@@ -119,9 +119,9 @@ void test_avance_adelante() {
     Spike_Advance_For_Degrees(80, 1000, 0);
     const auto &e = fake::estado();
     check(e.ultimo_avance_ticks == std::lround(1000.0 * ticks_por_grado_hub()),
-          "1000 grados del hub -> ticks positivos según la rueda");
-    check(e.ultima_direccion > 0.0, "adelante con error positivo corrige a la derecha");
-    check(e.paradas > 0, "al terminar deja los motores en coast");
+          "1000 hub degrees -> positive ticks for the wheel");
+    check(e.ultima_direccion > 0.0, "forward with a positive error corrects to the right");
+    check(e.paradas > 0, "leaves the motors in coast at the end");
 }
 
 void test_avance_en_reversa() {
@@ -135,10 +135,10 @@ void test_avance_en_reversa() {
     Spike_Advance_For_Degrees(-50, 2250, 0);        // parking manoeuvre
     const auto &e = fake::estado();
     check(e.ultimo_avance_ticks == -std::lround(2250.0 * ticks_por_grado_hub()),
-          "speed < 0: ticks negativos (reversa) con la magnitud de los grados");
-    check(e.ultima_direccion < 0.0, "en reversa el mismo error corrige al revés");
+          "speed < 0: negative ticks (reverse) with the magnitude of the degrees");
+    check(e.ultima_direccion < 0.0, "in reverse the same error corrects the opposite way");
     check(std::fabs(e.ultima_direccion) < std::fabs(adelante),
-          "y con menos ganancia que adelante (como ag_u del hub)");
+          "and with less gain than forward (like the hub's ag_u)");
 }
 
 void test_avance_en_mm() {
@@ -146,11 +146,11 @@ void test_avance_en_mm() {
     Spike_Advance_For_distance(80, 1000, 0);
     const long esperado = std::lround(1000.0 / (M_PI * kDiametroRuedaMm) * 1320.0);
     check(std::labs(fake::estado().ultimo_avance_ticks - esperado) <= 5,
-          "1000 mm -> ticks de una vuelta de rueda por su diámetro (±5 ticks de redondeo)");
+          "1000 mm -> ticks from the wheel circumference (±5 ticks of rounding)");
 
     arrancar();
     Spike_Advance_For_distance(-50, 300, 90);
-    check(fake::estado().ultimo_avance_ticks < 0, "distancia con speed negativa va en reversa");
+    check(fake::estado().ultimo_avance_ticks < 0, "distance with negative speed drives in reverse");
 }
 
 void test_avance_de_cero_no_revienta() {
@@ -162,34 +162,34 @@ void test_avance_de_cero_no_revienta() {
     } catch (const std::exception &) {
         lanzo = true;
     }
-    check(!lanzo, "avanzar 0 no lanza (el firmware rechaza un delta de 0 ticks)");
-    check(fake::estado().ultimo_avance_ticks == 0, "y no manda ningún movimiento");
-    check(fake::estado().paradas > 0, "y deja los motores en coast");
+    check(!lanzo, "advancing 0 does not throw (the firmware rejects a 0-tick delta)");
+    check(fake::estado().ultimo_avance_ticks == 0, "and sends no motion");
+    check(fake::estado().paradas > 0, "and leaves the motors in coast");
 }
 
 void test_avance_hasta_condicion() {
     arrancar();
     bool detenido = spike_compat::Advance_For_Degrees_Until(80, 1000, 0, [] { return true; });
-    check(detenido && cancelaciones() == 1, "con la condición cumplida cancela el movimiento y avisa");
-    check(fake::estado().paradas > 0, "y deja los motores en coast");
+    check(detenido && cancelaciones() == 1, "with the condition met it cancels the motion and reports it");
+    check(fake::estado().paradas > 0, "and leaves the motors in coast");
 
     arrancar();
     detenido = spike_compat::Advance_For_Degrees_Until(80, 1000, 0, [] { return false; });
-    check(!detenido && cancelaciones() == 0, "sin condición cumplida completa el avance");
+    check(!detenido && cancelaciones() == 0, "without the condition met it completes the advance");
 }
 
 void test_tope_de_velocidad() {
     fake::reiniciar();
     setenv("WRO_MAX_RPS", "1.5", 1);
     check(Spike_Reto2_Init() == 0 && cerca(spike_compat::Spike_Get_Config().max_rps_limit, 1.5),
-          "WRO_MAX_RPS=1.5 también acota el reto 2");
+          "WRO_MAX_RPS=1.5 also limits the Obstacle Challenge");
     unsetenv("WRO_MAX_RPS");
 }
 
 }  // namespace
 
 int main() {
-    std::printf("Pruebas del reto 2 sobre la placa Hiwonder (placa falsa)\n");
+    std::printf("Obstacle Challenge tests on the Hiwonder board (fake board)\n");
     test_init();
     test_init_falla_si_falla_el_reto1();
     test_giro_con_await();
@@ -203,6 +203,6 @@ int main() {
     test_avance_hasta_condicion();
     test_tope_de_velocidad();
     spike_compat::Spike_Detach();
-    std::printf("%d comprobaciones, %d fallos\n", g_checks, g_fallos);
+    std::printf("%d checks, %d failures\n", g_checks, g_fallos);
     return g_fallos == 0 ? 0 : 1;
 }

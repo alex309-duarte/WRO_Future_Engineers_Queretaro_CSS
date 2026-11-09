@@ -1,8 +1,8 @@
 # Provenance of the Obstacle Challenge with Hiwonder
 
-Rewritten on 2026-10-18 on the `reto1-hiwonder` branch, on the robot's
-Raspberry Pi 5 (`maker@192.168.1.158`, Hailo-8, RPLidar S2L, Hiwonder board with
-firmware `pos-v8`).
+Rewritten on 2026-10-18 on the robot's Raspberry Pi 5 (Hailo-8, RPLidar S2L,
+Hiwonder board with firmware `pos-v8`), on branch `reto1-hiwonder`, which was
+merged into `main` on 2026-11-08.
 
 ## Mission
 
@@ -33,7 +33,7 @@ The following were added to `spike_compat`, without changing what the Open
 Challenge uses: `Spike_Advance_For_Degrees` with reverse (`speed < 0`, like
 `ag_u()` on the hub), `Advance_For_Degrees_Until` (advance with a stop
 condition), `Steer_Tire_Turn` and `Spike_Update_Config`. The fake board used in
-the Open Challenge tests gained `cancel_motor_position`. The 51 Open Challenge
+the Open Challenge tests gained `cancel_motor_position`. The 53 Open Challenge
 checks still pass.
 
 ## Model

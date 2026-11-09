@@ -11,7 +11,7 @@ ORADAR_SDK_BUILD_DIR = $(ORADAR_SDK_DIR)/build
 ORADAR_SDK_LIB = $(ORADAR_SDK_BUILD_DIR)/liboradar_sdk.a
 ORADAR_INCLUDES = -I$(ORADAR_SDK_DIR) -I$(ORADAR_SDK_DIR)/src
 
-# Hiwonder board (branch reto1-hiwonder): spike_hiwonder.cpp and spike_compat
+# Hiwonder board (design v7, main branch): spike_hiwonder.cpp and spike_compat
 # implement the team's SPIKE API on top of the hiwonder_brick library, copied
 # into ./hiwonder. spike.cpp (design v6 LEGO SPIKE hub REPL driver) is no longer compiled.
 HIWONDER_DIR = ./hiwonder
@@ -35,7 +35,7 @@ else ifeq ($(WRO_LIDAR),ORADAR)
 LIDAR_INCLUDES = $(ORADAR_INCLUDES)
 LIDAR_LIB = $(ORADAR_SDK_LIB)
 else
-$(error WRO_LIDAR debe ser RPLIDAR_S2L u ORADAR)
+$(error WRO_LIDAR must be RPLIDAR_S2L or ORADAR)
 endif
 
 CXXFLAGS = -O3 -Wall -std=gnu++17 $(LIDAR_INCLUDES) -I$(HIWONDER_DIR)/include -DWRO_LIDAR_$(WRO_LIDAR) $(LIDAR_FLAGS)
