@@ -314,6 +314,16 @@ After weighing both options, the team concluded that the regular Ackermann's sli
 | Stall current | 3 A |
 | Mass | 52 g |
 
+<table>
+  <tr>
+    <td align="center">
+      <a href="https://www.hiwonder.com/products/hx-35h"><img src="other/additionalMedia/Components_v7/HX-35H_servo_v7.jpg" width="220"></a><br>
+      <em><a href="https://www.hiwonder.com/products/hx-35h">Hiwonder HX-35H serial bus servo</a></em>
+    </td>
+  </tr>
+</table>
+
+
 ### 4.3 Drivetrain <a id="drivetrain"></a>
 
 #### Decision card D2: drive motor <a id="d2"></a>
@@ -321,7 +331,7 @@ After weighing both options, the team concluded that the regular Ackermann's sli
 | | |
 |---|---|
 | **What** | The LEGO SPIKE Large Angular Motor was replaced by a **Hiwonder JGB37-520 Hall-encoder DC gear motor** (30:1, 12 V, 320 rpm no-load). |
-| **Why** | The v6 motor reached a loaded top speed of only **0.365 m/s** (calculation below). With a 3-minute round limit and the same mission, a faster drivetrain gives margin for slower, more careful manoeuvres where they matter. The SPIKE motor was too slow for the level we expect at the international final, where every team is the best of its country, so v7 needed a faster drive motor. Its encoder also gives the board closed-loop speed and distance control. |
+| **Why** | The v6 motor reached a loaded top speed of only **0.365 m/s** (v6 calculation in the collapsible section below). With a 3-minute round limit and the same mission, a faster drivetrain gives margin for slower, more careful manoeuvres where they matter. The SPIKE motor was too slow for the level we expect at the international final, where every team is the best of its country, so v7 needed a faster drive motor. Its encoder also gives the board closed-loop speed and distance control. |
 | **When** | Design v7, October 2026. |
 | **How** | The board runs closed-loop speed and position control using the encoder: 11 pulses per motor revolution × 30:1 gearbox × 4 (quadrature) = **1320 counts per output revolution**, which matches the 1320 ticks/rev we measured. `speed = 100` in the mission code maps to `kRpsVelocidad100`; the environment variable `WRO_MAX_RPS` lowers it for first tests without recompiling. |
 | **What for** | Calculated loaded top speed **0.62 m/s at 10.8 V**, about **1.7×** the v6 robot (calculation below). |
@@ -336,6 +346,16 @@ After weighing both options, the team concluded that the regular Ackermann's sli
 | Stall torque / current | 5.8 kg·cm / 3.2 A |
 | Encoder | Hall, AB quadrature, 11 pulses per motor revolution |
 | Mass | 152 g |
+
+<table>
+  <tr>
+    <td align="center">
+      <a href="https://www.hiwonder.com/products/hall-encoder-dc-geared-motor"><img src="other/additionalMedia/Components_v7/JGB37-520_motor_v7.jpg" width="200"></a><br>
+      <em><a href="https://www.hiwonder.com/products/hall-encoder-dc-geared-motor">Hiwonder JGB37-520 Hall-encoder motor, 30:1</a></em>
+    </td>
+  </tr>
+</table>
+
 
 #### Design v7 torque and speed calculation
 
@@ -381,13 +401,31 @@ With the same 1.25× safety factor as v6: $T_{m,req} = 0.0568$ N·m (0.58 kg·cm
 | **Why** | The v6 differential had a shape and size that did not fit the modified chassis and the new JGB37 motor well. This one fits the new structure and the motor mount better. A differential is kept because in a corner the outer rear wheel travels farther than the inner one; without it one wheel must slip, which wastes traction, wears the tyres and makes the encoder distance less accurate. |
 | **When** | Design v7, October–November 2026. |
 | **How** | The motor drives the differential through the 20:28 gear pair. CAD: `Diferencial.SLDASM` (`Cuerpo diferencial`, `Engrane_diferencial`, LEGO 65413/65414 parts). |
-| **What for** | Same function as in v6 with a better fit to the new chassis and motor. Because the **gear ratio stays 20:28**, the speed and torque calculation below and the distance constants of the missions keep the same meaning. |
+| **What for** | Same function as in v6 with a better fit to the new chassis and motor. Because the **gear ratio stays 20:28**, the speed and torque calculation above ([D2](#d2)) and the distance constants of the missions keep the same meaning. |
 | **Alternatives** | Keeping the v6 differential with adapters; a solid axle (wheel scrub in corners); two independent motors (not allowed: one driving axle, rule 11.3). |
+
+<table>
+  <tr>
+    <td align="center">
+      <a href="https://www.brickshop.eu/lego-parts/technics/lego-differential-housing-light-grey.html"><img src="other/additionalMedia/Components_v7/LEGO_65414_diff_housing_v7.jpg" width="180"></a><br>
+      <em><a href="https://www.brickshop.eu/lego-parts/technics/lego-differential-housing-light-grey.html">LEGO differential housing (65414)</a></em>
+    </td>
+    <td align="center">
+      <a href="https://www.brickowl.com/catalog/lego-red-bevel-gear-with-28-teeth-65413"><img src="other/additionalMedia/Components_v7/LEGO_65413_bevel_gear_v7.jpg" width="150"></a><br>
+      <em><a href="https://www.brickowl.com/catalog/lego-red-bevel-gear-with-28-teeth-65413">LEGO 28-tooth bevel gear (65413)</a></em>
+    </td>
+    <td align="center">
+      <a href="https://www.amazon.com.mx/LEGO-Tire-86652-32019-75999/dp/B01CODUYCE"><img src="other/additionalMedia/Components_v7/LEGO_tire_62.4x20S_v7.jpg" width="200"></a><br>
+      <em><a href="https://www.amazon.com.mx/LEGO-Tire-86652-32019-75999/dp/B01CODUYCE">LEGO tyre 62.4 × 20 S (32019)</a></em>
+    </td>
+  </tr>
+</table>
+
+
+Both 2026 designs (v6 and v7) also mark a layout change from last year's all-wheel-drive (AWD) configuration (see [Figure 6](other/additionalMedia/Others/Bottom2025.jpg)) to a rear-wheel-drive (RWD) layout. Driving only the rear axle simplified the drivetrain (removing the front differential/driveshaft hardware needed for AWD), reducing weight and mechanical complexity, while still providing enough traction for the WRO track once paired with the new LEGO 62.4×20S rubber tires.
 
 <details>
 <summary><b>Design v6 (national) drivetrain analysis: LEGO SPIKE Large Angular Motor</b></summary>
-
-This year's drivetrain also marks a layout change from last year's all-wheel-drive (AWD) configuration (see [Figure 6](other/additionalMedia/Others/Bottom2025.jpg)) to a rear-wheel-drive (RWD) layout. Driving only the rear axle simplified the drivetrain (removing the front differential/driveshaft hardware needed for AWD), reducing weight and mechanical complexity, while still providing enough traction for the WRO track once paired with the new LEGO 62.4×20S rubber tires.
 
 The vehicle uses a single LEGO SPIKE Large Angular Motor (Part 45602) driving the rear axle through a $20{:}28$ gear reduction ($R = 1.4$), turning LEGO $62.4 \times 20\text{S}$ rubber tires (Part 32019) ($r = 0.0312\text{ m}$). The motor and gear ratio were not assumed, they were sized against a full dynamic torque analysis targeting $a = 0.73\text{ m/s}^2$ over $t = 0.5\text{ s}$ to reach cruising speed.
 <table>
@@ -527,6 +565,20 @@ The vehicle uses a single LEGO SPIKE Large Angular Motor (Part 45602) driving th
 | **What for** | Estimated runtime about 1.7 h (budget below), far above a 3-minute round. |
 | **Alternatives** | v6 pack + X1203 for the Pi plus a separate 12 V pack (two batteries to charge, more mass); a 2S pack (7.2–8.4 V, too low for the 12 V motor's speed). |
 
+<table>
+  <tr>
+    <td align="center">
+      <a href="other/datasheets/Panasonic-NCR18650B-datasheet.pdf"><img src="other/additionalMedia/Components_v7/NCR18650B_v7.jpg" width="300"></a><br>
+      <em><a href="other/datasheets/Panasonic-NCR18650B-datasheet.pdf">Panasonic NCR18650B cell (×3, in series)</a></em>
+    </td>
+    <td align="center">
+      <a href="https://www.inteligenciaartificialyrobotica.com/products/balanceador-cargador-de-baterias-li-ion-bms3s10a"><img src="other/additionalMedia/Components_v7/BMS_3S_v7.jpg" width="260"></a><br>
+      <em><a href="https://www.inteligenciaartificialyrobotica.com/products/balanceador-cargador-de-baterias-li-ion-bms3s10a">3S BMS (HX-3S-01)</a></em>
+    </td>
+  </tr>
+</table>
+
+
 **Power budget (estimates from datasheets)**
 
 | Component | Supply | Operating state | Estimate |
@@ -649,6 +701,16 @@ A drawback of this configuration is that the batteries charge internally, in pla
 | Interface | UART, 1 Mbaud |
 | Mass | 185 g |
 
+<table>
+  <tr>
+    <td align="center">
+      <a href="https://www.slamtec.com/en/s2"><img src="other/additionalMedia/Components_v7/RPLidar_S2L_v7.jpg" width="320"></a><br>
+      <em><a href="https://www.slamtec.com/en/s2">Slamtec RPLidar S2L</a></em>
+    </td>
+  </tr>
+</table>
+
+
 > **What we learned:** we judged the sensor by a test of our own integration. A component should be ruled out only after the integration has been tested on its own, with time to separate a sensor problem from a software problem.
 
 **Placement and field geometry.** The track walls and the traffic signs (pillars) are both 100 mm tall. In v4 the LiDAR was mounted too high and its scanning plane passed over the walls; v5 lowered the mount (see [§7.4](#lessons)). The v7 chassis was lowered so the S2L's scanning plane sits about **75 mm above the ground**, 25 mm below the top of the walls and the pillars, so every wall and pillar is cut by the scan even with small chassis pitch on the track (side views in [Figure 2](#cad-v7)).
@@ -656,6 +718,16 @@ A drawback of this configuration is that the batteries charge internally, in pla
 #### Camera and AI accelerator
 
 **Raspberry Pi Camera Module 3 Wide** ([product brief](other/datasheets/RP-008151-DS-1-camera-module-3-product-brief.pdf)) captures the frames used to detect the obstacle pillars. The model also recognises the magenta parking markers, so that they are not mistaken for pillars ([§6.4](#d6)). The camera detects *what* the obstacle is and roughly *where*; the LiDAR gives the precise distance (see [§6.6](#heading)).
+
+<table>
+  <tr>
+    <td align="center">
+      <a href="other/datasheets/RP-008151-DS-1-camera-module-3-product-brief.pdf"><img src="other/additionalMedia/Components_v7/Camera_Module_3_Wide_v7.jpg" width="220"></a><br>
+      <em><a href="other/datasheets/RP-008151-DS-1-camera-module-3-product-brief.pdf">Raspberry Pi Camera Module 3 Wide</a></em>
+    </td>
+  </tr>
+</table>
+
 
 #### Decision card D5: Hailo-10H → Hailo-8 <a id="d5"></a>
 
@@ -667,6 +739,16 @@ A drawback of this configuration is that the batteries charge internally, in pla
 | **How** | The same v4 model was compiled for both chips ([D6](#d6)); the Hailo-8 version uses the [Hailo Dataflow Compiler](https://hailo.ai/products/hailo-software/hailo-ai-software-suite/) 3.34. Run script: `src/cpp/object_detection_hiwonder_h10/run_hiwonder_h8.sh`. |
 | **What for** | Same accuracy on both chips (mAP50 0.990 Hailo-8 vs 0.991 Hailo-10H) and **8 ms per frame** on the Hailo-8. |
 | **Alternatives** | Hailo-10H (v6), OAK-D Lite (2025 season). |
+
+<table>
+  <tr>
+    <td align="center">
+      <a href="other/datasheets/RP-008133-DS-1-raspberry-pi-ai-hat-plus-product-brief.pdf"><img src="other/additionalMedia/Components_v7/AI_HAT_plus_26TOPS_v7.jpg" width="240"></a><br>
+      <em><a href="other/datasheets/RP-008133-DS-1-raspberry-pi-ai-hat-plus-product-brief.pdf">Raspberry Pi AI HAT+ 26 TOPS (Hailo-8)</a></em>
+    </td>
+  </tr>
+</table>
+
 
 #### Heading: IMU on the Hiwonder board
 
@@ -700,6 +782,20 @@ Ultrasonic sensors used in previous seasons were removed in 2026; the robot reli
 ### 5.5 Processing architecture
 
 The control loop runs on the **Raspberry Pi 5**. The RPLidar S2L streams 360° scans over USB-serial into a background buffer. The camera frames go through the YOLOv8n model on the Hailo-8, which classifies the pillars (green, red) and the parking marker. The Pi fuses both streams and sends motion commands over USB-serial (CH343, 1 Mbaud) to the **Hiwonder board**, which closes the speed and position loops of the drive motor, drives the HX-35H steering servo, and reports the IMU heading. The Pi GPIO handles the start button (GPIO4) and its LED (GPIO3). The v6 relay that powered the SPIKE Hub is no longer used.
+
+<table>
+  <tr>
+    <td align="center">
+      <a href="other/datasheets/RP-008348-DS-6-raspberry-pi-5-product-brief.pdf"><img src="other/additionalMedia/Components_v7/Raspberry_Pi_5_v7.jpg" width="300"></a><br>
+      <em><a href="other/datasheets/RP-008348-DS-6-raspberry-pi-5-product-brief.pdf">Raspberry Pi 5 (16 GB)</a></em>
+    </td>
+    <td align="center">
+      <a href="https://wiki.seeedstudio.com/Grove-LED_Button/"><img src="other/additionalMedia/Components_v7/Grove_LED_button_v7.jpg" width="200"></a><br>
+      <em><a href="https://wiki.seeedstudio.com/Grove-LED_Button/">Grove LED button (start button, GPIO4 / LED GPIO3)</a></em>
+    </td>
+  </tr>
+</table>
+
 
 > The v7 wiring is in [Figure 7](#wiring-v7) (§5.1). The processing and wiring figures below are from **design v6** (SPIKE Hub, MS200k) and are kept for comparison.
 
@@ -765,6 +861,16 @@ However, since the WRO Future Engineers rules prohibit wireless communication du
 | Controls and indicators | Main power switch, motor enable switch, 2 user buttons, user LED, buzzer, OLED port | Main power switch = hardware kill switch ([D8](#d8)) |
 | Protection | Over-temperature, short-circuit, over-current, reverse connection | |
 | Size and mass | 85 × 60 mm (holes 57 × 49 mm), 39.5 g | Mounted on the combined board/LiDAR support |
+
+<table>
+  <tr>
+    <td align="center">
+      <a href="https://wiki.hiwonder.com/projects/ROS-Robot-Control-Board/en/latest/"><img src="other/additionalMedia/Components_v7/Hiwonder_ROS_controller_v7.jpg" width="300"></a><br>
+      <em><a href="https://wiki.hiwonder.com/projects/ROS-Robot-Control-Board/en/latest/">Hiwonder ROS Robot Controller (STM32F407VET6)</a></em>
+    </td>
+  </tr>
+</table>
+
 
 <a id="board-firmware"></a>**Board firmware.** The Hiwonder board runs a version of Hiwonder's firmware that we modified, `pos-v8`. It adds a position-control command (function `0x0B`, *MOTOR_EXT*): the board turns the drive motor a given number of encoder ticks and stops on its own, which is how `Spike_Advance_For_Degrees` and `Spike_Advance_For_distance` cover exact distances; the same command holds the motor in place for `Spike_Hold_Motors`. At start-up `Spike_Hiwonder_Init()` asks the board for its position-control capabilities; a board with Hiwonder's stock firmware does not answer this command, and the program stops with the error "the firmware has no position control on M4 (is pos-v8 loaded?)" before anything moves. The modified firmware is not included in this repository.
 
@@ -1366,6 +1472,7 @@ Each milestone of the vehicle is a tagged [GitHub release](https://github.com/al
 | [`v2.0.0-alpha.3`](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS/releases/tag/v2.0.0-alpha.3) | 2026-11-09 | Source code commented in English, steering limit ±35° |
 | [`v2.0.0-beta.1`](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS/releases/tag/v2.0.0-beta.1) | 2026-11-09 | Documentation feature-complete: power calculations, CAD views, datasheets in the repository |
 | [`v2.0.0-beta.2`](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS/releases/tag/v2.0.0-beta.2) | 2026-11-10 | Review fixes: parking description, English program messages, v7 figures, rule compliance, firmware note |
+| [`v2.0.0-beta.3`](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS/releases/tag/v2.0.0-beta.3) | 2026-11-10 | Component photos with datasheet links, new driving videos |
 | `v2.0.0` | 2026-11-09 | International Final version |
 
 ### 8.2 Repository structure
@@ -1382,6 +1489,7 @@ Build outputs (`build/`, `build_*` folders), compiled binaries and `__pycache__/
 │       └── Stl/                          # STL files of the 3D-printed parts
 ├── other/                                # Supporting materials and external software
 │   ├── additionalMedia/                  # Extra media assets for documentation
+│   │   ├── Components_v7/                # Photos of the design v7 components
 │   │   ├── Others/                       # Miscellaneous diagrams and graphic assets
 │   │   └── Videos/                       # Short testing clips and component videos
 │   ├── Assembly_photos/                  # Pictures for construction guide
