@@ -1686,7 +1686,7 @@ See the [assembly guide](other/Assembly_photos/Assembly_Process_EN.md) for all t
 ### Open Challenge
 *(Click on preview to visit YouTube Video)*
 
-[![Open Challenge](https://img.youtube.com/vi/gWYS8fVQXW0/maxresdefault.jpg)](https://www.youtube.com/shorts/gWYS8fVQXW0)
+[![Open Challenge](https://img.youtube.com/vi/fHsPBr_Bzps/maxresdefault.jpg)](https://www.youtube.com/shorts/fHsPBr_Bzps)
 
 ### Obstacle Challenge
 *(Click on preview to visit YouTube Video)*
