@@ -1805,8 +1805,8 @@ See the [assembly guide](other/Assembly_photos/Assembly_Process_EN.md) for all t
 
 | Round | Video |
 |---|---|
-| Open Challenge | [Watch on YouTube](https://youtu.be/NATIONAL_OPEN_LINK) |
-| Obstacle Challenge | [Watch on YouTube](https://youtu.be/NATIONAL_OBSTACLE_LINK) |
+| Open Challenge | [File on Google Drive](https://drive.google.com/file/d/1y1_-eNPqLfp4mYmWrwkaJP0yCElOwc-E/view?usp=sharing) |
+| Obstacle Challenge | [File on Google Drive](https://drive.google.com/file/d/1bAa3huMdQ8_E6Ghx8h6CbjzetpgeynWJ/view?usp=sharing) |
 
 ---
 
