@@ -178,7 +178,7 @@ Kept for comparison. The full design v6 state is preserved in release [`v1.0.0`]
 
 **Design v7: International Final version (current)**
 
-***"The Maker"*** is a rear-wheel-drive autonomous vehicle with regular-Ackermann front steering, built around a custom SolidWorks chassis that was modified from the national design to fit the new components cleanly and to sit as low to the ground as possible, so the LiDAR always scans below the top of the 100 mm walls. For the international final the LEGO SPIKE actuation was replaced to gain speed and control: a Hiwonder JGB37-520 30:1 DC gear motor with a Hall encoder (1320 counts per output revolution) drives the rear axle through a differential under closed-loop speed and position control, a Hiwonder HX-35H serial bus servo actuates the steering, and both are commanded by a Hiwonder ROS Robot Control Board (STM32F407), whose on-board IMU now supplies the heading. Perception comes from a Slamtec RPLidar S2L, which we brought back after fixing our own integration of it, fused with a Raspberry Pi Camera Module 3 Wide accelerated by a Hailo-8 AI accelerator. The LiDAR handles wall-following and obstacle range, while the camera detects the pillars (and recognises the magenta parking markers, so they are never taken for pillars) with a YOLOv8n model retrained on 23,938 images (9,354 originals, 3,831 of them taken with the car's own camera), reaching mAP50 0.990 at 8 ms per frame on the Hailo-8. All control and vision code still runs in C/C++ on a Raspberry Pi 5: instead of rewriting the mission logic that placed 2nd at nationals, we ported it to the new board through a SPIKE-compatibility layer verified by 84 offline tests, and added a signal-based emergency stop that cuts the motors on any program exit, because the new board's firmware has no command watchdog. Power comes from three Panasonic NCR18650B cells in series (3S, 10.8 V nominal) with a BMS, which feed the 12 V motor and servo directly. The complete vehicle weighs 1.087 kg, 72 % of the 1.5 kg limit.
+***"The Maker"*** is a rear-wheel-drive autonomous vehicle with regular-Ackermann front steering, built around a custom SolidWorks chassis that was modified from the national design to fit the new components cleanly and to sit as low to the ground as possible, so the LiDAR always scans below the top of the 100 mm walls. For the international final the LEGO SPIKE actuation was replaced to gain speed and control: a Hiwonder JGB37-520 30:1 DC gear motor with a Hall encoder (1320 counts per output revolution) drives the rear axle through a differential under closed-loop speed and position control, a Hiwonder HX-35H serial bus servo actuates the steering, and both are commanded by a Hiwonder ROS Robot Control Board (STM32F407), whose on-board IMU now supplies the heading. Perception comes from a Slamtec RPLidar S2L, which we brought back after fixing our own integration of it, fused with a Raspberry Pi Camera Module 3 Wide accelerated by a Hailo-8 AI accelerator. The LiDAR handles wall-following and obstacle range, while the camera detects the pillars (and recognises the magenta parking markers, so they are never taken for pillars) with a YOLOv8n model retrained on 23,938 images (9,354 originals, 3,831 of them taken with the car's own camera), reaching mAP50 0.990 at 8 ms per frame on the Hailo-8. All control and vision code still runs in C/C++ on a Raspberry Pi 5: instead of rewriting the mission logic that placed 2nd at nationals, we ported it to the new board through a SPIKE-compatibility layer verified by 84 offline tests, and added a signal-based emergency stop that cuts the motors on any program exit, because the new board's firmware has no command timeout. We also extended the board's firmware (`pos-v8`) with position control, HOLD and a watchdog for a hung firmware. Power comes from three Panasonic NCR18650B cells in series (3S, 10.8 V nominal) with a BMS, which feed the 12 V motor and servo directly. The complete vehicle weighs 1.087 kg, 72 % of the 1.5 kg limit.
 
 <details>
 <summary><b>Design v6: National Final version (original description)</b></summary>
@@ -856,7 +856,7 @@ However, since the WRO Future Engineers rules prohibit wireless communication du
 | 5 V output | Independent 5 V / 5 A, USB Type-C | Powers the Raspberry Pi 5 and, through it, the Hailo-8, camera, LiDAR and button |
 | Encoder motors | 4 channels with PID speed control | Port M4: JGB37-520 drive motor |
 | Servos | 4 PWM servo ports (5 V), 2 serial bus servo ports (battery voltage) | One bus port: HX-35H steering servo (ID 1) |
-| IMU | On-board 6-axis IMU (MPU6050 per Hiwonder) | Heading, read by the Pi at 20 Hz |
+| IMU | On-board 6-axis IMU, QMI8658 (the chip the V1.2 firmware drives; Hiwonder's product page lists an MPU6050) | Heading, read by the Pi at 20 Hz |
 | Communication | 2 USB serial ports, CAN, SBUS, I²C, UART, Bluetooth module port | USB serial to the Pi at 1 Mbaud |
 | Controls and indicators | Main power switch, motor enable switch, 2 user buttons, user LED, buzzer, OLED port | Main power switch = hardware kill switch ([D8](#d8)) |
 | Protection | Over-temperature, short-circuit, over-current, reverse connection | |
@@ -872,7 +872,27 @@ However, since the WRO Future Engineers rules prohibit wireless communication du
 </table>
 
 
-<a id="board-firmware"></a>**Board firmware.** The Hiwonder board runs a version of Hiwonder's firmware that we modified, `pos-v8`. It adds a position-control command (function `0x0B`, *MOTOR_EXT*): the board turns the drive motor a given number of encoder ticks and stops on its own, which is how `Spike_Advance_For_Degrees` and `Spike_Advance_For_distance` cover exact distances; the same command holds the motor in place for `Spike_Hold_Motors`. At start-up `Spike_Hiwonder_Init()` asks the board for its position-control capabilities; a board with Hiwonder's stock firmware does not answer this command, and the program stops with the error "the firmware has no position control on M4 (is pos-v8 loaded?)" before anything moves. The modified firmware is not included in this repository.
+<a id="board-firmware"></a>**Board firmware (`pos-v8`).** The board runs Hiwonder's FreeRTOS firmware with our patch on top ([`firmware/hiwonder_pos-v8/`](firmware/hiwonder_pos-v8)): `extended_m1.patch` changes 12 files of Hiwonder's official project (+906 / −442 lines). The folder has the image on the robot (`.hex` / `.bin` with SHA-256), the patch, the GCC build scripts, the protocol description and the flashing steps. Hiwonder's original source project (V1.2) and its factory recovery images are included unmodified, with credit to Hiwonder and the third-party libraries it uses, in [`firmware/hiwonder_original/`](firmware/hiwonder_original).
+
+<img src="schemes/firmware/hiwonder_firmware_architecture.png" alt="Architecture of the extended pos-v8 firmware: host software on the Raspberry Pi 5, FreeRTOS tasks and the 100 Hz control loop on the STM32, and the board hardware" width="900">
+
+*Figure 10. Extended firmware `pos-v8`. The orange blocks are what we added to Hiwonder's firmware.*
+
+What we added:
+
+- **Position control on the drive motor (M4).** A P loop on the encoder error feeds the factory speed loop 100 times per second, so `Spike_Advance_For_Degrees` and `Spike_Advance_For_distance` measure the distance on the board itself (1320 ticks per output-shaft turn) instead of timing it from the Pi.
+- **HOLD.** The motor keeps its position and comes back if pushed, like `motor.HOLD` on the SPIKE hub (`Spike_Hold_Motors`). The PWM is capped, and the motor lets go after 3 s stalled.
+- **Watchdog (IWDG).** It resets the board in about 250 ms if the firmware itself hangs; before it, a clock fault left the board frozen with the last PWM applied.
+- **Smaller fixes:** a stop forces the PWM to 0; the M4 encoder starts on its correct timer (TIM3); IMU telemetry at 20 Hz; motor speed limit 5.7 rev/s.
+
+| `MOTOR_EXT` (function `0x0B`) | Request | Effect / reply |
+|---|---|---|
+| `0x00 CAPABILITIES` | — | protocol version 3, motor mask, ticks per turn |
+| `0x01 MOVE_RELATIVE` | ticks, max rev/s, tolerance, timeout | relative move of M4: `moving` → `reached` or `timeout` |
+| `0x02 CANCEL`, `0x03 ZERO`, `0x04 STATUS` | motor | stop, set the zero, read the 20-byte status |
+| `0x05 HOLD` | max rev/s, tolerance, PWM cap | hold the current count: `holding`, or `stalled` after 3 s |
+
+At start-up `Spike_Hiwonder_Init()` sends `CAPABILITIES`. A board with Hiwonder's stock firmware does not answer it, and the program stops with "the firmware has no position control on M4 (is pos-v8 loaded?)" before anything moves. Flashing (ST-LINK/V2 on header H1, 12 V unplugged) and building from source are described in [`firmware/hiwonder_pos-v8/README.md`](firmware/hiwonder_pos-v8/README.md).
 
 <img src="other/additionalMedia/Others/fpv.gif">
 
@@ -880,7 +900,7 @@ The Obstacle Challenge program is structured as cooperating threads: a Hailo pre
 
 <img src="other/additionalMedia/Others/wro_software_dataflow_diagram_v7.png" alt="Design v7 software data flow: RPLidar S2L, camera and IMU into the mission thread, then spike_compat and the Hiwonder board" width="800">
 
-*Figure 10. Design v7 software data flow (Obstacle Challenge), from sensor input through processing and decision-making to the Hiwonder board, which drives the motor and the steering servo.*
+*Figure 11. Design v7 software data flow (Obstacle Challenge), from sensor input through processing and decision-making to the Hiwonder board, which drives the motor and the steering servo.*
 
 ### 6.2 Open Challenge
 
@@ -916,7 +936,7 @@ flowchart TD
     S --> Z(["Run finished"])
 ```
 
-*Figure 11. Open Challenge program flow, traced directly from `Recorrido()` in [`src/ondevice/main.cpp`](src/ondevice/main.cpp).*
+*Figure 12. Open Challenge program flow, traced directly from `Recorrido()` in [`src/ondevice/main.cpp`](src/ondevice/main.cpp).*
 
 > **How each step works.** `Lidar_Debounced_Read` copies the 360-slot distance buffer until 3 consecutive samples of the same angle agree within 30 mm, so a single bad return cannot choose the wrong start case. `Oradar_S2L_Advance_And_Detect_Side` drives straight until the front wall is within 1100 mm and one side reads more than 1350 mm (or gives no return): that open side is `sentido`, fixed for the whole run (`right` = clockwise). `Spike_Turn_For_Degrees` turns with full steering lock until |yaw| reaches 70-80°, a little short of 90°, and `Spike_Advance_For_Degrees` then holds heading &minus;90 (right turn) or +90 (left turn) for a fixed number of motor degrees, which completes the turn and brings the robot into the new section. Finally, `Oradar_S2L_Wall_Slope` fits the outer wall (the continuous one, on the side opposite `sentido`) and `Spike_Reset_Gyro` redefines the yaw so that heading 0 is parallel to it. This cancels gyro drift and turn error at every corner.
 
@@ -956,9 +976,9 @@ stateDiagram-v2
     EmergencyStop --> [*]
 ```
 
-*Figure 12. Open Challenge high-level state machine. The Open Challenge has no parking: it ends with a stop in the starting section.*
+*Figure 13. Open Challenge high-level state machine. The Open Challenge has no parking: it ends with a stop in the starting section.*
 
-> **Emergency stop.** The Hiwonder board firmware has no command watchdog: if the program died with the motor running, the motor would keep its last speed. So, from the moment the LiDAR is opened, Ctrl+C, `kill` or a crash triggers `parada_emergencia` ("emergency stop"), which sends the board a COAST command for all four motors and the LiDAR its stop frames, then ends the process immediately, so no half-finished loop can send another speed. If the board or the LiDAR does not start (no scan within 5 s), `Recorrido()` returns 1 before anything moves.
+> **Emergency stop.** The Hiwonder board firmware has no command timeout (its IWDG watchdog only resets a hung firmware): if the program died with the motor running, the motor would keep its last speed. So, from the moment the LiDAR is opened, Ctrl+C, `kill` or a crash triggers `parada_emergencia` ("emergency stop"), which sends the board a COAST command for all four motors and the LiDAR its stop frames, then ends the process immediately, so no half-finished loop can send another speed. If the board or the LiDAR does not start (no scan within 5 s), `Recorrido()` returns 1 before anything moves.
 
 #### Thresholds
 
@@ -1020,7 +1040,7 @@ stateDiagram-v2
     Stopped --> [*]
 ```
 
-*Figure 13. Obstacle Challenge high-level state machine (navigation thread). `FinalParking` is described in [§6.8](#parking).*
+*Figure 14. Obstacle Challenge high-level state machine (navigation thread). `FinalParking` is described in [§6.8](#parking).*
 
 > The direction of the run is fixed for the whole attempt by the single
 > side-wall reading taken in `InitialScan`, and both branches feed the same
@@ -1056,7 +1076,7 @@ flowchart TD
     O --> P
 ```
 
-*Figure 14. One Obstacle Challenge corner cycle (clockwise run).*
+*Figure 15. One Obstacle Challenge corner cycle (clockwise run).*
 
 > In the counter-clockwise run the two corner colors are swapped: red after a
 > green stops at 400 / 600 mm, green after a green at 990 mm.
@@ -1223,7 +1243,7 @@ In the competition runs every steering correction is a heading PD on the gyro: p
 | 4. Reverse S-turn into the lot | Reverse with the wheels right until the gyro has turned **50°**, re-zero, reverse with the wheels left for **105°**, reverse **400 hub degrees** (≈ 156 mm) at heading −105°, brake. | Reverse with the wheels left for **52°**, re-zero, reverse with the wheels right for **100°**, reverse **390 hub degrees** (≈ 152 mm) at heading 90°, brake. |
 | 5. Straighten | Re-zero, reverse with the wheels right for **28°** and hold the motor, re-zero, short forward correction with the wheels left, centre the steering. | Mirror: reverse with the wheels left for **28°**, hold, short forward correction with the wheels right, centre the steering. |
 
-After step 5 the robot stays parked (state `FinalParking` → `Idle` in [Figure 13](#63-obstacle-challenge)) until the program is stopped.
+After step 5 the robot stays parked (state `FinalParking` → `Idle` in [Figure 14](#63-obstacle-challenge)) until the program is stopped.
 
 ### 6.9 Testing and tuning workflow <a id="testing"></a>
 
@@ -1359,16 +1379,16 @@ How design v7 meets the round-start and communication rules of the [WRO 2026 Fut
 | | |
 |---|---|
 | **What** | A signal-based emergency stop that stops the robot from any state, including in the middle of a turn or an advance. |
-| **Why** | In the [national Engineering Journal](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS/blob/v1.0.0/Engineering_Journal_CSS_WRO2026.pdf) (§5.2) the emergency stop was listed as an **open, accepted risk**. Moving to the Hiwonder board made it urgent: its firmware has **no command watchdog**, so if the program dies while the motor is running, the motor keeps the last speed. |
+| **Why** | In the [national Engineering Journal](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS/blob/v1.0.0/Engineering_Journal_CSS_WRO2026.pdf) (§5.2) the emergency stop was listed as an **open, accepted risk**. Moving to the Hiwonder board made it urgent: its firmware has **no command timeout** (the IWDG watchdog we added in `pos-v7` only resets the board if the firmware itself hangs), so if the program on the Pi dies while the motor is running, the motor keeps the last speed. |
 | **When** | Design v7, October 2026. |
 | **How** | [`src/ondevice/parada_emergencia.cpp`](src/ondevice/parada_emergencia.cpp) is installed in `Spike_Hiwonder_Init()`, right after opening the board and before anything moves. It opens a second descriptor of the board's port with pre-built frames, so the signal handler only has to write them: 4 motors to COAST, servo torque off, LiDAR stop frames, then exit with code 130 without returning to the mission. |
 | **What for** | Ctrl+C, `kill`, closing the terminal or SSH session, Ctrl+Z and crashes (segfault, abort) all stop the robot. |
-| **Alternatives** | A firmware watchdog (not available in `pos-v8`). The **hardware kill switch** is the Hiwonder board's power switch: it cuts the power to the motor, the servo and, through the board's 5 V output, the Raspberry Pi and every sensor, so it stops the robot even when the software cannot (`kill -9`, a frozen Pi). |
+| **Alternatives** | A command timeout in the firmware (stop the motor when the Pi stops sending; not implemented in `pos-v8`). The **hardware kill switch** is the Hiwonder board's power switch: it cuts the power to the motor, the servo and, through the board's 5 V output, the Raspberry Pi and every sensor, so it stops the robot even when the software cannot (`kill -9`, a frozen Pi). |
 
 
 | Risk / failure mode | Consequence | Mitigation | Status |
 |---|---|---|---|
-| Program dies while the motor runs (the board firmware has **no command watchdog**) | The motor keeps the last speed | `parada_emergencia.cpp`: on Ctrl+C, kill, closed SSH session, Ctrl+Z or crash, the 4 motors go to COAST, the servo torque is released and the process exits without returning to the mission. Not covered by software: `kill -9` and Pi power loss; for those, the Hiwonder board's power switch cuts power to the whole robot. | Implemented |
+| Program dies while the motor runs (the board firmware has **no command timeout**) | The motor keeps the last speed | `parada_emergencia.cpp`: on Ctrl+C, kill, closed SSH session, Ctrl+Z or crash, the 4 motors go to COAST, the servo torque is released and the process exits without returning to the mission. Not covered by software: `kill -9` and Pi power loss; for those, the Hiwonder board's power switch cuts power to the whole robot. | Implemented |
 | Steering driven past the mechanical limit | Wheel hits the chassis | Single clamp in `set_steering`; start-up refuses to move a servo outside the range | Implemented (±35°, see [D3](#d3)) |
 | LiDAR keeps spinning after exit | Battery drain, heat | Emergency stop also sends the LiDAR stop frames | Implemented |
 | LiDAR not ready at start | Decisions on an empty buffer | Waits up to 50 cycles for the first scan, aborts cleanly otherwise | Implemented |
@@ -1450,7 +1470,7 @@ Within the 2026 national season (v3–v6) the progress was incremental: no itera
 * **Python could not keep up.** With a higher-rate camera and LiDAR attached, the 2025 Python control loop consumed data slower than the sensors produced it, so the robot acted on stale readings. We rewrote acquisition and control in C/C++, a rewrite rather than an optimisation, because the ceiling was the runtime itself, not any single slow function. The loop now runs at **> 50 Hz**.
 
 * **The S2L was not the problem; our integration was.** In July we dropped the RPLidar S2L after distorted readings near the walls. For v7, with time to test it on its own, the same sensor proved accurate and reliable once our driver was fixed ([D4](#d4)). Lesson: test an integration on its own before blaming the component.
-* **No command watchdog on the new board.** If the program died, the motor kept running. Solved with the signal-based emergency stop ([D8](#d8)).
+* **No command timeout on the new board.** If the program died, the motor kept running. Solved with the signal-based emergency stop ([D8](#d8)); a clock fault that froze the board with the last PWM applied was solved in the firmware with an IWDG watchdog (`pos-v7`).
 * **A faster robot needs new gains.** With the faster motor, the board's IMU and the S2L, the national thresholds and the PD gains no longer gave the same behaviour. We re-tuned them on the track by trial and error, with small changes to the values until the runs were satisfactory, while keeping the mission logic unchanged thanks to the compatibility layer ([D1](#d1)).
 
 ---
@@ -1471,8 +1491,8 @@ Each milestone of the vehicle is a tagged [GitHub release](https://github.com/al
 | [`v2.0.0-alpha.2`](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS/releases/tag/v2.0.0-alpha.2) | 2026-11-09 | International documentation snapshot: journal, wiring diagram, CAD v7, test log |
 | [`v2.0.0-alpha.3`](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS/releases/tag/v2.0.0-alpha.3) | 2026-11-09 | Source code commented in English, steering limit ±35° |
 | [`v2.0.0-beta.1`](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS/releases/tag/v2.0.0-beta.1) | 2026-11-09 | Documentation feature-complete: power calculations, CAD views, datasheets in the repository |
-| [`v2.0.0-beta.2`](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS/releases/tag/v2.0.0-beta.2) | 2026-11-10 | Review fixes: parking description, English program messages, v7 figures, rule compliance, firmware note |
-| [`v2.0.0-beta.3`](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS/releases/tag/v2.0.0-beta.3) | 2026-11-10 | Component photos with datasheet links, new driving videos |
+| [`v2.0.0-beta.2`](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS/releases/tag/v2.0.0-beta.2) | 2026-11-09 | Review fixes: parking description, English program messages, v7 figures, rule compliance, firmware note |
+| [`v2.0.0-beta.3`](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS/releases/tag/v2.0.0-beta.3) | 2026-11-09 | Component photos with datasheet links, new driving videos |
 | `v2.0.0` | 2026-11-09 | International Final version |
 
 ### 8.2 Repository structure
@@ -1505,7 +1525,11 @@ Build outputs (`build/`, `build_*` folders), compiled binaries and `__pycache__/
 │   ├── WRO-2026-FE_DocumentationRubric.pdf # WRO documentation rubric
 │   ├── WRO-2026-FE_Playfield.pdf         # WRO playfield drawing
 │   └── WRO-2026-FE_GeneralRules.pdf      # WRO official competition rules
+├── firmware/                             # Firmware of programmed components
+│   ├── hiwonder_original/                # Hiwonder's original source (V1.2) and recovery images, unmodified (credit: Hiwonder)
+│   └── hiwonder_pos-v8/                  # Our Hiwonder board firmware: image, patch, build scripts, protocol
 ├── schemes/                              # Electrical documentation & schematics
+│   ├── firmware/                         # Hiwonder firmware architecture diagram
 │   └── hardware/                         # Circuit designs and wiring diagrams
 │       ├── pcb/                          # KiCad expansion-board design study (not on the robot)
 │       ├── wiringSchematics_v7.png       # Wiring diagram, design v7
@@ -1549,7 +1573,7 @@ The v7 robot builds **two programs**: the Open Challenge (`src/ondevice/`, LiDAR
    sudo apt install -y build-essential cmake git libopencv-dev libgpiod-dev pkg-config
    ```
    The camera is read through [libcamera](https://libcamera.org/) (part of Raspberry Pi OS) and the start button through [libgpiod](https://libgpiod.readthedocs.io/).
-4. **Hiwonder board firmware:** the programs need the modified firmware `pos-v8` on the board (see [Board firmware](#board-firmware)).
+4. **Hiwonder board firmware:** flash our firmware `pos-v8` once with an ST-LINK/V2 (see [Board firmware](#board-firmware) and [`firmware/hiwonder_pos-v8/README.md`](firmware/hiwonder_pos-v8/README.md)); the programs refuse to run on the stock firmware.
 
 ### 9.2 Clone
 
@@ -1815,6 +1839,7 @@ See the [assembly guide](other/Assembly_photos/Assembly_Process_EN.md) for all t
 **[@jesussantana2872](https://www.youtube.com/@jesussantana2872/shorts)**
 
 <a href="https://www.youtube.com/@jesussantana2872/shorts"><img src="other/additionalMedia/Others/ytChannel.png"></a><br>
+
 ---
 
 ## 12. Resources <a id="resources"></a>
@@ -1831,6 +1856,8 @@ See the [assembly guide](other/Assembly_photos/Assembly_Process_EN.md) for all t
 
 ### Datasheets and documentation: design v7
 - [Hiwonder ROS Robot Controller](https://hiwonder.com/products/ros-robot-control) (STM32F407VET6) and its [documentation](https://wiki.hiwonder.com/projects/ROS-Robot-Control-Board/en/latest/)
+- Our board firmware `pos-v8`: [`firmware/hiwonder_pos-v8/`](firmware/hiwonder_pos-v8) (image, patch over Hiwonder's source, build scripts, [protocol](firmware/hiwonder_pos-v8/PROTOCOL.md))
+- Hiwonder's original firmware source (V1.2) and factory images, by Hiwonder: [`firmware/hiwonder_original/`](firmware/hiwonder_original) (unmodified; third-party libraries and their licenses listed in its README)
 - [Hiwonder JGB37-520 Hall-encoder DC gear motor](https://www.hiwonder.com/products/hall-encoder-dc-geared-motor) (specifications on the product page)
 - [Hiwonder HX-35H serial bus servo](https://www.hiwonder.com/products/hx-35h) (specifications on the product page)
 - [Slamtec RPLIDAR S2L](https://www.slamtec.com/en/s2) and [RPLIDAR SDK](https://github.com/Slamtec/rplidar_sdk)
@@ -1862,6 +1889,8 @@ See the [assembly guide](other/Assembly_photos/Assembly_Process_EN.md) for all t
 
 Released under the [MIT License](LICENSE).
 
+The MIT License covers the team's own work. Third-party code keeps its authors' terms: Hiwonder's firmware project and factory images in [`firmware/hiwonder_original/`](firmware/hiwonder_original) belong to Hiwonder, and the libraries inside it (STMicroelectronics HAL, Arm CMSIS, FreeRTOS, LVGL, U8g2 and others) keep their own licenses, listed in [its README](firmware/hiwonder_original/README.md#third-party-components-inside-hiwonders-project).
+
 ```text
 MIT License
 
@@ -1888,4 +1917,4 @@ SOFTWARE.
 
 ---
 
-> *Document maintained by CSS | Last updated: November 2026*
+> *Document maintained by CSS | Last updated: November 2026 | Latest release: v2.0.0*

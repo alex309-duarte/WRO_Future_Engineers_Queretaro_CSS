@@ -1,0 +1,222 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1060" viewBox="0 0 1600 1060" xmlns:c2pa="http://c2pa.org/manifest">
+<title>Hiwonder ROS Robot Controller V1.2 — extended firmware pos-v8 architecture</title>
+<defs><marker id="fin" viewBox="0 0 10 10" refX="9.5" refY="5" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0.5 L10,5 L0,9.5 z" fill="#3e4c59"/></marker><marker id="ini" viewBox="0 0 10 10" refX="0.5" refY="5" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto"><path d="M10,0.5 L0,5 L10,9.5 z" fill="#3e4c59"/></marker></defs>
+<rect width="1600" height="1060" fill="#ffffff"/>
+<text x="32" y="50" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="27" font-weight="bold" fill="#1f2933" text-anchor="start">Hiwonder ROS Robot Controller V1.2 — extended firmware pos-v8</text>
+<text x="32" y="78" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13" fill="#52606d" text-anchor="start">STM32F407VET6 · Cortex-M4F 168 MHz · FreeRTOS · Hiwonder project + 12-file patch · 70 KB of 512 KB flash · HEX SHA-256 3a4d9e88…</text>
+<rect x="1262" y="21" width="20" height="13" rx="3" fill="#fff1e0" stroke="#e8590c" stroke-width="1.8"/>
+<text x="1290" y="32" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#1f2933" text-anchor="start">added in the extended firmware</text>
+<rect x="1262" y="43" width="20" height="13" rx="3" fill="#f4f6f8" stroke="#9aa5b1" stroke-width="1.3"/>
+<text x="1290" y="54" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#1f2933" text-anchor="start">Hiwonder factory firmware</text>
+<rect x="1262" y="65" width="20" height="13" rx="3" fill="#e8efff" stroke="#3b5bdb" stroke-width="1.5"/>
+<text x="1290" y="76" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#1f2933" text-anchor="start">host software (Raspberry Pi)</text>
+<rect x="32" y="104" width="320" height="572" rx="14" fill="#f5f8ff" stroke="#91a7ff" stroke-width="1.4"/>
+<text x="48" y="132" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="16" font-weight="bold" fill="#1f2933" text-anchor="start">Raspberry Pi 5 · host</text>
+<rect x="48" y="150" width="288" height="96" rx="9" fill="#e8efff" stroke="#3b5bdb" stroke-width="1.5"/>
+<text x="60" y="172" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13.5" font-weight="bold" fill="#1f2933" text-anchor="start">hiwonder_brick (C++)</text>
+<text x="60" y="189.5" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#1f2933" text-anchor="start">Brick class: frames + CRC8,</text>
+<text x="60" y="206.0" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#1f2933" text-anchor="start">IMU decoding (m/s², rad/s),</text>
+<text x="60" y="222.5" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#1f2933" text-anchor="start">position and HOLD requests</text>
+<rect x="48" y="266" width="288" height="114" rx="9" fill="#e8efff" stroke="#3b5bdb" stroke-width="1.5"/>
+<text x="60" y="288" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13.5" font-weight="bold" fill="#1f2933" text-anchor="start">spike_compat</text>
+<text x="60" y="305.5" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#1f2933" text-anchor="start">the team's SPIKE API on the board:</text>
+<text x="60" y="322.0" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#1f2933" text-anchor="start">Advance_For_Degrees → MOVE_RELATIVE</text>
+<text x="60" y="338.5" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#1f2933" text-anchor="start">Hold_Motors → HOLD</text>
+<text x="60" y="355.0" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#1f2933" text-anchor="start">speed 0–100 → 0–5.7 r/s</text>
+<rect x="48" y="400" width="288" height="82" rx="9" fill="#e8efff" stroke="#3b5bdb" stroke-width="1.5"/>
+<text x="60" y="422" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13.5" font-weight="bold" fill="#1f2933" text-anchor="start">team programs</text>
+<text x="60" y="439.5" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#1f2933" text-anchor="start">src/ondevice → Open Challenge</text>
+<text x="60" y="456.0" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#1f2933" text-anchor="start">object_detection_hiwonder_h10</text>
+<text x="60" y="472.5" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#1f2933" text-anchor="start">→ Obstacle Challenge</text>
+<rect x="48" y="502" width="288" height="70" rx="9" fill="#ffffff" stroke="#9aa5b1" stroke-width="1.3"/>
+<text x="60" y="524" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13.5" font-weight="bold" fill="#1f2933" text-anchor="start">frame (both directions)</text>
+<text x="60" y="541.5" font-family="'DejaVu Sans Mono', Consolas, Menlo, monospace" font-size="11.5" fill="#1f2933" text-anchor="start" xml:space="preserve">AA 55 │ func │ len │ data │ CRC8</text>
+<text x="60" y="558.0" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#1f2933" text-anchor="start">little-endian · CRC8-Maxim</text>
+<rect x="48" y="592" width="288" height="68" rx="9" fill="#ffffff" stroke="#9aa5b1" stroke-width="1.3"/>
+<text x="60" y="614" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13.5" font-weight="bold" fill="#1f2933" text-anchor="start">bench tools (Python)</text>
+<text x="60" y="631.5" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#1f2933" text-anchor="start">motor_move.py · imu_live.py</text>
+<text x="60" y="648.0" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#1f2933" text-anchor="start">servo_hx12h.py · brick_probe.py</text>
+<polyline points="192,400 192,380" fill="none" stroke="#3e4c59" stroke-width="1.6" marker-end="url(#fin)" stroke-linejoin="round"/>
+<polyline points="192,266 192,246" fill="none" stroke="#3e4c59" stroke-width="1.6" marker-end="url(#fin)" stroke-linejoin="round"/>
+<rect x="32" y="700" width="320" height="192" rx="9" fill="#ffffff" stroke="#9aa5b1" stroke-width="1.3"/>
+<text x="44" y="722" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13.5" font-weight="bold" fill="#1f2933" text-anchor="start">flashing (SWD)</text>
+<text x="44" y="739.5" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#1f2933" text-anchor="start">ST-LINK/V2 on H1, 12 V unplugged,</text>
+<text x="44" y="756.0" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#1f2933" text-anchor="start">serial ports closed:</text>
+<text x="44" y="772.5" font-family="'DejaVu Sans Mono', Consolas, Menlo, monospace" font-size="11.5" fill="#1f2933" text-anchor="start" xml:space="preserve">openocd -f interface/stlink.cfg</text>
+<text x="44" y="789.0" font-family="'DejaVu Sans Mono', Consolas, Menlo, monospace" font-size="11.5" fill="#1f2933" text-anchor="start" xml:space="preserve">  -f target/stm32f4x.cfg -c</text>
+<text x="44" y="805.5" font-family="'DejaVu Sans Mono', Consolas, Menlo, monospace" font-size="11.5" fill="#1f2933" text-anchor="start" xml:space="preserve">  "program pos-v8.hex verify reset exit"</text>
+<text x="44" y="822.0" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#1f2933" text-anchor="start">or with STM32CubeProgrammer:</text>
+<text x="44" y="838.5" font-family="'DejaVu Sans Mono', Consolas, Menlo, monospace" font-size="11.5" fill="#1f2933" text-anchor="start" xml:space="preserve">STM32_Programmer_CLI -c port=SWD</text>
+<text x="44" y="855.0" font-family="'DejaVu Sans Mono', Consolas, Menlo, monospace" font-size="11.5" fill="#1f2933" text-anchor="start" xml:space="preserve">  -w pos-v8.hex -v -rst</text>
+<rect x="472" y="104" width="708" height="788" rx="14" fill="#fbfcfd" stroke="#7b8794" stroke-width="1.4"/>
+<text x="488" y="132" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="16" font-weight="bold" fill="#1f2933" text-anchor="start">STM32F407VET6 · FreeRTOS</text>
+<rect x="488" y="168" width="152" height="82" rx="9" fill="#f4f6f8" stroke="#9aa5b1" stroke-width="1.3"/>
+<text x="500" y="190" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13.5" font-weight="bold" fill="#1f2933" text-anchor="start">USART3 · DMA</text>
+<text x="500" y="207.5" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#1f2933" text-anchor="start">PD8 / PD9</text>
+<text x="500" y="224.0" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#1f2933" text-anchor="start">RX → lwrb FIFO</text>
+<text x="500" y="240.5" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#1f2933" text-anchor="start">TX ← packet_tx_task</text>
+<rect x="660" y="168" width="146" height="82" rx="9" fill="#f4f6f8" stroke="#9aa5b1" stroke-width="1.3"/>
+<text x="672" y="190" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13.5" font-weight="bold" fill="#1f2933" text-anchor="start">packet_rx_task</text>
+<text x="672" y="207.5" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#1f2933" text-anchor="start">parses AA 55,</text>
+<text x="672" y="224.0" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#1f2933" text-anchor="start">drops func ≥ 0x0C</text>
+<text x="672" y="240.5" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#1f2933" text-anchor="start">and bad CRC</text>
+<rect x="488" y="266" width="318" height="96" rx="9" fill="#f4f6f8" stroke="#9aa5b1" stroke-width="1.3"/>
+<text x="500" y="288" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13.5" font-weight="bold" fill="#1f2933" text-anchor="start">packet_tx_task</text>
+<text x="500" y="305.5" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#1f2933" text-anchor="start">replies and telemetry to the host:</text>
+<text x="500" y="322.0" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#1f2933" text-anchor="start">IMU at 20 Hz · battery · buttons ·</text>
+<text x="500" y="338.5" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#1f2933" text-anchor="start">20-byte motor status</text>
+<rect x="826" y="168" width="338" height="194" rx="9" fill="#f4f6f8" stroke="#9aa5b1" stroke-width="1.3"/>
+<text x="838" y="190" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13.5" font-weight="bold" fill="#1f2933" text-anchor="start">handlers</text>
+<rect x="838" y="200" width="151" height="24" rx="6" fill="#ffffff" stroke="#9aa5b1" stroke-width="1.0"/>
+<text x="846" y="216.5" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="11.5" fill="#1f2933" text-anchor="start">0x03 motor speed</text>
+<rect x="1001" y="200" width="151" height="24" rx="6" fill="#ffffff" stroke="#9aa5b1" stroke-width="1.0"/>
+<text x="1009" y="216.5" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="11.5" fill="#1f2933" text-anchor="start">0x04 PWM servo</text>
+<rect x="838" y="230" width="151" height="24" rx="6" fill="#ffffff" stroke="#9aa5b1" stroke-width="1.0"/>
+<text x="846" y="246.5" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="11.5" fill="#1f2933" text-anchor="start">0x05 bus servo</text>
+<rect x="1001" y="230" width="151" height="24" rx="6" fill="#ffffff" stroke="#9aa5b1" stroke-width="1.0"/>
+<text x="1009" y="246.5" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="11.5" fill="#1f2933" text-anchor="start">0x00 system</text>
+<text x="838" y="272" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="11" fill="#52606d" text-anchor="start">also 0x01 LED · 0x02 buzzer · 0x06 keys ·</text>
+<text x="838" y="287" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="11" fill="#52606d" text-anchor="start">0x07 IMU · 0x08 gamepad · 0x09 SBUS</text>
+<rect x="838" y="296" width="314" height="58" rx="7" fill="#fff1e0" stroke="#e8590c" stroke-width="1.8"/>
+<text x="850" y="315" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12.5" font-weight="bold" fill="#1f2933" text-anchor="start">0x0B MOTOR_EXT v3 (new)</text>
+<text x="850" y="332" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="11" fill="#1f2933" text-anchor="start">CAPABILITIES · MOVE_RELATIVE · CANCEL</text>
+<text x="850" y="347" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="11" fill="#1f2933" text-anchor="start">ZERO · STATUS · HOLD</text>
+<polyline points="352,205 488,205" fill="none" stroke="#3e4c59" stroke-width="1.6" marker-start="url(#ini)" marker-end="url(#fin)" stroke-linejoin="round"/>
+<text x="420" y="195" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="11" fill="#52606d" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="4" stroke-linejoin="round">USB-C “UART2”</text>
+<text x="420" y="223" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="11" fill="#52606d" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="4" stroke-linejoin="round">CH343 · 1 Mbaud</text>
+<polyline points="640,209 660,209" fill="none" stroke="#3e4c59" stroke-width="1.6" marker-end="url(#fin)" stroke-linejoin="round"/>
+<polyline points="806,209 826,209" fill="none" stroke="#3e4c59" stroke-width="1.6" marker-end="url(#fin)" stroke-linejoin="round"/>
+<polyline points="564,266 564,250" fill="none" stroke="#3e4c59" stroke-width="1.6" marker-end="url(#fin)" stroke-linejoin="round"/>
+<rect x="488" y="382" width="676" height="302" rx="14" fill="#f7f8fa" stroke="#9aa5b1" stroke-width="1.4"/>
+<text x="504" y="410" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="14" font-weight="bold" fill="#1f2933" text-anchor="start">TIM7 interrupt · 100 Hz control loop</text>
+<rect x="504" y="424" width="200" height="106" rx="9" fill="#f4f6f8" stroke="#9aa5b1" stroke-width="1.3"/>
+<text x="516" y="446" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13.5" font-weight="bold" fill="#1f2933" text-anchor="start">① encoders ×4</text>
+<text x="516" y="463.5" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#1f2933" text-anchor="start">read the 4 counters:</text>
+<text x="516" y="480.0" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#1f2933" text-anchor="start">quadrature ×4,</text>
+<text x="516" y="496.5" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#1f2933" text-anchor="start">ARR 60000 + overflows</text>
+<rect x="724" y="424" width="200" height="106" rx="9" fill="#fff1e0" stroke="#e8590c" stroke-width="1.8"/>
+<text x="736" y="446" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13.5" font-weight="bold" fill="#1f2933" text-anchor="start">② position loop · M4</text>
+<text x="736" y="463.5" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#1f2933" text-anchor="start">P on the error, KP 0.006</text>
+<text x="736" y="480.0" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#1f2933" text-anchor="start">→ speed setpoint ≤ max_rps</text>
+<text x="736" y="496.5" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#1f2933" text-anchor="start">‘reached’ after 5 samples</text>
+<text x="736" y="513.0" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#1f2933" text-anchor="start">in tolerance · timeout</text>
+<rect x="944" y="424" width="204" height="106" rx="9" fill="#f4f6f8" stroke="#9aa5b1" stroke-width="1.3"/>
+<text x="956" y="446" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13.5" font-weight="bold" fill="#1f2933" text-anchor="start">③ speed loop ×4</text>
+<text x="956" y="463.5" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#1f2933" text-anchor="start">incremental I+D (M1/M4</text>
+<text x="956" y="480.0" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#1f2933" text-anchor="start">KP 21 · KI 0.9 · KD 0.8)</text>
+<text x="956" y="496.5" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#1f2933" text-anchor="start">→ PWM 200 Hz, 1000 steps,</text>
+<text x="956" y="513.0" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#1f2933" text-anchor="start">deadband ±250 → 0</text>
+<rect x="504" y="570" width="200" height="98" rx="9" fill="#fff1e0" stroke="#e8590c" stroke-width="1.8"/>
+<text x="516" y="592" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13.5" font-weight="bold" fill="#1f2933" text-anchor="start">IWDG watchdog (v7)</text>
+<text x="516" y="609.5" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#1f2933" text-anchor="start">refreshed here only if</text>
+<text x="516" y="626.0" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#1f2933" text-anchor="start">app_task answered &lt;500 ms</text>
+<text x="516" y="642.5" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#1f2933" text-anchor="start">ago; ≈250 ms → reset</text>
+<text x="516" y="659.0" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#1f2933" text-anchor="start">(factory NMI hung on HSE)</text>
+<rect x="724" y="570" width="200" height="98" rx="9" fill="#fff1e0" stroke="#e8590c" stroke-width="1.8"/>
+<text x="736" y="592" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13.5" font-weight="bold" fill="#1f2933" text-anchor="start">HOLD (v8)</text>
+<text x="736" y="609.5" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#1f2933" text-anchor="start">branch of ②: holds the</text>
+<text x="736" y="626.0" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#1f2933" text-anchor="start">count, with no timeout;</text>
+<text x="736" y="642.5" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#1f2933" text-anchor="start">PWM capped (300–1000);</text>
+<text x="736" y="659.0" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#1f2933" text-anchor="start">3 s stuck → ‘stalled’</text>
+<rect x="944" y="570" width="204" height="98" rx="9" fill="#fff1e0" stroke="#e8590c" stroke-width="1.8"/>
+<text x="956" y="592" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13.5" font-weight="bold" fill="#1f2933" text-anchor="start">safe stop</text>
+<text x="956" y="609.5" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#1f2933" text-anchor="start">encoder_motor_stop()</text>
+<text x="956" y="626.0" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#1f2933" text-anchor="start">forces PWM = 0 (the</text>
+<text x="956" y="642.5" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#1f2933" text-anchor="start">incremental loop used to</text>
+<text x="956" y="659.0" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#1f2933" text-anchor="start">freeze the last PWM)</text>
+<polyline points="704,477 724,477" fill="none" stroke="#3e4c59" stroke-width="1.6" marker-end="url(#fin)" stroke-linejoin="round"/>
+<polyline points="924,477 944,477" fill="none" stroke="#3e4c59" stroke-width="1.6" marker-end="url(#fin)" stroke-linejoin="round"/>
+<polyline points="860,362 860,424" fill="none" stroke="#3e4c59" stroke-width="1.6" marker-end="url(#fin)" stroke-linejoin="round"/>
+<text x="868" y="401" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="11" fill="#52606d" text-anchor="start" paint-order="stroke" stroke="#ffffff" stroke-width="4" stroke-linejoin="round">MOVE_RELATIVE · HOLD</text>
+<polyline points="1060,362 1060,424" fill="none" stroke="#3e4c59" stroke-width="1.6" marker-end="url(#fin)" stroke-linejoin="round"/>
+<text x="1068" y="401" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="11" fill="#52606d" text-anchor="start" paint-order="stroke" stroke="#ffffff" stroke-width="4" stroke-linejoin="round">0x03 speed</text>
+<rect x="488" y="700" width="676" height="176" rx="14" fill="#f7f8fa" stroke="#9aa5b1" stroke-width="1.4"/>
+<text x="504" y="728" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="14" font-weight="bold" fill="#1f2933" text-anchor="start">Other tasks</text>
+<rect x="504" y="740" width="200" height="124" rx="9" fill="#fff1e0" stroke="#e8590c" stroke-width="1.8"/>
+<text x="516" y="762" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13.5" font-weight="bold" fill="#1f2933" text-anchor="start">app_task</text>
+<text x="516" y="779.5" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#1f2933" text-anchor="start">heartbeat for the watchdog</text>
+<text x="516" y="796.0" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#1f2933" text-anchor="start">applies the M1/M4 profile</text>
+<text x="516" y="812.5" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#1f2933" text-anchor="start">after set_chassis_type():</text>
+<text x="516" y="829.0" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#1f2933" text-anchor="start">1320 ticks, ≤ 5.7 r/s</text>
+<rect x="724" y="740" width="200" height="124" rx="9" fill="#f4f6f8" stroke="#9aa5b1" stroke-width="1.3"/>
+<text x="736" y="762" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13.5" font-weight="bold" fill="#1f2933" text-anchor="start">factory tasks</text>
+<text x="736" y="779.5" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#1f2933" text-anchor="start">gui_task (LVGL LCD)</text>
+<text x="736" y="796.0" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#1f2933" text-anchor="start">bluetooth_task (USART2)</text>
+<text x="736" y="812.5" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#1f2933" text-anchor="start">sbus_rx_task</text>
+<text x="736" y="829.0" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#1f2933" text-anchor="start">timers: LED · buzzer ·</text>
+<text x="736" y="845.5" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#1f2933" text-anchor="start">buttons · battery</text>
+<rect x="944" y="740" width="204" height="124" rx="9" fill="#fff1e0" stroke="#e8590c" stroke-width="1.8"/>
+<text x="956" y="762" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13.5" font-weight="bold" fill="#1f2933" text-anchor="start">imu_task · 20 Hz</text>
+<text x="956" y="779.5" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#1f2933" text-anchor="start">QMI8658 → packet_tx_task</text>
+<text x="956" y="796.0" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#1f2933" text-anchor="start">accel m/s², gyro rad/s</text>
+<text x="956" y="812.5" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#1f2933" text-anchor="start">(on-chip Mahony left off)</text>
+<polyline points="650,740 650,668" fill="none" stroke="#3e4c59" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#fin)" stroke-linejoin="round"/>
+<text x="658" y="695" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="11" fill="#52606d" text-anchor="start" paint-order="stroke" stroke="#ffffff" stroke-width="4" stroke-linejoin="round">heartbeat</text>
+<rect x="1260" y="104" width="308" height="788" rx="14" fill="#fbfcfd" stroke="#7b8794" stroke-width="1.4"/>
+<text x="1276" y="132" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="16" font-weight="bold" fill="#1f2933" text-anchor="start">board hardware</text>
+<rect x="1276" y="168" width="276" height="64" rx="9" fill="#f4f6f8" stroke="#9aa5b1" stroke-width="1.3"/>
+<text x="1288" y="190" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13.5" font-weight="bold" fill="#1f2933" text-anchor="start">bus-servo port (UART5)</text>
+<text x="1288" y="207.5" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#1f2933" text-anchor="start">HX-35H steering servo</text>
+<rect x="1276" y="246" width="276" height="70" rx="9" fill="#f4f6f8" stroke="#9aa5b1" stroke-width="1.3"/>
+<text x="1288" y="268" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13.5" font-weight="bold" fill="#1f2933" text-anchor="start">USB-C “UART1” (CH343)</text>
+<text x="1288" y="285.5" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#1f2933" text-anchor="start">ROM bootloader (BOOT0) and</text>
+<text x="1288" y="302.0" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#1f2933" text-anchor="start">console at 115200 baud</text>
+<rect x="1276" y="330" width="276" height="60" rx="9" fill="#f4f6f8" stroke="#9aa5b1" stroke-width="1.3"/>
+<text x="1288" y="352" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13.5" font-weight="bold" fill="#1f2933" text-anchor="start">motor switch (PD3)</text>
+<text x="1288" y="369.5" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#1f2933" text-anchor="start">read by the firmware → motors off</text>
+<rect x="1276" y="404" width="276" height="108" rx="9" fill="#f4f6f8" stroke="#9aa5b1" stroke-width="1.3"/>
+<text x="1288" y="426" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13.5" font-weight="bold" fill="#1f2933" text-anchor="start">motors M1–M4 (H-bridges)</text>
+<text x="1288" y="443.5" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#1f2933" text-anchor="start">PWM: TIM1 · TIM9 · TIM10 · TIM11</text>
+<text x="1288" y="460.0" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#1f2933" text-anchor="start">M4 = drive motor JGB37-520R30-12</text>
+<text x="1288" y="476.5" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#1f2933" text-anchor="start">1:30 · 1320 ticks/rev</text>
+<text x="1288" y="493.0" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#1f2933" text-anchor="start">≤ 5.76 r/s (345 rpm) at 12 V</text>
+<rect x="1276" y="523" width="276" height="54" rx="9" fill="#f4f6f8" stroke="#9aa5b1" stroke-width="1.3"/>
+<text x="1288" y="545" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13.5" font-weight="bold" fill="#1f2933" text-anchor="start">encoders ×4 (quadrature)</text>
+<text x="1288" y="562.5" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#1f2933" text-anchor="start">M4 on TIM3 (factory code used TIM4)</text>
+<rect x="1276" y="591" width="276" height="56" rx="9" fill="#f4f6f8" stroke="#9aa5b1" stroke-width="1.3"/>
+<text x="1288" y="613" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13.5" font-weight="bold" fill="#1f2933" text-anchor="start">battery monitor (ADC)</text>
+<text x="1288" y="630.5" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#1f2933" text-anchor="start">low-battery alarm off (7.8 V pack)</text>
+<rect x="1276" y="661" width="276" height="104" rx="9" fill="#f4f6f8" stroke="#9aa5b1" stroke-width="1.3"/>
+<text x="1288" y="683" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13.5" font-weight="bold" fill="#1f2933" text-anchor="start">SWD header H1</text>
+<text x="1288" y="700.5" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#1f2933" text-anchor="start">1 3V3 · 3 SWCLK (PA14)</text>
+<text x="1288" y="717.0" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#1f2933" text-anchor="start">5 GND · 7 SWDIO (PA13)</text>
+<text x="1288" y="733.5" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#1f2933" text-anchor="start">3 wires when the board is powered;</text>
+<text x="1288" y="750.0" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#1f2933" text-anchor="start">never the ST-LINK's 5 V</text>
+<rect x="1276" y="777" width="276" height="50" rx="9" fill="#f4f6f8" stroke="#9aa5b1" stroke-width="1.3"/>
+<text x="1288" y="799" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13.5" font-weight="bold" fill="#1f2933" text-anchor="start">IMU QMI8658 (6 axes)</text>
+<text x="1288" y="816.5" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#1f2933" text-anchor="start">on the board</text>
+<rect x="1276" y="839" width="276" height="40" rx="9" fill="#f4f6f8" stroke="#9aa5b1" stroke-width="1.3"/>
+<text x="1288" y="861" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13.5" font-weight="bold" fill="#1f2933" text-anchor="start">LCD · buzzer · LEDs · keys</text>
+<polyline points="1164,200 1276,200" fill="none" stroke="#3e4c59" stroke-width="1.6" marker-end="url(#fin)" stroke-linejoin="round"/>
+<text x="1220" y="192" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="11" fill="#52606d" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="4" stroke-linejoin="round">UART5</text>
+<polyline points="1148,477 1276,477" fill="none" stroke="#3e4c59" stroke-width="1.6" marker-end="url(#fin)" stroke-linejoin="round"/>
+<text x="1220" y="469" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="11" fill="#52606d" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="4" stroke-linejoin="round">PWM</text>
+<polyline points="1276,550 604,550 604,530" fill="none" stroke="#3e4c59" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#fin)" stroke-linejoin="round"/>
+<text x="1220" y="543" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="11" fill="#52606d" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="4" stroke-linejoin="round">counts</text>
+<polyline points="1276,802 1148,802" fill="none" stroke="#3e4c59" stroke-width="1.6" marker-end="url(#fin)" stroke-linejoin="round"/>
+<text x="1220" y="794" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="11" fill="#52606d" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="4" stroke-linejoin="round">6-axis</text>
+<text x="32" y="930" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="15" font-weight="bold" fill="#1f2933" text-anchor="start">Firmware versions (2026)</text>
+<line x1="70" y1="952" x2="1530" y2="952" stroke="#9aa5b1" stroke-width="2"/>
+<circle cx="120.0" cy="952" r="7" fill="#ffffff" stroke="#7b8794" stroke-width="2"/>
+<text x="120.0" y="978" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12.5" font-weight="bold" fill="#1f2933" text-anchor="middle">extended-m1 · Jul 27</text>
+<text x="120.0" y="995" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="11.5" fill="#52606d" text-anchor="middle">adds MOTOR_EXT (0x0B) on M1</text>
+<circle cx="346.7" cy="952" r="7" fill="#ffffff" stroke="#7b8794" stroke-width="2"/>
+<text x="346.7" y="978" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12.5" font-weight="bold" fill="#1f2933" text-anchor="middle">imu20hz · Jul 28</text>
+<text x="346.7" y="995" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="11.5" fill="#52606d" text-anchor="middle">IMU telemetry at 20 Hz</text>
+<circle cx="573.3" cy="952" r="7" fill="#ffffff" stroke="#7b8794" stroke-width="2"/>
+<text x="573.3" y="978" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12.5" font-weight="bold" fill="#1f2933" text-anchor="middle">pos-v4 · Aug 22</text>
+<text x="573.3" y="995" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="11.5" fill="#52606d" text-anchor="middle">position on M1, 1320 ticks/rev</text>
+<circle cx="800.0" cy="952" r="7" fill="#ffffff" stroke="#7b8794" stroke-width="2"/>
+<text x="800.0" y="978" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12.5" font-weight="bold" fill="#1f2933" text-anchor="middle">pos-v5 · Oct 4</text>
+<text x="800.0" y="995" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="11.5" fill="#52606d" text-anchor="middle">position moved to M4</text>
+<circle cx="1026.7" cy="952" r="7" fill="#ffffff" stroke="#7b8794" stroke-width="2"/>
+<text x="1026.7" y="978" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12.5" font-weight="bold" fill="#1f2933" text-anchor="middle">pos-v6 · Oct 4</text>
+<text x="1026.7" y="995" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="11.5" fill="#52606d" text-anchor="middle">speed limit 3.0 → 5.7 r/s</text>
+<circle cx="1253.3" cy="952" r="7" fill="#ffffff" stroke="#7b8794" stroke-width="2"/>
+<text x="1253.3" y="978" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12.5" font-weight="bold" fill="#1f2933" text-anchor="middle">pos-v7 · Oct 4</text>
+<text x="1253.3" y="995" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="11.5" fill="#52606d" text-anchor="middle">IWDG watchdog</text>
+<circle cx="1480.0" cy="952" r="7" fill="#e8590c" stroke="#e8590c" stroke-width="2"/>
+<text x="1480.0" y="978" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12.5" font-weight="bold" fill="#1f2933" text-anchor="middle">pos-v8 · Oct 4</text>
+<text x="1480.0" y="995" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="11.5" fill="#c2410c" text-anchor="middle">HOLD · on the board</text>
+<text x="32" y="1036" font-family="'DejaVu Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="11.5" fill="#52606d" text-anchor="start">Base: Hiwonder RosRobotControllerM4 V1.2 · delta: extended_m1.patch, 12 files (+906 / −442) · built with Arm GNU 15.2.Rel1: same SHA-256 on x86_64 and aarch64</text>
+<metadata><c2pa:manifest>AAAWgmp1bWIAAAAeanVtZGMycGEAEQAQgAAAqgA4m3EDYzJwYQAAABZcanVtYgAAAEdqdW1kYzJtYQARABCAAACqADibcQN1cm46YzJwYTpiMWZhODdlNy04NGM4LTRmYTUtODZlZC1lMWQzODQyNTM2MmUAAAADl2p1bWIAAAApanVtZGMyYXMAEQAQgAAAqgA4m3EDYzJwYS5hc3NlcnRpb25zAAAAALxqdW1iAAAARGp1bWRjYm9yABEAEIAAAKoAOJtxE2MycGEuaW5ncmVkaWVudC52MwAAAAAYYzJzaFEiHXYEOum7gTfES1eILtEAAABwY2JvcqNpZGM6Zm9ybWF0bWltYWdlL3N2Zyt4bWxqaW5zdGFuY2VJRHgseG1wOmlpZDowNmEwN2E0Ni05ODg5LTRkMjMtYjY0Ni03NzQ0ZWQ3Y2Y4NDNscmVsYXRpb25zaGlwaHBhcmVudE9mAAAB4mp1bWIAAABBanVtZGNib3IAEQAQgAAAqgA4m3ETYzJwYS5hY3Rpb25zLnYyAAAAABhjMnNoD9JYm44KYgbKPdnHV8DiigAAAZljYm9yomdhY3Rpb25zgqJmYWN0aW9ua2MycGEub3BlbmVkanBhcmFtZXRlcnOha2luZ3JlZGllbnRzgaJjdXJseC1zZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmluZ3JlZGllbnQudjNkaGFzaFggadN+H2P9OM9QMtdFeKSKylFFU+FQwADVAEUkjdWBgfSkZmFjdGlvbngdY29tLmFudGhyb3BpYy5jbGF1ZGUucHJvdmlkZWRqcGFyYW1ldGVyc6F4H2NvbS5hbnRocm9waWMub3JpZ2luLWNvbmZpZGVuY2VndW5rbm93bmtkZXNjcmlwdGlvbnhmQ2xhdWRlIHByb3ZpZGVkIHRoaXMgZmlsZSBhdCB0aGUgcmVxdWVzdCBvZiBhIHVzZXIgYW5kIG1heSBoYXZlIGNyZWF0ZWQgb3IgbW9kaWZpZWQgdGhlIGZpbGUgY29udGVudHMubXNvZnR3YXJlQWdlbnShZG5hbWVmQ2xhdWRlcmFsbEFjdGlvbnNJbmNsdWRlZPUAAADIanVtYgAAAEBqdW1kY2JvcgARABCAAACqADibcRNjMnBhLmhhc2guZGF0YQAAAAAYYzJzaAmZ2p2vhawDQoBsd64K2N8AAACAY2JvcqVjYWxnZnNoYTI1NmNwYWRMAAAAAAAAAAAAAAAAZGhhc2hYIPrKiIt6FgWE7IAuQp/w9aBAQJcNVM/XUat+hY1mM9XAZG5hbWVuanVtYmYgbWFuaWZlc3RqZXhjbHVzaW9uc4GiZXN0YXJ0GY4NZmxlbmd0aBkeBAAAAj5qdW1iAAAAJ2p1bWRjMmNsABEAEIAAAKoAOJtxA2MycGEuY2xhaW0udjIAAAACD2Nib3KlY2FsZ2ZzaGEyNTZpc2lnbmF0dXJleE1zZWxmI2p1bWJmPS9jMnBhL3VybjpjMnBhOmIxZmE4N2U3LTg0YzgtNGZhNS04NmVkLWUxZDM4NDI1MzYyZS9jMnBhLnNpZ25hdHVyZWppbnN0YW5jZUlEeCx4bXA6aWlkOjcwZjZkNDJlLWNkMmItNDBjNS1hZDNjLWEzZjUxNGE3MzA3NnJjcmVhdGVkX2Fzc2VydGlvbnODomN1cmx4LXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuaW5ncmVkaWVudC52M2RoYXNoWCBp034fY/04z1Ay10V4pIrKUUVT4VDAANUARSSN1YGB9KJjdXJseCpzZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmFjdGlvbnMudjJkaGFzaFggASoxujbEbhbG62FVSPBbtUmvlt1j4qScbctKtN8QTy6iY3VybHgpc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5oYXNoLmRhdGFkaGFzaFggypoEo9LTkEqXFr4yAXSNo2Bp3l4vOhaBMZNNBtZ0WQt0Y2xhaW1fZ2VuZXJhdG9yX2luZm+jZG5hbWVvQW50aHJvcGljIEZpbGVzZ3ZlcnNpb25lMS4wLjBrc3BlY1ZlcnNpb25lMi40LjAAABA4anVtYgAAAChqdW1kYzJjcwARABCAAACqADibcQNjMnBhLnNpZ25hdHVyZQAAABAIY2JvctKEWQISogEmGCFZAgowggIGMIIBjaADAgECAhRA5aAK7sI50L64g/oGQgU9Z1UTADAKBggqhkjOPQQDAzBJMRcwFQYDVQQKEw5BbnRocm9waWMsIFBCQzEuMCwGA1UEAxMlQW50aHJvcGljIENvbnRlbnQgQ3JlZGVudGlhbHMgUm9vdCBDQTAeFw0yNjA4MDcxODQzNTZaFw0yODA4MDYxOTQzNTZaMEQxFzAVBgNVBAoTDkFudGhyb3BpYywgUEJDMSkwJwYDVQQDEyBBbnRocm9waWMgQ2xhdWRlIENvbnRlbnQgU2lnbmluZzBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABJh6CmvLUBgFFNU0vUKlOVtE6djd17L5SuwX0LemFisBM3dkd/3cyjxFA3Qo5S46fX0/ihY0VZ7mfb9KF703t5OjWDBWMA4GA1UdDwEB/wQEAwIHgDAVBgNVHSUEDjAMBgorBgEEAYPoXgIBMAwGA1UdEwEB/wQCMAAwHwYDVR0jBBgwFoAUzlHiBIFOZFsj+OPEz5o+nMHXXMIwCgYIKoZIzj0EAwMDZwAwZAIwMXMdFJ4BetLLVY7ORuE9noqbbAZOZn/aArXyTwFAZfKrPzxF2vPoJNf1+UCdg1XGAjBwX1zd9WGqYkqmL5SFqw1QySjr1zJfpJM9+1rdDwSPLMOPOjKuiXjoU/pUUeG9RwmhY3BhZFkNngAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPZYQJW8Vms64XSghLHA93sjWeexf23kG9CcinMnnHhbGhOGMFZeW5V1KBBbZyw/tO4jIQZ/pxCZjQDSFjdGTrDUmJU=</c2pa:manifest></metadata></svg>

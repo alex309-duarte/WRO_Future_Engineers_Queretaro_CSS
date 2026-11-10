@@ -40,3 +40,6 @@ nul
 
 # Large archives (GitHub rejects files over 100 MB)
 *.zip
+
+# Work folder created when building the board firmware from source
+firmware/hiwonder_pos-v8/work/

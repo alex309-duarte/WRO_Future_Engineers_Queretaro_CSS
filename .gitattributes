@@ -1,0 +1,2 @@
+# Keep the firmware files byte-exact: the .hex checksums and the patch line endings must not change
+firmware/** -text

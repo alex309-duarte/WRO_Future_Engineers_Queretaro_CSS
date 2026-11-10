@@ -1,0 +1,1648 @@
+diff -ruN '--exclude=*.o' '--exclude=*.d' '--exclude=*.crf' '--exclude=*.axf' '--exclude=*.htm' '--exclude=*.lnp' '--exclude=*.dep' '--exclude=*.lst' '--exclude=*.map' '--exclude=*.hex' '--exclude=*.bin' '--exclude=*.elf' '--exclude=*.build_log.htm' '--exclude=*.uvguix.*' '--exclude=build-gcc' '--exclude=DebugConfig' official_v1_2/RosRobotControllerM4-armclang/Core/Src/stm32f4xx_it.c extended_m1/RosRobotControllerM4-armclang/Core/Src/stm32f4xx_it.c
+--- official_v1_2/RosRobotControllerM4-armclang/Core/Src/stm32f4xx_it.c	2026-07-27 19:35:18.674683086 -0600
++++ extended_m1/RosRobotControllerM4-armclang/Core/Src/stm32f4xx_it.c	2026-10-04 16:39:20.995625778 -0600
+@@ -380,9 +380,9 @@
+ {
+   /* USER CODE BEGIN EXTI15_10_IRQn 0 */
+     extern osSemaphoreId_t IMU_data_readyHandle;
+-    if(__HAL_GPIO_EXTI_GET_IT(IMU_ITR_Pin) != RESET) {	//�Ƿ�ΪIMU�ж������ź�
+-        __HAL_GPIO_EXTI_CLEAR_IT(IMU_ITR_Pin);	//���IMU�ж������ź�
+-		//�����ź���
++    if(__HAL_GPIO_EXTI_GET_IT(IMU_ITR_Pin) != RESET) {	//�Ƿ�ΪIMU�ж������ź�
++        __HAL_GPIO_EXTI_CLEAR_IT(IMU_ITR_Pin);	//���IMU�ж������ź�
++		//�����ź���
+         osSemaphoreRelease(IMU_data_readyHandle);
+     }
+   /* USER CODE END EXTI15_10_IRQn 0 */
+@@ -513,9 +513,11 @@
+ 		encoder_update(motors[1], 0.01, __HAL_TIM_GET_COUNTER(&htim2));
+ 		encoder_update(motors[2], 0.01, __HAL_TIM_GET_COUNTER(&htim4));
+ 		encoder_update(motors[3], 0.01, __HAL_TIM_GET_COUNTER(&htim3));
++		encoder_motor_position_control(motors[POSITION_MOTOR_INDEX]);
+ 		for(int i = 0; i < 4; ++i) {
+ 			encoder_motor_control(motors[i], 0.01);
+ 		}
++		watchdog_isr_kick();
+     }
+   /* USER CODE END TIM7_IRQn 0 */
+   /* USER CODE BEGIN TIM7_IRQn 1 */
+@@ -585,3 +587,4 @@
+ /* USER CODE BEGIN 1 */
+ 
+ /* USER CODE END 1 */
++
+diff -ruN '--exclude=*.o' '--exclude=*.d' '--exclude=*.crf' '--exclude=*.axf' '--exclude=*.htm' '--exclude=*.lnp' '--exclude=*.dep' '--exclude=*.lst' '--exclude=*.map' '--exclude=*.hex' '--exclude=*.bin' '--exclude=*.elf' '--exclude=*.build_log.htm' '--exclude=*.uvguix.*' '--exclude=build-gcc' '--exclude=DebugConfig' official_v1_2/RosRobotControllerM4-armclang/Hiwonder/Misc/packet.h extended_m1/RosRobotControllerM4-armclang/Hiwonder/Misc/packet.h
+--- official_v1_2/RosRobotControllerM4-armclang/Hiwonder/Misc/packet.h	2026-07-27 19:35:37.344741867 -0600
++++ extended_m1/RosRobotControllerM4-armclang/Hiwonder/Misc/packet.h	2026-07-27 19:34:58.539617496 -0600
+@@ -55,7 +55,8 @@
+     PACKET_FUNC_IMU,
+     PACKET_FUNC_GAMEPAD,
+     PACKET_FUNC_SBUS,
+-    PACKET_FUNC_NONE,
++    PACKET_FUNC_MOTOR_EXT = 0x0B,
++    PACKET_FUNC_NONE = 0x0C,
+ };
+ 
+ typedef void(*packet_handle)(struct PacketRawFrame *);
+diff -ruN '--exclude=*.o' '--exclude=*.d' '--exclude=*.crf' '--exclude=*.axf' '--exclude=*.htm' '--exclude=*.lnp' '--exclude=*.dep' '--exclude=*.lst' '--exclude=*.map' '--exclude=*.hex' '--exclude=*.bin' '--exclude=*.elf' '--exclude=*.build_log.htm' '--exclude=*.uvguix.*' '--exclude=build-gcc' '--exclude=DebugConfig' official_v1_2/RosRobotControllerM4-armclang/Hiwonder/Peripherals/encoder_motor.c extended_m1/RosRobotControllerM4-armclang/Hiwonder/Peripherals/encoder_motor.c
+--- official_v1_2/RosRobotControllerM4-armclang/Hiwonder/Peripherals/encoder_motor.c	2026-07-27 19:35:37.461742229 -0600
++++ extended_m1/RosRobotControllerM4-armclang/Hiwonder/Peripherals/encoder_motor.c	2026-10-04 17:20:34.241287420 -0600
+@@ -1,85 +1,320 @@
+-/**
+- * @file encoder_motor.c
+- * @author Lu Yongping (Lucas@hiwonder.com)
+- * @brief 编码器电机硬件无关代码
+- * @version 0.1
+- * @date 2023-07-12
+- *
+- * @copyright Copyright (c) 2023
+- *
+- */
+-
+-
+-#include "encoder_motor.h"
+-#include "gpio.h"
+-
+-/**
+- * @brief 编码器电机速度测量更新
+- * @detials
+- * @param self 编码器电机对象指针
+- * @param period 当前更新距离上次更新的时间间隔(更新周期), 单位 sec
+- * @param counter 编码器当前计数值
+- * @retval None.
+-*/
+-void encoder_update(EncoderMotorObjectTypeDef *self, float period, int64_t counter)
+-{
+-    counter = counter + self->overflow_num * self->ticks_overflow; /* 总的计数值, 60000 根据实际设置的定时器溢出值 */
+-    int delta_count = counter - self->counter;
+-    self->counter = counter; /* 存储新的计数值 */
+-    self->tps = (float)delta_count / period * 0.9f + self->tps * 0.1f; /* 计算脉冲频率 */
+-    self->rps = self->tps / self->ticks_per_circle; /* 计算转速 单位rps, 转每秒 */
+-}
+-
+-/**
+- * @brief 编码器电机速度控制任务
+- * @detials 编码器电机速度PID控制任务,需要定时指定以完成PID控制更新
+- * @param self 编码器电机对象指针
+- * @param period 当前更新距离上次更新的时间间隔(更新周期), 单位 sec
+- * @retval None.
+-*/
+-void encoder_motor_control(EncoderMotorObjectTypeDef *self, float period)
+-{
+-    float pulse = 0;
+-    if(!HAL_GPIO_ReadPin(MOTOR_ENABLE_GPIO_Port, MOTOR_ENABLE_Pin)) {
+-    pid_controller_update(&self->pid_controller, self->rps, period);   /* 更新 PID控制器 */
+-        pulse = self->current_pulse + self->pid_controller.output; /* 计算新的 PWM 值 */
+-
+-        /* 对输出的 PWM 值进行限幅, 限幅根据定时器的设置确定，本示例定时器设置的占空比 0-100 对应 0-1000 */
+-        pulse = pulse > 1000 ?  1000 : pulse;
+-        pulse = pulse < -1000 ? -1000 : pulse;
+-    }
+-    self->set_pulse(self, pulse > -250 && pulse < 250 ? 0 : pulse); /* 设置新的PWM值且限制 PWM 的最小值, PWM过小电机只会发出嗡嗡声而不动 */
+-    self->current_pulse = pulse; /* 记录新的 PWM 值 */
+-}
+-
+-
+-/**
+- * @brief 编码器电机设置PID控制目标速度
+- * @param self self 编码器电机对象指针
+- * @param rps 目标速度， 单位转每秒
+- * @retval None.
+- */
+-void encoder_motor_set_speed(EncoderMotorObjectTypeDef *self, float rps)
+-{
+-    rps = rps > self->rps_limit ? self->rps_limit : (rps < -self->rps_limit ? -self->rps_limit : rps); /* 对速度进行限幅 */
+-    self->pid_controller.set_point = rps; /* 设置 PID 控制器目标 */
+-}
+-
+-
+-/**
+- * @breif 编码器电机对象初始化
+- * @param self 编码器电机对象指针
+- * @retval None.
+-*/
+-void encoder_motor_object_init(EncoderMotorObjectTypeDef *self)
+-{
+-    self->counter = 0;
+-    self->overflow_num = 0;
+-    self->tps = 0;
+-    self->rps = 0;
+-    self->current_pulse = 0;
+-    self->ticks_overflow = 0;
+-    self->ticks_per_circle = 9999; /* 电机输出轴旋转一圈产生的计数个数, 根据电机实际情况填写 */
+-    pid_controller_init(&self->pid_controller, 0, 0, 0);
+-}
+-
++/**
++ * @file encoder_motor.c
++ * @author Lu Yongping (Lucas@hiwonder.com)
++ * @brief 编码器电机硬件无关代码
++ * @version 0.1
++ * @date 2023-07-12
++ *
++ * @copyright Copyright (c) 2023
++ *
++ */
++
++
++#include "encoder_motor.h"
++#include "gpio.h"
++
++#define POSITION_LOOP_HZ             100u
++/* Outer position loop (P) that produces a velocity setpoint.
++   Measured on the bench 2026-08-01 with KP=0.004 / MIN=0.20: overshoot of
++   100 % (target 110 ticks, peak 219). Cause: with a low KP, the proportional
++   speed drops below the minimum when the error falls under ~50 ticks,
++   so the final stretch is covered at CONSTANT speed, without braking.
++   The minimum exists to overcome the PWM dead band (250/1000), but
++   applied near the target it guarantees overshoot. */
++#define POSITION_DEFAULT_KP          0.006f
++#define POSITION_MIN_COMMAND_RPS     0.10f
++#define POSITION_STOP_RPS            0.05f
++#define POSITION_REQUIRED_STABLE     5u
++/* HOLD: the PWM cap must exceed the dead band (250) to be able to return. */
++#define HOLD_MIN_PULSE               300
++#define HOLD_STALL_LIMIT_CYCLES      300u  /* 3 s at the cap without moving -> release */
++
++static int64_t clamp_i64_to_i32(int64_t value)
++{
++    if(value > 2147483647LL) return 2147483647LL;
++    if(value < -2147483647LL - 1LL) return -2147483647LL - 1LL;
++    return value;
++}
++
++/**
++ * @brief 编码器电机速度测量更新
++ * @detials
++ * @param self 编码器电机对象指针
++ * @param period 当前更新距离上次更新的时间间隔(更新周期), 单位 sec
++ * @param counter 编码器当前计数值
++ * @retval None.
++*/
++void encoder_update(EncoderMotorObjectTypeDef *self, float period, int64_t counter)
++{
++    counter = counter + self->overflow_num * self->ticks_overflow; /* 总的计数值, 60000 根据实际设置的定时器溢出值 */
++    int delta_count = counter - self->counter;
++    self->counter = counter; /* 存储新的计数值 */
++    self->tps = (float)delta_count / period * 0.9f + self->tps * 0.1f; /* 计算脉冲频率 */
++    self->rps = self->tps / self->ticks_per_circle; /* 计算转速 单位rps, 转每秒 */
++}
++
++/**
++ * @brief 编码器电机速度控制任务
++ * @detials 编码器电机速度PID控制任务,需要定时指定以完成PID控制更新
++ * @param self 编码器电机对象指针
++ * @param period 当前更新距离上次更新的时间间隔(更新周期), 单位 sec
++ * @retval None.
++*/
++void encoder_motor_control(EncoderMotorObjectTypeDef *self, float period)
++{
++    float pulse = 0;
++    if(!HAL_GPIO_ReadPin(MOTOR_ENABLE_GPIO_Port, MOTOR_ENABLE_Pin)) {
++    pid_controller_update(&self->pid_controller, self->rps, period);   /* 更新 PID控制器 */
++        pulse = self->current_pulse + self->pid_controller.output; /* 计算新的 PWM 值 */
++
++        /* 对输出的 PWM 值进行限幅, 限幅根据定时器的设置确定，本示例定时器设置的占空比 0-100 对应 0-1000 */
++        pulse = pulse > 1000 ?  1000 : pulse;
++        pulse = pulse < -1000 ? -1000 : pulse;
++        if(self->position_hold) {   /* HOLD: its own PWM cap */
++            pulse = pulse > self->hold_max_pulse ? self->hold_max_pulse : pulse;
++            pulse = pulse < -self->hold_max_pulse ? -self->hold_max_pulse : pulse;
++        }
++    }
++    self->set_pulse(self, pulse > -250 && pulse < 250 ? 0 : pulse); /* 设置新的PWM值且限制 PWM 的最小值, PWM过小电机只会发出嗡嗡声而不动 */
++    self->current_pulse = pulse; /* 记录新的 PWM 值 */
++}
++/**
++ * @brief 编码器电机设置PID控制目标速度
++ * @param self self 编码器电机对象指针
++ * @param rps 目标速度， 单位转每秒
++ * @retval None.
++ */
++void encoder_motor_set_speed(EncoderMotorObjectTypeDef *self, float rps)
++{
++    self->position_hold = 0;
++    self->position_active = 0;
++    self->position_status = ENCODER_POSITION_CANCELLED;
++    rps = rps > self->rps_limit ? self->rps_limit : (rps < -self->rps_limit ? -self->rps_limit : rps); /* 对速度进行限幅 */
++    self->pid_controller.set_point = rps; /* 设置 PID 控制器目标 */
++}
++
++/* Clears the incremental loop and sets the PWM to zero: without this the PWM
++   stays stuck at its last value when there is no valid feedback. Call with
++   IRQs disabled or from the TIM7 ISR. */
++static void encoder_motor_zero_output(EncoderMotorObjectTypeDef *self)
++{
++    self->pid_controller.set_point = 0.0f;
++    self->pid_controller.previous_0_err = 0.0f;
++    self->pid_controller.previous_1_err = 0.0f;
++    self->pid_controller.output = 0.0f;
++    self->current_pulse = 0;
++    if(NULL != self->set_pulse) {
++        self->set_pulse(self, 0);
++    }
++}
++
++void encoder_motor_stop(EncoderMotorObjectTypeDef *self)
++{
++    uint32_t primask = __get_PRIMASK();
++    __disable_irq();
++    self->position_hold = 0;
++    self->position_active = 0;
++    self->position_status = ENCODER_POSITION_CANCELLED;
++    encoder_motor_zero_output(self);
++    if(!primask) __enable_irq();
++}
++
++int encoder_motor_move_relative(EncoderMotorObjectTypeDef *self,
++                                int32_t delta_ticks,
++                                float max_rps,
++                                int32_t tolerance_ticks,
++                                uint32_t timeout_ms)
++{
++    uint32_t primask;
++    if((delta_ticks == 0) || (max_rps <= 0.0f) ||
++       (max_rps > self->rps_limit) || (tolerance_ticks < 1) ||
++       (timeout_ms < 100u) || (timeout_ms > 60000u)) {
++        return -1;
++    }
++
++    primask = __get_PRIMASK();
++    __disable_irq();
++    self->position_hold = 0;   /* a new move replaces the HOLD */
++    self->position_target = self->counter + delta_ticks;
++    self->position_max_rps = max_rps;
++    self->position_tolerance_ticks = tolerance_ticks;
++    self->position_elapsed_cycles = 0;
++    self->position_timeout_cycles = (timeout_ms * POSITION_LOOP_HZ + 999u) / 1000u;
++    self->position_stable_cycles = 0;
++    self->position_status = ENCODER_POSITION_MOVING;
++    self->position_active = 1;
++    if(!primask) __enable_irq();
++    return 0;
++}
++
++int encoder_motor_hold(EncoderMotorObjectTypeDef *self,
++                       float max_rps,
++                       int32_t tolerance_ticks,
++                       int max_pulse)
++{
++    uint32_t primask;
++    if((max_rps <= 0.0f) || (max_rps > self->rps_limit) || (tolerance_ticks < 1) ||
++       (max_pulse < HOLD_MIN_PULSE) || (max_pulse > 1000)) {
++        return -1;
++    }
++
++    primask = __get_PRIMASK();
++    __disable_irq();
++    self->position_target = self->counter;
++    self->position_max_rps = max_rps;
++    self->position_tolerance_ticks = tolerance_ticks;
++    self->position_stable_cycles = 0;
++    self->position_elapsed_cycles = 0;
++    self->hold_max_pulse = (int16_t)max_pulse;
++    self->hold_stall_cycles = 0;
++    self->position_hold = 1;
++    self->position_status = ENCODER_POSITION_HOLDING;
++    self->position_active = 1;
++    if(!primask) __enable_irq();
++    return 0;
++}
++
++static float position_speed_command(EncoderMotorObjectTypeDef *self, int64_t error)
++{
++    float speed = (float)error * self->position_kp;
++    if(speed > self->position_max_rps) speed = self->position_max_rps;
++    if(speed < -self->position_max_rps) speed = -self->position_max_rps;
++    if((speed > 0.0f) && (speed < POSITION_MIN_COMMAND_RPS)) speed = POSITION_MIN_COMMAND_RPS;
++    if((speed < 0.0f) && (speed > -POSITION_MIN_COMMAND_RPS)) speed = -POSITION_MIN_COMMAND_RPS;
++    return speed;
++}
++
++void encoder_motor_position_control(EncoderMotorObjectTypeDef *self)
++{
++    int64_t error;
++    float speed;
++
++    if(!self->position_active) return;
++
++    error = self->position_target - self->counter;
++
++    if(self->position_hold) {
++        /* HOLD: no timeout and no "reached". Stalled (PWM at the cap, not moving
++           and out of tolerance) for 3 s -> release with PWM at zero. */
++        const int outside = (error > self->position_tolerance_ticks) ||
++                            (error < -self->position_tolerance_ticks);
++        const int at_cap = (self->current_pulse >= self->hold_max_pulse) ||
++                           (self->current_pulse <= -self->hold_max_pulse);
++        if(outside && at_cap &&
++           (self->rps <= POSITION_STOP_RPS) && (self->rps >= -POSITION_STOP_RPS)) {
++            if(++self->hold_stall_cycles >= HOLD_STALL_LIMIT_CYCLES) {
++                self->position_hold = 0;
++                self->position_active = 0;
++                self->position_status = ENCODER_POSITION_STALLED;
++                encoder_motor_zero_output(self);
++                return;
++            }
++        } else {
++            self->hold_stall_cycles = 0;
++        }
++        self->pid_controller.set_point = outside ? position_speed_command(self, error) : 0.0f;
++        return;
++    }
++
++    if((error <= self->position_tolerance_ticks) &&
++       (error >= -self->position_tolerance_ticks)) {
++        self->pid_controller.set_point = 0.0f;
++        if((self->rps <= POSITION_STOP_RPS) && (self->rps >= -POSITION_STOP_RPS)) {
++            if(++self->position_stable_cycles >= POSITION_REQUIRED_STABLE) {
++                self->position_active = 0;
++                self->position_status = ENCODER_POSITION_REACHED;
++                return;
++            }
++        } else {
++            self->position_stable_cycles = 0;
++        }
++    } else {
++        self->position_stable_cycles = 0;
++    }
++
++    if(++self->position_elapsed_cycles >= self->position_timeout_cycles) {
++        self->position_active = 0;
++        self->position_status = ENCODER_POSITION_TIMEOUT;
++        self->pid_controller.set_point = 0.0f;
++        return;
++    }
++
++    if((error <= self->position_tolerance_ticks) &&
++       (error >= -self->position_tolerance_ticks)) return;
++
++    speed = position_speed_command(self, error);
++    self->pid_controller.set_point = speed;
++}
++
++void encoder_motor_position_cancel(EncoderMotorObjectTypeDef *self)
++{
++    uint32_t primask = __get_PRIMASK();
++    __disable_irq();
++    self->position_hold = 0;
++    self->position_active = 0;
++    self->position_status = ENCODER_POSITION_CANCELLED;
++    self->pid_controller.set_point = 0.0f;
++    if(!primask) __enable_irq();
++}
++
++void encoder_motor_position_zero(EncoderMotorObjectTypeDef *self)
++{
++    uint32_t primask = __get_PRIMASK();
++    __disable_irq();
++    self->position_zero = self->counter;
++    if(!primask) __enable_irq();
++}
++
++void encoder_motor_position_snapshot(EncoderMotorObjectTypeDef *self,
++                                     int32_t *position_ticks,
++                                     int32_t *target_ticks,
++                                     int32_t *error_ticks,
++                                     float *rps,
++                                     uint8_t *active,
++                                     uint8_t *status)
++{
++    uint32_t primask = __get_PRIMASK();
++    int64_t position;
++    int64_t target;
++    __disable_irq();
++    position = self->counter - self->position_zero;
++    target = self->position_target - self->position_zero;
++    *position_ticks = (int32_t)clamp_i64_to_i32(position);
++    *target_ticks = (int32_t)clamp_i64_to_i32(target);
++    *error_ticks = (int32_t)clamp_i64_to_i32(self->position_target - self->counter);
++    *rps = self->rps;
++    *active = self->position_active;
++    *status = self->position_status;
++    if(!primask) __enable_irq();
++}
++
++
++/**
++ * @breif 编码器电机对象初始化
++ * @param self 编码器电机对象指针
++ * @retval None.
++*/
++void encoder_motor_object_init(EncoderMotorObjectTypeDef *self)
++{
++    self->counter = 0;
++    self->overflow_num = 0;
++    self->tps = 0;
++    self->rps = 0;
++    self->current_pulse = 0;
++    self->ticks_overflow = 0;
++    self->position_active = 0;
++    self->position_status = ENCODER_POSITION_IDLE;
++    self->position_stable_cycles = 0;
++    self->position_zero = 0;
++    self->position_target = 0;
++    self->position_max_rps = 1.0f;
++    self->position_kp = POSITION_DEFAULT_KP;
++    self->position_tolerance_ticks = 8;
++    self->position_elapsed_cycles = 0;
++    self->position_timeout_cycles = POSITION_LOOP_HZ;
++    self->position_hold = 0;
++    self->hold_max_pulse = 1000;
++    self->hold_stall_cycles = 0;
++    self->ticks_per_circle = 9999; /* 电机输出轴旋转一圈产生的计数个数, 根据电机实际情况填写 */
++    pid_controller_init(&self->pid_controller, 0, 0, 0);
++}
+diff -ruN '--exclude=*.o' '--exclude=*.d' '--exclude=*.crf' '--exclude=*.axf' '--exclude=*.htm' '--exclude=*.lnp' '--exclude=*.dep' '--exclude=*.lst' '--exclude=*.map' '--exclude=*.hex' '--exclude=*.bin' '--exclude=*.elf' '--exclude=*.build_log.htm' '--exclude=*.uvguix.*' '--exclude=build-gcc' '--exclude=DebugConfig' official_v1_2/RosRobotControllerM4-armclang/Hiwonder/Peripherals/encoder_motor.h extended_m1/RosRobotControllerM4-armclang/Hiwonder/Peripherals/encoder_motor.h
+--- official_v1_2/RosRobotControllerM4-armclang/Hiwonder/Peripherals/encoder_motor.h	2026-07-27 19:35:37.473742266 -0600
++++ extended_m1/RosRobotControllerM4-armclang/Hiwonder/Peripherals/encoder_motor.h	2026-10-04 17:19:55.762407793 -0600
+@@ -17,6 +17,17 @@
+ 
+ typedef struct EncoderMotorObject EncoderMotorObjectTypeDef;
+ 
++typedef enum {
++    ENCODER_POSITION_IDLE = 0,
++    ENCODER_POSITION_MOVING = 1,
++    ENCODER_POSITION_REACHED = 2,
++    ENCODER_POSITION_CANCELLED = 3,
++    ENCODER_POSITION_TIMEOUT = 4,
++    /* 5 = invalid command: set by packet_handle.c in the reply, not by the motor */
++    ENCODER_POSITION_HOLDING = 6,   /* HOLD active: holding the position */
++    ENCODER_POSITION_STALLED = 7,   /* HOLD released due to stall (protection) */
++} EncoderPositionStatusEnum;
++
+ /**
+  * @brief 编码器电机对象结构体
+ */
+@@ -29,6 +40,18 @@
+     int current_pulse;      /**< @brief 当前输出的PWM值, 有符号对应正反转 */
+     PID_ControllerTypeDef pid_controller; /**< @brief PID 控制器 */
+ 
++    /* Optional outer position loop. The velocity PID remains the inner loop. */
++    volatile uint8_t position_active;
++    volatile uint8_t position_status;
++    uint8_t position_stable_cycles;
++    int64_t position_zero;
++    int64_t position_target;
++    float position_max_rps;
++    float position_kp;
++    int32_t position_tolerance_ticks;
++    uint32_t position_elapsed_cycles;
++    uint32_t position_timeout_cycles;
++
+     /** porting 可移植硬件接口 **/
+     int32_t ticks_per_circle; /**< @brief 电机输出轴旋转一圈产生的计数个数, 根据电机实际情况填写 */
+ 	float rps_limit;  /**< @brief 电机地转速极限，一般会取比100% PWM占空比时地转速稍小的值以确保PID控制器对速度的控制 */
+@@ -39,6 +62,12 @@
+       * @retval None.
+       */
+     void (*set_pulse)(EncoderMotorObjectTypeDef *self, int pulse);
++
++    /* Position HOLD (MOTOR_EXT 0x05). At the end of the struct so as not to move the
++       offsets that the tools read over SWD. */
++    volatile uint8_t position_hold;
++    int16_t hold_max_pulse;     /* PWM cap while holding (300..1000) */
++    uint16_t hold_stall_cycles; /* consecutive cycles at the cap without moving */
+ };
+ 
+ 
+@@ -78,5 +107,44 @@
+ */
+ void encoder_motor_set_speed(EncoderMotorObjectTypeDef *self, float rps);
+ 
+-#endif
++/**
++ * @brief Immediate, safe motor stop.
++ *
++ * Forces the accumulated PWM to zero instead of leaving it to the PID. Needed because
++ * the loop is incremental (pulse += output): if the feedback is missing or
++ * frozen, setting the setpoint to zero leaves the error at zero, the output at zero and
++ * the PWM STUCK at its last value, with the motor spinning indefinitely.
++ */
++void encoder_motor_stop(EncoderMotorObjectTypeDef *self);
++
++int encoder_motor_move_relative(EncoderMotorObjectTypeDef *self,
++                                int32_t delta_ticks,
++                                float max_rps,
++                                int32_t tolerance_ticks,
++                                uint32_t timeout_ms);
++/**
++ * @brief Position HOLD, like SPIKE's motor.HOLD: holds the current counter
++ *        with no timeout and, if displaced, returns using the MOVE_RELATIVE law.
++ *
++ * The PWM is limited to max_pulse. If it pushes at the cap without moving for 3 s
++ * (motor stalled), it releases the HOLD with status STALLED and PWM at zero, so as
++ * not to overheat the motor or driver. Cancelled by a velocity command, MOVE_RELATIVE,
++ * CANCEL or a stop.
++ * @return 0 if accepted; -1 if any parameter is out of range.
++ */
++int encoder_motor_hold(EncoderMotorObjectTypeDef *self,
++                       float max_rps,
++                       int32_t tolerance_ticks,
++                       int max_pulse);
++void encoder_motor_position_control(EncoderMotorObjectTypeDef *self);
++void encoder_motor_position_cancel(EncoderMotorObjectTypeDef *self);
++void encoder_motor_position_zero(EncoderMotorObjectTypeDef *self);
++void encoder_motor_position_snapshot(EncoderMotorObjectTypeDef *self,
++                                     int32_t *position_ticks,
++                                     int32_t *target_ticks,
++                                     int32_t *error_ticks,
++                                     float *rps,
++                                     uint8_t *active,
++                                     uint8_t *status);
+ 
++#endif
+diff -ruN '--exclude=*.o' '--exclude=*.d' '--exclude=*.crf' '--exclude=*.axf' '--exclude=*.htm' '--exclude=*.lnp' '--exclude=*.dep' '--exclude=*.lst' '--exclude=*.map' '--exclude=*.hex' '--exclude=*.bin' '--exclude=*.elf' '--exclude=*.build_log.htm' '--exclude=*.uvguix.*' '--exclude=build-gcc' '--exclude=DebugConfig' official_v1_2/RosRobotControllerM4-armclang/Hiwonder/Portings/imu_porting.c extended_m1/RosRobotControllerM4-armclang/Hiwonder/Portings/imu_porting.c
+--- official_v1_2/RosRobotControllerM4-armclang/Hiwonder/Portings/imu_porting.c	2026-07-27 19:35:37.607742682 -0600
++++ extended_m1/RosRobotControllerM4-armclang/Hiwonder/Portings/imu_porting.c	2026-07-28 13:30:08.254483307 -0600
+@@ -90,6 +90,10 @@
+ #include "QMI8658.h"
+ #include "u8g2_porting.h"
+ 
++/* Minimum interval between IMU reports to the host (ms). 50 ms = 20 Hz maximum:
++   bounded telemetry that does not flood the 1 Mbaud UART (handoff, commit 2). */
++#define IMU_REPORT_INTERVAL_MS 50u
++
+ #if ENABLE_IMU
+ /**
+  * @brief  imu task 入口函数
+@@ -115,6 +119,8 @@
+ 	}
+     osDelay(100);
+     PacketReportIMU_Raw_TypeDef report;
++    uint32_t last_report_tick = 0u;   /* last send to the host, in 1 ms ticks */
++    uint32_t now_tick;
+ 		
+     for(;;) {
+ 		//等待IMU中断发送的信号量，若没有，则一直阻塞等待 osWaitForever
+@@ -128,7 +134,14 @@
+ 			
+ 		//获取Roll、Pitch、重力加速度值请放开下2行注释(第2行注释语句需要配合树莓派等上位机运行搭配ros开发功能包使用) 
+         //printf("%d,%d,%d\r\n",(int)report.array.accel_array[0],(int)report.array.accel_array[1],(int)report.array.accel_array[2]);
+-        //packet_transmit(&packet_controller, PACKET_FUNC_IMU, &report, sizeof(PacketReportIMU_Raw_TypeDef));
++        /* IMU telemetry to the host with an explicit interval. The loop already runs at
++           ~20 Hz due to osDelay(50); the tick guard guarantees the limit
++           even if the loop rate changes in the future. */
++        now_tick = osKernelGetTickCount();
++        if((now_tick - last_report_tick) >= IMU_REPORT_INTERVAL_MS) {
++            last_report_tick = now_tick;
++            packet_transmit(&packet_controller, PACKET_FUNC_IMU, &report, sizeof(PacketReportIMU_Raw_TypeDef));
++        }
+         osDelay(50);
+     }
+ }
+diff -ruN '--exclude=*.o' '--exclude=*.d' '--exclude=*.crf' '--exclude=*.axf' '--exclude=*.htm' '--exclude=*.lnp' '--exclude=*.dep' '--exclude=*.lst' '--exclude=*.map' '--exclude=*.hex' '--exclude=*.bin' '--exclude=*.elf' '--exclude=*.build_log.htm' '--exclude=*.uvguix.*' '--exclude=build-gcc' '--exclude=DebugConfig' official_v1_2/RosRobotControllerM4-armclang/Hiwonder/Portings/motor_porting.c extended_m1/RosRobotControllerM4-armclang/Hiwonder/Portings/motor_porting.c
+--- official_v1_2/RosRobotControllerM4-armclang/Hiwonder/Portings/motor_porting.c	2026-07-27 19:35:37.657742836 -0600
++++ extended_m1/RosRobotControllerM4-armclang/Hiwonder/Portings/motor_porting.c	2026-10-04 16:08:56.429981284 -0600
+@@ -1,194 +1,210 @@
+-#include "global.h"
+-#include "tim.h"
+-#include "lwmem_porting.h"
+-#include "motors_param.h"
+-
+-/* 全局变量 */
+-EncoderMotorObjectTypeDef *motors[4];
+-/* static void packet_handler(struct PacketRawFrame *frame); */
+-
+-static void motor1_set_pulse(EncoderMotorObjectTypeDef *self, int speed);
+-static void motor2_set_pulse(EncoderMotorObjectTypeDef *self, int speed);
+-static void motor3_set_pulse(EncoderMotorObjectTypeDef *self, int speed);
+-static void motor4_set_pulse(EncoderMotorObjectTypeDef *self, int speed);
+-
+-void set_motor_param(EncoderMotorObjectTypeDef *motor, int32_t tpc, float rps_limit, float kp, float ki, float kd)
+-{
+-    motor->ticks_per_circle = tpc;
+-    motor->rps_limit = rps_limit;
+-    motor->pid_controller.kp = kp;
+-    motor->pid_controller.ki = ki;
+-    motor->pid_controller.kd = kd;
+-}
+-
+-void set_motor_type(EncoderMotorObjectTypeDef *motor, MotorTypeEnum type) {
+-	switch(type) {
+-		case MOTOR_TYPE_JGB520:
+-			set_motor_param(motor, MOTOR_JGB520_TICKS_PER_CIRCLE, MOTOR_JGB520_RPS_LIMIT, MOTOR_JGB520_PID_KP, MOTOR_JGB520_PID_KI, MOTOR_JGB520_PID_KD);
+-			break;
+-		case MOTOR_TYPE_JGB37:
+-			set_motor_param(motor, MOTOR_JGB37_TICKS_PER_CIRCLE, MOTOR_JGB37_RPS_LIMIT, MOTOR_JGB37_PID_KP, MOTOR_JGB37_PID_KI, MOTOR_JGB37_PID_KD);
+-			break;
+-		case MOTOR_TYPE_JGA27:
+-			set_motor_param(motor, MOTOR_JGA27_TICKS_PER_CIRCLE, MOTOR_JGA27_RPS_LIMIT, MOTOR_JGA27_PID_KP, MOTOR_JGA27_PID_KI, MOTOR_JGA27_PID_KD);
+-			break;
+-		case MOTOR_TYPE_JGB528:
+-			set_motor_param(motor, MOTOR_JGB528_TICKS_PER_CIRCLE, MOTOR_JGB528_RPS_LIMIT, MOTOR_JGB528_PID_KP, MOTOR_JGB528_PID_KI, MOTOR_JGB528_PID_KD);
+-			break;
+-		default:
+-			break;
+-	}
+-}
+-
+-void motors_init(void)
+-{
+-    for(int i = 0; i < 4; ++i) {
+-        motors[i] = LWMEM_CCM_MALLOC(sizeof( EncoderMotorObjectTypeDef));
+-        encoder_motor_object_init(motors[i]);
+-		motors[i]->ticks_overflow = 60000;
+-        motors[i]->ticks_per_circle = MOTOR_DEFAULT_TICKS_PER_CIRCLE;
+-        motors[i]->rps_limit = MOTOR_DEFAULT_RPS_LIMIT;
+-        motors[i]->pid_controller.set_point = 0.0f;
+-        motors[i]->pid_controller.kp = MOTOR_DEFAULT_PID_KP;
+-        motors[i]->pid_controller.ki = MOTOR_DEFAULT_PID_KI;
+-        motors[i]->pid_controller.kd = MOTOR_DEFAULT_PID_KD;
+-    }
+-
+-    /* 马达 1 */
+-    motors[0]->set_pulse = motor1_set_pulse;
+-    __HAL_TIM_SET_COUNTER(&htim1, 0);
+-    __HAL_TIM_ENABLE(&htim1);
+-    __HAL_TIM_MOE_ENABLE(&htim1);
+-
+-    /* 编码器 */
+-    __HAL_TIM_SET_COUNTER(&htim5, 0);
+-    __HAL_TIM_CLEAR_IT(&htim5, TIM_IT_UPDATE);
+-    __HAL_TIM_ENABLE_IT(&htim5, TIM_IT_UPDATE);
+-    __HAL_TIM_ENABLE(&htim5);
+-    HAL_TIM_Encoder_Start(&htim5, TIM_CHANNEL_ALL);
+-
+-
+-    /* 马达 2 */
+-    motors[1]->set_pulse = motor2_set_pulse;
+-    __HAL_TIM_SET_COUNTER(&htim1, 0);
+-    __HAL_TIM_ENABLE(&htim1);
+-    __HAL_TIM_MOE_ENABLE(&htim1);
+-
+-    /* 编码器 */
+-    __HAL_TIM_SET_COUNTER(&htim2, 0);
+-    __HAL_TIM_CLEAR_IT(&htim2, TIM_IT_UPDATE);
+-    __HAL_TIM_ENABLE_IT(&htim2, TIM_IT_UPDATE);
+-    __HAL_TIM_ENABLE(&htim2);
+-    HAL_TIM_Encoder_Start(&htim2, TIM_CHANNEL_ALL);
+-
+-    /* 马达 3 */
+-    motors[2]->set_pulse = motor3_set_pulse;
+-    __HAL_TIM_SET_COUNTER(&htim9, 0);
+-    __HAL_TIM_ENABLE(&htim9);
+-    __HAL_TIM_MOE_ENABLE(&htim9);
+-
+-    /* 编码器 */
+-    __HAL_TIM_SET_COUNTER(&htim4, 0);
+-    __HAL_TIM_CLEAR_IT(&htim4, TIM_IT_UPDATE);
+-    __HAL_TIM_ENABLE_IT(&htim4, TIM_IT_UPDATE);
+-    __HAL_TIM_ENABLE(&htim4);
+-    HAL_TIM_Encoder_Start(&htim4, TIM_CHANNEL_ALL);
+-
+-    /* 马达 4 */
+-    motors[3]->set_pulse = motor4_set_pulse;
+-    __HAL_TIM_SET_COUNTER(&htim10, 0);
+-    __HAL_TIM_SET_COUNTER(&htim11, 0);
+-    __HAL_TIM_ENABLE(&htim10);
+-    __HAL_TIM_ENABLE(&htim11);
+-    __HAL_TIM_MOE_ENABLE(&htim10);
+-    __HAL_TIM_MOE_ENABLE(&htim11);
+-
+-    /* 编码器 */
+-    __HAL_TIM_SET_COUNTER(&htim3, 0);
+-    __HAL_TIM_CLEAR_IT(&htim3, TIM_IT_UPDATE);
+-    __HAL_TIM_ENABLE_IT(&htim3, TIM_IT_UPDATE);
+-    __HAL_TIM_ENABLE(&htim3);
+-    HAL_TIM_Encoder_Start(&htim4, TIM_CHANNEL_ALL);
+-
+-
+-    // 测速更新定时器
+-    __HAL_TIM_SET_COUNTER(&htim7, 0);
+-    __HAL_TIM_CLEAR_IT(&htim7, TIM_IT_UPDATE);
+-    __HAL_TIM_ENABLE_IT(&htim7, TIM_IT_UPDATE);
+-    __HAL_TIM_ENABLE(&htim7);
+-
+-    //packet_register_callback(&packet_controller, PACKET_FUNC_MOTOR, packet_handler);
+-}
+-
+-static void motor1_set_pulse(EncoderMotorObjectTypeDef *self, int speed)
+-{
+-    if(speed > 0) {
+-        __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, 0);
+-        __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_4, speed);
+-    } else if(speed < 0) {
+-        __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_4, 0);
+-        __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, -speed);
+-    } else {
+-        __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, 0);
+-        __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_4, 0);
+-    }
+-    HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_3);
+-    HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_4);
+-}
+-
+-
+-static void motor2_set_pulse(EncoderMotorObjectTypeDef *self, int speed)
+-{
+-    if(speed > 0) {
+-        __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 0);
+-        __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, speed);
+-    } else if(speed < 0) {
+-        __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 0);
+-        __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, -speed);
+-    } else {
+-        __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 0);
+-        __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 0);
+-    }
+-    HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
+-    HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
+-}
+-
+-static void motor3_set_pulse(EncoderMotorObjectTypeDef *self, int speed)
+-{
+-    HAL_TIM_PWM_Stop(&htim9, TIM_CHANNEL_1);
+-    HAL_TIM_PWM_Stop(&htim9, TIM_CHANNEL_2);
+-    if(speed > 0) {
+-        __HAL_TIM_SET_COMPARE(&htim9, TIM_CHANNEL_2, 0);
+-        __HAL_TIM_SET_COMPARE(&htim9, TIM_CHANNEL_1, speed);
+-    } else if(speed < 0) {
+-        __HAL_TIM_SET_COMPARE(&htim9, TIM_CHANNEL_1, 0);
+-        __HAL_TIM_SET_COMPARE(&htim9, TIM_CHANNEL_2, -speed);
+-    } else {
+-        __HAL_TIM_SET_COMPARE(&htim9, TIM_CHANNEL_1, 0);
+-        __HAL_TIM_SET_COMPARE(&htim9, TIM_CHANNEL_2, 0);
+-    }
+-    HAL_TIM_PWM_Start(&htim9, TIM_CHANNEL_1);
+-    HAL_TIM_PWM_Start(&htim9, TIM_CHANNEL_2);
+-}
+-
+-static void motor4_set_pulse(EncoderMotorObjectTypeDef *self, int speed)
+-{
+-    HAL_TIM_PWM_Stop(&htim10, TIM_CHANNEL_1);
+-    HAL_TIM_PWM_Stop(&htim11, TIM_CHANNEL_1);
+-    if(speed > 0) {
+-        __HAL_TIM_SET_COMPARE(&htim10, TIM_CHANNEL_1, 0);
+-        __HAL_TIM_SET_COMPARE(&htim11, TIM_CHANNEL_1, speed);
+-    } else if(speed < 0) {
+-        __HAL_TIM_SET_COMPARE(&htim11, TIM_CHANNEL_1, 0);
+-        __HAL_TIM_SET_COMPARE(&htim10, TIM_CHANNEL_1, -speed);
+-    } else {
+-        __HAL_TIM_SET_COMPARE(&htim10, TIM_CHANNEL_1, 0);
+-        __HAL_TIM_SET_COMPARE(&htim11, TIM_CHANNEL_1, 0);
+-    }
+-    HAL_TIM_PWM_Start(&htim10, TIM_CHANNEL_1);
+-    HAL_TIM_PWM_Start(&htim11, TIM_CHANNEL_1);
+-}
+-
+-
+-
+-
++#include "global.h"
++#include "tim.h"
++#include "lwmem_porting.h"
++#include "motors_param.h"
++
++/* 全局变量 */
++EncoderMotorObjectTypeDef *motors[4];
++/* static void packet_handler(struct PacketRawFrame *frame); */
++
++static void motor1_set_pulse(EncoderMotorObjectTypeDef *self, int speed);
++static void motor2_set_pulse(EncoderMotorObjectTypeDef *self, int speed);
++static void motor3_set_pulse(EncoderMotorObjectTypeDef *self, int speed);
++static void motor4_set_pulse(EncoderMotorObjectTypeDef *self, int speed);
++
++void set_motor_param(EncoderMotorObjectTypeDef *motor, int32_t tpc, float rps_limit, float kp, float ki, float kd)
++{
++    motor->ticks_per_circle = tpc;
++    motor->rps_limit = rps_limit;
++    motor->pid_controller.kp = kp;
++    motor->pid_controller.ki = ki;
++    motor->pid_controller.kd = kd;
++}
++
++void set_motor_type(EncoderMotorObjectTypeDef *motor, MotorTypeEnum type) {
++	switch(type) {
++		case MOTOR_TYPE_JGB520:
++			set_motor_param(motor, MOTOR_JGB520_TICKS_PER_CIRCLE, MOTOR_JGB520_RPS_LIMIT, MOTOR_JGB520_PID_KP, MOTOR_JGB520_PID_KI, MOTOR_JGB520_PID_KD);
++			break;
++		case MOTOR_TYPE_JGB37:
++			set_motor_param(motor, MOTOR_JGB37_TICKS_PER_CIRCLE, MOTOR_JGB37_RPS_LIMIT, MOTOR_JGB37_PID_KP, MOTOR_JGB37_PID_KI, MOTOR_JGB37_PID_KD);
++			break;
++		case MOTOR_TYPE_JGA27:
++			set_motor_param(motor, MOTOR_JGA27_TICKS_PER_CIRCLE, MOTOR_JGA27_RPS_LIMIT, MOTOR_JGA27_PID_KP, MOTOR_JGA27_PID_KI, MOTOR_JGA27_PID_KD);
++			break;
++		case MOTOR_TYPE_JGB528:
++			set_motor_param(motor, MOTOR_JGB528_TICKS_PER_CIRCLE, MOTOR_JGB528_RPS_LIMIT, MOTOR_JGB528_PID_KP, MOTOR_JGB528_PID_KI, MOTOR_JGB528_PID_KD);
++			break;
++		default:
++			break;
++	}
++}
++
++void apply_project_motor_config(void)
++{
++    /* JGB37-520R30-12 on M1 and on the position motor (M4 since 2026-10-04):
++       11 lines * x4 quadrature * 1:30 reduction = 1320 ticks per revolution of the
++       output shaft.
++
++       Gains: do NOT use the JGB520 profile imposed by the JETACKER chassis (3960
++       ticks, KP 63), tuned for a 1:90 reduction. A 1:30 spins ~3x faster
++       for the same PWM, so the open-loop gain is ~3x higher and the
++       loop oscillates. The manufacturer itself lowers KP from 63 to 40 in its JGB37
++       profile (1980 ticks). Validated on the bench on M1 (2026-08-22). */
++    set_motor_param(motors[0], 1320, PROJECT_MOTOR_RPS_LIMIT, 21.0f, 0.9f, 0.8f);
++    set_motor_param(motors[POSITION_MOTOR_INDEX], 1320, PROJECT_MOTOR_RPS_LIMIT, 21.0f, 0.9f, 0.8f);
++}
++
++void motors_init(void)
++{
++    for(int i = 0; i < 4; ++i) {
++        motors[i] = LWMEM_CCM_MALLOC(sizeof( EncoderMotorObjectTypeDef));
++        encoder_motor_object_init(motors[i]);
++		motors[i]->ticks_overflow = 60000;
++        motors[i]->ticks_per_circle = MOTOR_DEFAULT_TICKS_PER_CIRCLE;
++        motors[i]->rps_limit = MOTOR_DEFAULT_RPS_LIMIT;
++        motors[i]->pid_controller.set_point = 0.0f;
++        motors[i]->pid_controller.kp = MOTOR_DEFAULT_PID_KP;
++        motors[i]->pid_controller.ki = MOTOR_DEFAULT_PID_KI;
++        motors[i]->pid_controller.kd = MOTOR_DEFAULT_PID_KD;
++    }
++
++    /* 马达 1 */
++    motors[0]->set_pulse = motor1_set_pulse;
++    /* Project motor config: applied here and, above all, again
++       after set_chassis_type() (see apply_project_motor_config). */
++    apply_project_motor_config();
++    __HAL_TIM_SET_COUNTER(&htim1, 0);
++    __HAL_TIM_ENABLE(&htim1);
++    __HAL_TIM_MOE_ENABLE(&htim1);
++
++    /* 编码器 */
++    __HAL_TIM_SET_COUNTER(&htim5, 0);
++    __HAL_TIM_CLEAR_IT(&htim5, TIM_IT_UPDATE);
++    __HAL_TIM_ENABLE_IT(&htim5, TIM_IT_UPDATE);
++    __HAL_TIM_ENABLE(&htim5);
++    HAL_TIM_Encoder_Start(&htim5, TIM_CHANNEL_ALL);
++
++
++    /* 马达 2 */
++    motors[1]->set_pulse = motor2_set_pulse;
++    __HAL_TIM_SET_COUNTER(&htim1, 0);
++    __HAL_TIM_ENABLE(&htim1);
++    __HAL_TIM_MOE_ENABLE(&htim1);
++
++    /* 编码器 */
++    __HAL_TIM_SET_COUNTER(&htim2, 0);
++    __HAL_TIM_CLEAR_IT(&htim2, TIM_IT_UPDATE);
++    __HAL_TIM_ENABLE_IT(&htim2, TIM_IT_UPDATE);
++    __HAL_TIM_ENABLE(&htim2);
++    HAL_TIM_Encoder_Start(&htim2, TIM_CHANNEL_ALL);
++
++    /* 马达 3 */
++    motors[2]->set_pulse = motor3_set_pulse;
++    __HAL_TIM_SET_COUNTER(&htim9, 0);
++    __HAL_TIM_ENABLE(&htim9);
++    __HAL_TIM_MOE_ENABLE(&htim9);
++
++    /* 编码器 */
++    __HAL_TIM_SET_COUNTER(&htim4, 0);
++    __HAL_TIM_CLEAR_IT(&htim4, TIM_IT_UPDATE);
++    __HAL_TIM_ENABLE_IT(&htim4, TIM_IT_UPDATE);
++    __HAL_TIM_ENABLE(&htim4);
++    HAL_TIM_Encoder_Start(&htim4, TIM_CHANNEL_ALL);
++
++    /* 马达 4 */
++    motors[3]->set_pulse = motor4_set_pulse;
++    __HAL_TIM_SET_COUNTER(&htim10, 0);
++    __HAL_TIM_SET_COUNTER(&htim11, 0);
++    __HAL_TIM_ENABLE(&htim10);
++    __HAL_TIM_ENABLE(&htim11);
++    __HAL_TIM_MOE_ENABLE(&htim10);
++    __HAL_TIM_MOE_ENABLE(&htim11);
++
++    /* 编码器 */
++    __HAL_TIM_SET_COUNTER(&htim3, 0);
++    __HAL_TIM_CLEAR_IT(&htim3, TIM_IT_UPDATE);
++    __HAL_TIM_ENABLE_IT(&htim3, TIM_IT_UPDATE);
++    __HAL_TIM_ENABLE(&htim3);
++    /* The original started &htim4 (M3 encoder) instead of &htim3: TIM3
++       was left without CC1E/CC2E (TIM3_CCER = 0 read on the bench with pos-v4). */
++    HAL_TIM_Encoder_Start(&htim3, TIM_CHANNEL_ALL);
++
++
++    // 测速更新定时器
++    __HAL_TIM_SET_COUNTER(&htim7, 0);
++    __HAL_TIM_CLEAR_IT(&htim7, TIM_IT_UPDATE);
++    __HAL_TIM_ENABLE_IT(&htim7, TIM_IT_UPDATE);
++    __HAL_TIM_ENABLE(&htim7);
++
++    //packet_register_callback(&packet_controller, PACKET_FUNC_MOTOR, packet_handler);
++}
++
++static void motor1_set_pulse(EncoderMotorObjectTypeDef *self, int speed)
++{
++    if(speed > 0) {
++        __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, 0);
++        __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_4, speed);
++    } else if(speed < 0) {
++        __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_4, 0);
++        __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, -speed);
++    } else {
++        __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, 0);
++        __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_4, 0);
++    }
++    HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_3);
++    HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_4);
++}
++
++
++static void motor2_set_pulse(EncoderMotorObjectTypeDef *self, int speed)
++{
++    if(speed > 0) {
++        __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 0);
++        __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, speed);
++    } else if(speed < 0) {
++        __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 0);
++        __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, -speed);
++    } else {
++        __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 0);
++        __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 0);
++    }
++    HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
++    HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
++}
++
++static void motor3_set_pulse(EncoderMotorObjectTypeDef *self, int speed)
++{
++    HAL_TIM_PWM_Stop(&htim9, TIM_CHANNEL_1);
++    HAL_TIM_PWM_Stop(&htim9, TIM_CHANNEL_2);
++    if(speed > 0) {
++        __HAL_TIM_SET_COMPARE(&htim9, TIM_CHANNEL_2, 0);
++        __HAL_TIM_SET_COMPARE(&htim9, TIM_CHANNEL_1, speed);
++    } else if(speed < 0) {
++        __HAL_TIM_SET_COMPARE(&htim9, TIM_CHANNEL_1, 0);
++        __HAL_TIM_SET_COMPARE(&htim9, TIM_CHANNEL_2, -speed);
++    } else {
++        __HAL_TIM_SET_COMPARE(&htim9, TIM_CHANNEL_1, 0);
++        __HAL_TIM_SET_COMPARE(&htim9, TIM_CHANNEL_2, 0);
++    }
++    HAL_TIM_PWM_Start(&htim9, TIM_CHANNEL_1);
++    HAL_TIM_PWM_Start(&htim9, TIM_CHANNEL_2);
++}
++
++static void motor4_set_pulse(EncoderMotorObjectTypeDef *self, int speed)
++{
++    HAL_TIM_PWM_Stop(&htim10, TIM_CHANNEL_1);
++    HAL_TIM_PWM_Stop(&htim11, TIM_CHANNEL_1);
++    if(speed > 0) {
++        __HAL_TIM_SET_COMPARE(&htim10, TIM_CHANNEL_1, 0);
++        __HAL_TIM_SET_COMPARE(&htim11, TIM_CHANNEL_1, speed);
++    } else if(speed < 0) {
++        __HAL_TIM_SET_COMPARE(&htim11, TIM_CHANNEL_1, 0);
++        __HAL_TIM_SET_COMPARE(&htim10, TIM_CHANNEL_1, -speed);
++    } else {
++        __HAL_TIM_SET_COMPARE(&htim10, TIM_CHANNEL_1, 0);
++        __HAL_TIM_SET_COMPARE(&htim11, TIM_CHANNEL_1, 0);
++    }
++    HAL_TIM_PWM_Start(&htim10, TIM_CHANNEL_1);
++    HAL_TIM_PWM_Start(&htim11, TIM_CHANNEL_1);
++}
+diff -ruN '--exclude=*.o' '--exclude=*.d' '--exclude=*.crf' '--exclude=*.axf' '--exclude=*.htm' '--exclude=*.lnp' '--exclude=*.dep' '--exclude=*.lst' '--exclude=*.map' '--exclude=*.hex' '--exclude=*.bin' '--exclude=*.elf' '--exclude=*.build_log.htm' '--exclude=*.uvguix.*' '--exclude=build-gcc' '--exclude=DebugConfig' official_v1_2/RosRobotControllerM4-armclang/Hiwonder/Portings/motors_param.h extended_m1/RosRobotControllerM4-armclang/Hiwonder/Portings/motors_param.h
+--- official_v1_2/RosRobotControllerM4-armclang/Hiwonder/Portings/motors_param.h	2026-07-27 19:35:37.640742785 -0600
++++ extended_m1/RosRobotControllerM4-armclang/Hiwonder/Portings/motors_param.h	2026-10-04 16:08:56.406981433 -0600
+@@ -1,60 +1,77 @@
+-#ifndef __MOTORS_PARAM_H
+-#define __MOTORS_PARAM_H
+-#include "encoder_motor.h"
+-
+-typedef enum {
+-	MOTOR_TYPE_JGB520,
+-	MOTOR_TYPE_JGB37,
+-	MOTOR_TYPE_JGA27,
+-	MOTOR_TYPE_JGB528,
+-}MotorTypeEnum;
+-
+-/* 电机轴每转产生11个脉冲,  计数器在AB相上升下降沿均计数即计数值为脉冲数的4倍, 减速比为90.0。
+- * 即电机输出轴每转一圈计数器计数值改变 11.0 * 4.0 * 90.0 = 3960
+- */
+-#define MOTOR_JGB520_TICKS_PER_CIRCLE 3960.0f
+-#define MOTOR_JGB520_PID_KP  63.0f
+-#define MOTOR_JGB520_PID_KI  2.6f
+-#define MOTOR_JGB520_PID_KD  2.4f
+-#define MOTOR_JGB520_RPS_LIMIT 1.5f
+-
+-/* 电机轴每转产生11个脉冲,  计数器在AB相上升下降沿均计数即计数值为脉冲数的4倍, 减速比为45.0:1。
+- * 即电机输出轴每转一圈计数器计数值改变 11.0 * 4.0 * 45.0 = 1980
+- */
+-#define MOTOR_JGB37_TICKS_PER_CIRCLE 1980.0f
+-#define MOTOR_JGB37_PID_KP  40.0f
+-#define MOTOR_JGB37_PID_KI  2.0f
+-#define MOTOR_JGB37_PID_KD  2.0f
+-#define MOTOR_JGB37_RPS_LIMIT 3.0f
+-
+-/* 电机轴每转产生13个脉冲,  计数器在AB相上升下降沿均计数即计数值为脉冲数的4倍, 减速比为20.0:1。
+- * 即电机输出轴每转一圈计数器计数值改变 13.0 * 4.0 * 20.0 = 1040
+- */
+-#define MOTOR_JGA27_TICKS_PER_CIRCLE 1040.0f
+-#define MOTOR_JGA27_PID_KP  -36.0f
+-#define MOTOR_JGA27_PID_KI  -1.0f
+-#define MOTOR_JGA27_PID_KD  -1.0f
+-#define MOTOR_JGA27_RPS_LIMIT 6.0f 
+-
+-/* 电机轴每转产生11个脉冲,  计数器在AB相上升下降沿均计数即计数值为脉冲数的4倍, 减速比为131.0:1。
+- * 即电机输出轴每转一圈计数器计数值改变 11.0 * 4.0 * 131.0 = 5764
+- */
+-#define MOTOR_JGB528_TICKS_PER_CIRCLE 5764.0f
+-#define MOTOR_JGB528_PID_KP  300.0f
+-#define MOTOR_JGB528_PID_KI  2.0f
+-#define MOTOR_JGB528_PID_KD  12.0f
+-#define MOTOR_JGB528_RPS_LIMIT 1.1f 
+-
+-/* 电机轴每转产生11个脉冲,  计数器在AB相上升下降沿均计数即计数值为脉冲数的4倍, 减速比为90.0。
+- * 即电机输出轴每转一圈计数器计数值改变 11.0 * 4.0 * 90.0 = 3960
+- */
+-#define MOTOR_DEFAULT_TICKS_PER_CIRCLE 3960.0f
+-#define MOTOR_DEFAULT_PID_KP  63.0f
+-#define MOTOR_DEFAULT_PID_KI  2.6f
+-#define MOTOR_DEFAULT_PID_KD  2.4f
+-#define MOTOR_DEFAULT_RPS_LIMIT 1.35f
+-
+-void set_motor_type(EncoderMotorObjectTypeDef *motor, MotorTypeEnum type);
+-
+-#endif
+-
++#ifndef __MOTORS_PARAM_H
++#define __MOTORS_PARAM_H
++#include "encoder_motor.h"
++
++typedef enum {
++	MOTOR_TYPE_JGB520,
++	MOTOR_TYPE_JGB37,
++	MOTOR_TYPE_JGA27,
++	MOTOR_TYPE_JGB528,
++}MotorTypeEnum;
++
++/* 电机轴每转产生11个脉冲,  计数器在AB相上升下降沿均计数即计数值为脉冲数的4倍, 减速比为90.0。
++ * 即电机输出轴每转一圈计数器计数值改变 11.0 * 4.0 * 90.0 = 3960
++ */
++#define MOTOR_JGB520_TICKS_PER_CIRCLE 3960.0f
++#define MOTOR_JGB520_PID_KP  63.0f
++#define MOTOR_JGB520_PID_KI  2.6f
++#define MOTOR_JGB520_PID_KD  2.4f
++#define MOTOR_JGB520_RPS_LIMIT 1.5f
++
++/* 电机轴每转产生11个脉冲,  计数器在AB相上升下降沿均计数即计数值为脉冲数的4倍, 减速比为45.0:1。
++ * 即电机输出轴每转一圈计数器计数值改变 11.0 * 4.0 * 45.0 = 1980
++ */
++#define MOTOR_JGB37_TICKS_PER_CIRCLE 1980.0f
++#define MOTOR_JGB37_PID_KP  40.0f
++#define MOTOR_JGB37_PID_KI  2.0f
++#define MOTOR_JGB37_PID_KD  2.0f
++#define MOTOR_JGB37_RPS_LIMIT 3.0f
++
++/* 电机轴每转产生13个脉冲,  计数器在AB相上升下降沿均计数即计数值为脉冲数的4倍, 减速比为20.0:1。
++ * 即电机输出轴每转一圈计数器计数值改变 13.0 * 4.0 * 20.0 = 1040
++ */
++#define MOTOR_JGA27_TICKS_PER_CIRCLE 1040.0f
++#define MOTOR_JGA27_PID_KP  -36.0f
++#define MOTOR_JGA27_PID_KI  -1.0f
++#define MOTOR_JGA27_PID_KD  -1.0f
++#define MOTOR_JGA27_RPS_LIMIT 6.0f
++
++/* 电机轴每转产生11个脉冲,  计数器在AB相上升下降沿均计数即计数值为脉冲数的4倍, 减速比为131.0:1。
++ * 即电机输出轴每转一圈计数器计数值改变 11.0 * 4.0 * 131.0 = 5764
++ */
++#define MOTOR_JGB528_TICKS_PER_CIRCLE 5764.0f
++#define MOTOR_JGB528_PID_KP  300.0f
++#define MOTOR_JGB528_PID_KI  2.0f
++#define MOTOR_JGB528_PID_KD  12.0f
++#define MOTOR_JGB528_RPS_LIMIT 1.1f
++
++/* 电机轴每转产生11个脉冲,  计数器在AB相上升下降沿均计数即计数值为脉冲数的4倍, 减速比为90.0。
++ * 即电机输出轴每转一圈计数器计数值改变 11.0 * 4.0 * 90.0 = 3960
++ */
++#define MOTOR_DEFAULT_TICKS_PER_CIRCLE 3960.0f
++#define MOTOR_DEFAULT_PID_KP  63.0f
++#define MOTOR_DEFAULT_PID_KI  2.6f
++#define MOTOR_DEFAULT_PID_KD  2.4f
++#define MOTOR_DEFAULT_RPS_LIMIT 1.35f
++
++void set_motor_type(EncoderMotorObjectTypeDef *motor, MotorTypeEnum type);
++
++/* Project motor: JGB37-520R30-12 (1:30), on M1 and on the position motor.
++ * Maximum speed measured on M4 on 2026-10-04, no load, 11.96 V, PWM 100 %:
++ * +5.76 / -5.74 r/s (345 rpm). The limit is set close to that value so that
++ * all rpm are usable: near the cap the loop runs saturated (PWM 100 %) and the
++ * actual speed depends on battery and load. Previously: 3.0 r/s
++ * (MOTOR_JGB37_RPS_LIMIT, manufacturer profile for the 1:45 reduction). */
++#define PROJECT_MOTOR_RPS_LIMIT 5.7f
++
++/**
++ * @brief Applies the project motor configuration to M1 and to the position
++ *        motor (POSITION_MOTOR_INDEX).
++ *
++ * MUST be called AFTER set_chassis_type(): that function reconfigures the
++ * four motors for the chassis (JETACKER -> JGB520, 3960 ticks, KP 63) and
++ * would overwrite these values. Calling it only in motors_init() has no effect.
++ */
++void apply_project_motor_config(void);
++
++#endif
+diff -ruN '--exclude=*.o' '--exclude=*.d' '--exclude=*.crf' '--exclude=*.axf' '--exclude=*.htm' '--exclude=*.lnp' '--exclude=*.dep' '--exclude=*.lst' '--exclude=*.map' '--exclude=*.hex' '--exclude=*.bin' '--exclude=*.elf' '--exclude=*.build_log.htm' '--exclude=*.uvguix.*' '--exclude=build-gcc' '--exclude=DebugConfig' official_v1_2/RosRobotControllerM4-armclang/Hiwonder/System/app.c extended_m1/RosRobotControllerM4-armclang/Hiwonder/System/app.c
+--- official_v1_2/RosRobotControllerM4-armclang/Hiwonder/System/app.c	2026-07-27 19:35:37.718743025 -0600
++++ extended_m1/RosRobotControllerM4-armclang/Hiwonder/System/app.c	2026-10-04 16:39:20.977625829 -0600
+@@ -1,86 +1,128 @@
+-/**
+- * @file app.c
+- * @author Lu Yongping (Lucas@hiwonder.com)
+- * @brief 主应用逻辑
+- * @version 0.1
+- * @date 2023-05-08
+- *
+- * @copyright Copyright (c) 2023
+- *
+- */
+-
+-#include "cmsis_os2.h"
+-#include "led.h"
+-#include "lwmem_porting.h"
+-#include "global.h"
+-#include "lvgl.h"
+-#include "lv_port_disp.h"
+-#include "global.h"
+-#include "adc.h"
+-#include "u8g2_porting.h"
+-#include "packet_reports.h"
+-#include "packet_handle.h"
+-#include "serial_servo.h"
+-
+-
+-void buzzers_init(void);
+-void buttons_init(void);
+-void leds_init(void);
+-void motors_init(void);
+-void serial_servo_init(void);
+-void pwm_servos_init(void);
+-void sbus_init(void);
+-void chassis_init(void);
+-
+-
+-void button_event_callback(ButtonObjectTypeDef *button,  ButtonEventIDEnum event)
+-{
+-    PacketReportKeyEventTypeDef report = {
+-        .key_id = button->id,
+-        .event = (uint8_t)(int)event,
+-    };
+-    packet_transmit(&packet_controller, PACKET_FUNC_KEY, &report, sizeof(PacketReportKeyEventTypeDef));
+-	if(event == BUTTON_EVENT_CLICK) {
+-		buzzer_didi(buzzers[0], 2000, 50, 50, 1);
+-	}
+-}
+-
+-void app_task_entry(void *argument)
+-{
+-    extern osTimerId_t led_timerHandle;
+-    extern osTimerId_t buzzer_timerHandle;
+-    extern osTimerId_t button_timerHandle;
+-    extern osTimerId_t battery_check_timerHandle;
+-    extern osMessageQueueId_t moving_ctrl_queueHandle;
+-    extern osMessageQueueId_t bluetooth_tx_queueHandle;
+-
+-    motors_init();
+-    pwm_servos_init();
+-	serial_servo_init();
+-    leds_init();
+-    buzzers_init();
+-    buttons_init();
+-	
+-    button_register_callback(buttons[0], button_event_callback);
+-    button_register_callback(buttons[1], button_event_callback);
+-
+-    osTimerStart(led_timerHandle, LED_TASK_PERIOD);
+-    osTimerStart(buzzer_timerHandle, BUZZER_TASK_PERIOD);
+-    osTimerStart(button_timerHandle, BUTTON_TASK_PERIOD);
+-    osTimerStart(battery_check_timerHandle, BATTERY_TASK_PERIOD);
+-    packet_handle_init();
+-
+-//    char msg = '\0';
+-//    uint8_t msg_prio;
+-//    osMessageQueueReset(moving_ctrl_queueHandle);
+-
+-    chassis_init();
+-    set_chassis_type(CHASSIS_TYPE_JETACKER);
+-
+-    for(;;) {
+-		osDelay(10000);
+-    }
+-}
+-
+-
+-
++/**
++ * @file app.c
++ * @author Lu Yongping (Lucas@hiwonder.com)
++ * @brief 主应用逻辑
++ * @version 0.1
++ * @date 2023-05-08
++ *
++ * @copyright Copyright (c) 2023
++ *
++ */
++
++#include "cmsis_os2.h"
++#include "led.h"
++#include "lwmem_porting.h"
++#include "global.h"
++#include "lvgl.h"
++#include "lv_port_disp.h"
++#include "global.h"
++#include "adc.h"
++#include "u8g2_porting.h"
++#include "packet_reports.h"
++#include "packet_handle.h"
++#include "motors_param.h"
++#include "serial_servo.h"
++
++
++void buzzers_init(void);
++void buttons_init(void);
++void leds_init(void);
++void motors_init(void);
++void serial_servo_init(void);
++void pwm_servos_init(void);
++void sbus_init(void);
++void chassis_init(void);
++
++/* Independent watchdog (IWDG). The board has no external watchdog and the IWDG
++   runs from the LSI (~32 kHz), so it keeps counting even if the crystal fails.
++   It is refreshed by the TIM7 ISR (100 Hz, motor loop) only if this task gave a
++   sign of life less than 500 ms ago: a hang in interrupt context (CSS NMI,
++   HardFault, Error_Handler, configASSERT) or in the RTOS resets the board,
++   and the reset cuts the PWMs. Reason: on 2026-10-04 the CSS NMI left the board
++   unresponsive with the PWM frozen (BANCO_2026-10-04.md). */
++#define WATCHDOG_PRESCALER_DIV32     3u   /* IWDG_PR: LSI/32, ~1 kHz */
++#define WATCHDOG_RELOAD              250u /* ~250 ms (LSI 17-47 kHz: 170-470 ms) */
++#define WATCHDOG_HEARTBEAT_MAX_TICKS 50u  /* TIM7 cycles without a sign of life: 500 ms */
++#define WATCHDOG_HEARTBEAT_PERIOD_MS 100u
++
++static volatile uint32_t watchdog_heartbeat_age = 0;
++static volatile uint8_t watchdog_running = 0;
++
++static void watchdog_start(void)
++{
++    __HAL_DBGMCU_FREEZE_IWDG();   /* frozen while a debugger halts the CPU */
++    IWDG->KR = 0xCCCCu;           /* start; cannot be stopped until a reset */
++    IWDG->KR = 0x5555u;           /* unlock PR and RLR */
++    IWDG->PR = WATCHDOG_PRESCALER_DIV32;
++    IWDG->RLR = WATCHDOG_RELOAD;
++    for(uint32_t i = 0; (IWDG->SR != 0u) && (i < 1000000u); ++i) {
++    }
++    IWDG->KR = 0xAAAAu;
++    watchdog_heartbeat_age = 0;
++    watchdog_running = 1;
++}
++
++void watchdog_isr_kick(void)
++{
++    if(!watchdog_running) return;
++    if(watchdog_heartbeat_age < WATCHDOG_HEARTBEAT_MAX_TICKS) {
++        ++watchdog_heartbeat_age;
++        IWDG->KR = 0xAAAAu;
++    }
++}
++
++
++void button_event_callback(ButtonObjectTypeDef *button,  ButtonEventIDEnum event)
++{
++    PacketReportKeyEventTypeDef report = {
++        .key_id = button->id,
++        .event = (uint8_t)(int)event,
++    };
++    packet_transmit(&packet_controller, PACKET_FUNC_KEY, &report, sizeof(PacketReportKeyEventTypeDef));
++	if(event == BUTTON_EVENT_CLICK) {
++		buzzer_didi(buzzers[0], 2000, 50, 50, 1);
++	}
++}
++
++void app_task_entry(void *argument)
++{
++    extern osTimerId_t led_timerHandle;
++    extern osTimerId_t buzzer_timerHandle;
++    extern osTimerId_t button_timerHandle;
++    extern osTimerId_t battery_check_timerHandle;
++    extern osMessageQueueId_t moving_ctrl_queueHandle;
++    extern osMessageQueueId_t bluetooth_tx_queueHandle;
++
++    motors_init();
++    pwm_servos_init();
++	serial_servo_init();
++    leds_init();
++    buzzers_init();
++    buttons_init();
++
++    button_register_callback(buttons[0], button_event_callback);
++    button_register_callback(buttons[1], button_event_callback);
++
++    osTimerStart(led_timerHandle, LED_TASK_PERIOD);
++    osTimerStart(buzzer_timerHandle, BUZZER_TASK_PERIOD);
++    osTimerStart(button_timerHandle, BUTTON_TASK_PERIOD);
++    osTimerStart(battery_check_timerHandle, BATTERY_TASK_PERIOD);
++    packet_handle_init();
++
++//    char msg = '\0';
++//    uint8_t msg_prio;
++//    osMessageQueueReset(moving_ctrl_queueHandle);
++
++    chassis_init();
++    set_chassis_type(CHASSIS_TYPE_JETACKER);
++    /* set_chassis_type() reconfigures the 4 motors to the chassis profile;
++       afterwards re-apply the real config of M1 and of the position motor. */
++    apply_project_motor_config();
++
++    /* Everything initialized: from here on a hang resets the board. */
++    watchdog_start();
++    for(;;) {
++        watchdog_heartbeat_age = 0;   /* RTOS sign of life */
++        osDelay(WATCHDOG_HEARTBEAT_PERIOD_MS);
++    }
++}
+diff -ruN '--exclude=*.o' '--exclude=*.d' '--exclude=*.crf' '--exclude=*.axf' '--exclude=*.htm' '--exclude=*.lnp' '--exclude=*.dep' '--exclude=*.lst' '--exclude=*.map' '--exclude=*.hex' '--exclude=*.bin' '--exclude=*.elf' '--exclude=*.build_log.htm' '--exclude=*.uvguix.*' '--exclude=build-gcc' '--exclude=DebugConfig' official_v1_2/RosRobotControllerM4-armclang/Hiwonder/System/global_conf.h extended_m1/RosRobotControllerM4-armclang/Hiwonder/System/global_conf.h
+--- official_v1_2/RosRobotControllerM4-armclang/Hiwonder/System/global_conf.h	2026-07-27 19:35:37.733743072 -0600
++++ extended_m1/RosRobotControllerM4-armclang/Hiwonder/System/global_conf.h	2026-10-04 15:37:44.421863239 -0600
+@@ -12,6 +12,13 @@
+ //#define BATTERY_LOW_ALARM_THRESHOLD 6300  /* 低电压报警阈值, 单位毫伏 */
+ #define BATTERY_LOW_ALARM_THRESHOLD 9600
+ 
++/* Motor with position control (MOTOR_EXT 0x0B): index 0..3 = M1..M4.
++   2026-10-04: moved from M1 to M4, with the same JGB37-520R30-12 motor. */
++#define POSITION_MOTOR_INDEX 3u
++#if POSITION_MOTOR_INDEX > 3u
++#error "POSITION_MOTOR_INDEX must be between 0 and 3"
++#endif
++
+ 
+ #define KEY1_PUSHED_LEVEL 0
+ #define KEY2_PUSHED_LEVEL 0
+diff -ruN '--exclude=*.o' '--exclude=*.d' '--exclude=*.crf' '--exclude=*.axf' '--exclude=*.htm' '--exclude=*.lnp' '--exclude=*.dep' '--exclude=*.lst' '--exclude=*.map' '--exclude=*.hex' '--exclude=*.bin' '--exclude=*.elf' '--exclude=*.build_log.htm' '--exclude=*.uvguix.*' '--exclude=build-gcc' '--exclude=DebugConfig' official_v1_2/RosRobotControllerM4-armclang/Hiwonder/System/global.h extended_m1/RosRobotControllerM4-armclang/Hiwonder/System/global.h
+--- official_v1_2/RosRobotControllerM4-armclang/Hiwonder/System/global.h	2026-07-27 19:35:37.730743062 -0600
++++ extended_m1/RosRobotControllerM4-armclang/Hiwonder/System/global.h	2026-10-04 16:39:20.995625778 -0600
+@@ -53,6 +53,9 @@
+ 
+ void set_chassis_type(uint8_t chassis_type);
+ 
++/* Refreshes the watchdog (IWDG) from the TIM7 ISR if the RTOS is alive (app.c). */
++void watchdog_isr_kick(void);
++
+ 
+ #endif
+ 
+diff -ruN '--exclude=*.o' '--exclude=*.d' '--exclude=*.crf' '--exclude=*.axf' '--exclude=*.htm' '--exclude=*.lnp' '--exclude=*.dep' '--exclude=*.lst' '--exclude=*.map' '--exclude=*.hex' '--exclude=*.bin' '--exclude=*.elf' '--exclude=*.build_log.htm' '--exclude=*.uvguix.*' '--exclude=build-gcc' '--exclude=DebugConfig' official_v1_2/RosRobotControllerM4-armclang/Hiwonder/System/packet_handle.c extended_m1/RosRobotControllerM4-armclang/Hiwonder/System/packet_handle.c
+--- official_v1_2/RosRobotControllerM4-armclang/Hiwonder/System/packet_handle.c	2026-07-27 19:35:37.750743126 -0600
++++ extended_m1/RosRobotControllerM4-armclang/Hiwonder/System/packet_handle.c	2026-10-04 17:20:51.466233252 -0600
+@@ -32,6 +32,61 @@
+     uint8_t motor_mask;
+ } MotorMultiStopCommandTypeDef;
+ 
++enum MotorExtSubCommand {
++    MOTOR_EXT_CAPABILITIES = 0x00,
++    MOTOR_EXT_MOVE_RELATIVE = 0x01,
++    MOTOR_EXT_CANCEL = 0x02,
++    MOTOR_EXT_ZERO = 0x03,
++    MOTOR_EXT_STATUS = 0x04,
++    MOTOR_EXT_HOLD = 0x05,
++};
++
++typedef struct {
++    uint8_t cmd;
++    uint8_t motor_id;
++    int32_t delta_ticks;
++    float max_rps;
++    uint16_t tolerance_ticks;
++    uint16_t timeout_ms;
++} MotorExtMoveRelativeTypeDef;
++
++typedef struct {
++    uint8_t cmd;
++    uint8_t motor_id;
++} MotorExtSimpleCommandTypeDef;
++
++typedef struct {
++    uint8_t cmd;
++    uint8_t motor_id;
++    float max_rps;
++    uint16_t tolerance_ticks;
++    uint16_t max_pulse;
++} MotorExtHoldTypeDef;
++
++typedef struct {
++    uint8_t cmd;
++    uint8_t motor_id;
++    uint8_t status;
++    uint8_t active;
++    int32_t position_ticks;
++    int32_t target_ticks;
++    int32_t error_ticks;
++    float rps;
++} MotorExtReportTypeDef;
++
++/* v1: position on fixed M1. v2: the position motor is the motor_mask bit
++   (POSITION_MOTOR_INDEX) and ticks are read from the motor object. Same format.
++   v3: HOLD (0x05) and states 6 (holding) and 7 (stalled). */
++#define MOTOR_EXT_PROTOCOL_VERSION 3u
++
++typedef struct {
++    uint8_t cmd;
++    uint8_t version;
++    uint8_t motor_mask;
++    uint8_t reserved;
++    uint32_t ticks_per_revolution;
++} MotorExtCapabilitiesTypeDef;
++
+ /* 串口舵机 */
+ typedef struct {
+     uint8_t cmd;
+@@ -190,7 +245,7 @@
+             report.args[0] = load_unload;
+             packet_transmit(&packet_controller, PACKET_FUNC_BUS_SERVO, &report, 4);
+             break;
+-		}			
++		}
+         case 0x10: { /* ID 写入 */
+             SerialServoCommandTypeDef *cmd = (SerialServoCommandTypeDef *)frame->data_and_checksum;
+             serial_servo_set_id(&serial_servo_controller, cmd->servo_id, cmd->args[0]);
+@@ -266,8 +321,6 @@
+             break;
+     }
+ }
+-
+-
+ /**
+ * @brief PWM舵机串口命令回调处理
+ * @param frame 数据帧
+@@ -341,27 +394,38 @@
+     switch(frame->data_and_checksum[0]) {
+         case 0: {
+             MotorSingalCtrlCommandTypeDef *mscc = (MotorSingalCtrlCommandTypeDef *)frame->data_and_checksum;
++            if(frame->data_length < sizeof(MotorSingalCtrlCommandTypeDef)) break;
++            if(mscc->motor_id > 3u) break; /* the original indexed motors[] without bounds check */
++            if(mscc->motor_id == POSITION_MOTOR_INDEX) encoder_motor_position_cancel(motors[POSITION_MOTOR_INDEX]);
+             motors[mscc->motor_id]->pid_controller.set_point = mscc->speed;
+             break;
+         }
+         case 1: {
+             MotorMutilCtrlCommandTypeDef *mmcc = NULL;
+             mmcc = (MotorMutilCtrlCommandTypeDef *)frame->data_and_checksum;
++            if(frame->data_length < 2u) break;
++            /* motor_num larger than the frame carries would read past the buffer */
++            if(frame->data_length < 2u + mmcc->motor_num * sizeof(mmcc->element[0])) break;
+             for(int i = 0; i < mmcc->motor_num; ++i) {
++                if(mmcc->element[i].motor_id > 3u) continue;
++                if(mmcc->element[i].motor_id == POSITION_MOTOR_INDEX) encoder_motor_position_cancel(motors[POSITION_MOTOR_INDEX]);
+                 motors[mmcc->element[i].motor_id]->pid_controller.set_point = mmcc->element[i].speed;
+             }
+             break;
+         }
+         case 2:  {
+             MotorSingalStopCommandTypeDef *mssc = (MotorSingalStopCommandTypeDef *)frame->data_and_checksum;
+-            motors[mssc->motor_id]->pid_controller.set_point = 0;
++            if(mssc->motor_id > 3u) break;
++            /* Hard stop: clears the incremental loop accumulator. Setting only
++               the setpoint to zero does not stop the motor if feedback is missing. */
++            encoder_motor_stop(motors[mssc->motor_id]);
+             break;
+         }
+         case 3: {
+             MotorMultiStopCommandTypeDef *mmsc = (MotorMultiStopCommandTypeDef *)frame->data_and_checksum;
+             for(int i = 0; i < 4; ++i) {
+                 if(mmsc->motor_mask & (0x01 << i)) {
+-                    motors[i]->pid_controller.set_point = 0;
++                    encoder_motor_stop(motors[i]);
+                 }
+             }
+             break;
+@@ -371,6 +435,78 @@
+     }
+ }
+ 
++static void packet_motor_ext_report(uint8_t cmd, uint8_t status_override)
++{
++    MotorExtReportTypeDef report;
++    encoder_motor_position_snapshot(motors[POSITION_MOTOR_INDEX], &report.position_ticks,
++                                    &report.target_ticks, &report.error_ticks,
++                                    &report.rps, &report.active, &report.status);
++    report.cmd = cmd;
++    report.motor_id = POSITION_MOTOR_INDEX;
++    if(status_override != 0xFFu) report.status = status_override;
++    packet_transmit(&packet_controller, PACKET_FUNC_MOTOR_EXT, &report, sizeof(report));
++}
++
++static void packet_motor_ext_handle(struct PacketRawFrame *frame)
++{
++    uint8_t cmd;
++    if(frame->data_length < 1u) return;
++    cmd = frame->data_and_checksum[0];
++
++    if(cmd == MOTOR_EXT_CAPABILITIES) {
++        MotorExtCapabilitiesTypeDef report = {
++            MOTOR_EXT_CAPABILITIES, MOTOR_EXT_PROTOCOL_VERSION,
++            (uint8_t)(1u << POSITION_MOTOR_INDEX), 0u,
++            (uint32_t)motors[POSITION_MOTOR_INDEX]->ticks_per_circle};
++        packet_transmit(&packet_controller, PACKET_FUNC_MOTOR_EXT, &report, sizeof(report));
++        return;
++    }
++
++    if(frame->data_length < sizeof(MotorExtSimpleCommandTypeDef)) return;
++    if(frame->data_and_checksum[1] != POSITION_MOTOR_INDEX) {
++        packet_motor_ext_report(cmd, 5u);
++        return;
++    }
++
++    switch(cmd) {
++        case MOTOR_EXT_MOVE_RELATIVE: {
++            MotorExtMoveRelativeTypeDef *move;
++            int result;
++            if(frame->data_length != sizeof(MotorExtMoveRelativeTypeDef)) return;
++            move = (MotorExtMoveRelativeTypeDef *)frame->data_and_checksum;
++            result = encoder_motor_move_relative(motors[POSITION_MOTOR_INDEX], move->delta_ticks,
++                                                 move->max_rps, move->tolerance_ticks,
++                                                 move->timeout_ms);
++            packet_motor_ext_report(cmd, result == 0 ? 0xFFu : 5u);
++            break;
++        }
++        case MOTOR_EXT_CANCEL:
++            encoder_motor_position_cancel(motors[POSITION_MOTOR_INDEX]);
++            packet_motor_ext_report(cmd, 0xFFu);
++            break;
++        case MOTOR_EXT_ZERO:
++            encoder_motor_position_zero(motors[POSITION_MOTOR_INDEX]);
++            packet_motor_ext_report(cmd, 0xFFu);
++            break;
++        case MOTOR_EXT_STATUS:
++            packet_motor_ext_report(cmd, 0xFFu);
++            break;
++        case MOTOR_EXT_HOLD: {
++            MotorExtHoldTypeDef *hold;
++            int result;
++            if(frame->data_length != sizeof(MotorExtHoldTypeDef)) return;
++            hold = (MotorExtHoldTypeDef *)frame->data_and_checksum;
++            result = encoder_motor_hold(motors[POSITION_MOTOR_INDEX], hold->max_rps,
++                                        hold->tolerance_ticks, hold->max_pulse);
++            packet_motor_ext_report(cmd, result == 0 ? 0xFFu : 5u);
++            break;
++        }
++        default:
++            packet_motor_ext_report(cmd, 5u);
++            break;
++    }
++}
++
+ 
+ void packet_handle_init(void)
+ {
+@@ -379,5 +515,5 @@
+     packet_register_callback(&packet_controller, PACKET_FUNC_MOTOR, packet_motor_handle);
+     packet_register_callback(&packet_controller, PACKET_FUNC_BUS_SERVO, packet_serial_servo_handle);
+     packet_register_callback(&packet_controller, PACKET_FUNC_PWM_SERVO, packet_pwm_servo_handle);
++    packet_register_callback(&packet_controller, PACKET_FUNC_MOTOR_EXT, packet_motor_ext_handle);
+ }
+-
+diff -ruN '--exclude=*.o' '--exclude=*.d' '--exclude=*.crf' '--exclude=*.axf' '--exclude=*.htm' '--exclude=*.lnp' '--exclude=*.dep' '--exclude=*.lst' '--exclude=*.map' '--exclude=*.hex' '--exclude=*.bin' '--exclude=*.elf' '--exclude=*.build_log.htm' '--exclude=*.uvguix.*' '--exclude=build-gcc' '--exclude=DebugConfig' official_v1_2/RosRobotControllerM4-armclang/Hiwonder/USB_HOST/usbh_hiwonder_hid.c extended_m1/RosRobotControllerM4-armclang/Hiwonder/USB_HOST/usbh_hiwonder_hid.c
+--- official_v1_2/RosRobotControllerM4-armclang/Hiwonder/USB_HOST/usbh_hiwonder_hid.c	2026-07-27 19:35:37.786743238 -0600
++++ extended_m1/RosRobotControllerM4-armclang/Hiwonder/USB_HOST/usbh_hiwonder_hid.c	2026-07-27 19:34:58.658617890 -0600
+@@ -259,7 +259,7 @@
+ #if (osCMSIS < 0x20000U)
+             (void)osMessagePut(phost->os_event, phost->os_msg, 0U);
+ #else
+-            (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, NULL);
++            (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, 0U);
+ #endif
+ #endif
+             break;
+@@ -284,7 +284,7 @@
+ #if (osCMSIS < 0x20000U)
+             (void)osMessagePut(phost->os_event, phost->os_msg, 0U);
+ #else
+-            (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, NULL);
++            (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, 0U);
+ #endif
+ #endif
+             break;
+@@ -300,7 +300,7 @@
+ #if (osCMSIS < 0x20000U)
+             (void)osMessagePut(phost->os_event, phost->os_msg, 0U);
+ #else
+-            (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, NULL);
++            (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, 0U);
+ #endif
+ #endif
+             break;
+@@ -330,7 +330,7 @@
+ #if (osCMSIS < 0x20000U)
+                     (void)osMessagePut(phost->os_event, phost->os_msg, 0U);
+ #else
+-                    (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, NULL);
++                    (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, 0U);
+ #endif
+ #endif
+                 }
+@@ -372,7 +372,7 @@
+ #if (osCMSIS < 0x20000U)
+             (void)osMessagePut(phost->os_event, phost->os_msg, 0U);
+ #else
+-            (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, NULL);
++            (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, 0U);
+ #endif
+ #endif
+         }
