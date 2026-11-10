@@ -29,8 +29,8 @@ The sections follow the five criteria of the WRO 2026 documentation rubric (Appe
 | 1. Mobility and Mechanical Design | [§4](#mobility) |
 | 2. Power and Sensor Architecture | [§5](#power-sensors) |
 | 3. Software Architecture and Obstacle Strategy | [§6](#software) |
-| 4. Systems Thinking and Engineering Decisions | [§7](#systems) |
-| 5. Reproducibility and GitHub Quality | [§8](#reproducibility), [§9](#setup-instructions) |
+| 4. Systems Thinking and Engineering Decisions | [§7](#systems): decisions, risks, [failure log](#failure-log), [known limitations](#limitations) |
+| 5. Reproducibility and GitHub Quality | [§8](#reproducibility), [§9](#setup-instructions), [§10](#construction-guide) with the [assembly instructions](other/Assembly_photos/Assembly_Process_EN.md) |
 
 ---
 
@@ -46,6 +46,8 @@ The sections follow the five criteria of the WRO 2026 documentation rubric (Appe
 8. [Reproducibility: repository, versions and testing](#reproducibility)
 9. [Setup and Execution Instructions](#setup-instructions)
 10. [Construction Guide and Bill of Materials](#construction-guide)
+    - [Assembly instructions: 31 steps with photos](other/Assembly_photos/Assembly_Process_EN.md)
+    - [3D-printed parts](#printed-parts) and [Bill of Materials](#bom)
 11. [Driving Videos](#driving-videos)
 12. [Resources](#resources)
 13. [License](#license)
@@ -194,7 +196,7 @@ The robot has gone through seven designs across two seasons (see [§7.4](#lesson
 | Repository release | Vehicle design | Event |
 |---|---|---|
 | [`v1.0.0`](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS/releases/tag/v1.0.0) | Design v6 | Mexico National Final, Tijuana (2nd place) |
-| `v2.0.0` | Design v7 | International Final, Puerto Rico |
+| [`v2.0.0`](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS/releases/tag/v2.0.0) | Design v7 | International Final, Puerto Rico |
 
 | Subsystem | Design v6: National Final (Sep 2026) | Design v7: International Final (Dec 2026) | Decision card |
 |---|---|---|---|
@@ -603,6 +605,23 @@ $$t_{runtime} = \frac{36.7\text{ Wh}}{21\text{ W}} \approx 1.7\text{ h}$$
 
 *Figure 7. Design v7 wiring diagram: battery voltage (red), regulated 5 V (orange), data (blue), mechanical links (dashed).*
 
+**Connection table (design v7)** <a id="connections"></a>
+
+| From | To | Connection | Notes |
+|---|---|---|---|
+| 3S pack (3 × NCR18650B in series) | 3S BMS | Battery leads | Protection for the pack |
+| 3S BMS output | Hiwonder controller, power input | Battery voltage, 9.9–12.6 V in use (the board accepts 7–14 V) | The board's main power switch turns the whole robot on and off |
+| Hiwonder controller, 5 V / 5 A Type-C output | Raspberry Pi 5, USB-C power input | 5 V | Powers the Pi and, through it, the Hailo-8, the camera, the LiDAR and the start button |
+| Raspberry Pi 5, USB port | Hiwonder controller, USB serial port (CH343) | USB serial, 1 Mbaud | Motion commands to the board, IMU heading back |
+| JGB37-520 drive motor (motor and Hall encoder) | Hiwonder controller, encoder-motor port **M4** | Motor cable | Closed-loop speed and position control on the board |
+| HX-35H steering servo | Hiwonder controller, serial bus servo port | Bus servo cable, battery voltage | Servo ID 1 |
+| RPLidar S2L | Raspberry Pi 5, USB port | USB through the LiDAR's UART adapter, 1 Mbaud | Powered from the Pi's USB port |
+| Camera Module 3 Wide | Raspberry Pi 5, CSI connector | Flat camera cable | |
+| AI HAT+ 26 TOPS (Hailo-8) | Raspberry Pi 5, PCIe connector | Mounted on the Pi as a HAT | |
+| Grove LED button, button | Raspberry Pi 5, **GPIO4** (BCM) | Grove cable | Start button |
+| Grove LED button, LED | Raspberry Pi 5, **GPIO3** (BCM) | Grove cable | Blinks when the gyro calibration is done |
+| ST-LINK/V2 (only to flash the firmware) | Hiwonder controller, header **H1**: pin 1 3V3, pin 3 SWCLK, pin 5 GND, pin 7 SWDIO | SWD | With the battery unplugged ([firmware README](firmware/hiwonder_pos-v8/README.md#flash-it)) |
+
 **Electrical limits, calculated from the Panasonic datasheet**
 
 | NCR18650B ([Panasonic datasheet](other/datasheets/Panasonic-NCR18650B-datasheet.pdf); max. discharge: [Battery Bro](https://batterybro.com/products/panasonic-b-ncr18650b-3400mah-4-8a); resistance: [lygte-info](https://lygte-info.dk/review/batteries2012/Panasonic%20NCR18650B%203400mAh%20(Green)%20UK.html)) | Value |
@@ -897,7 +916,9 @@ What we added:
 
 At start-up `Spike_Hiwonder_Init()` sends `CAPABILITIES`. A board with Hiwonder's stock firmware does not answer it, and the program stops with "the firmware has no position control on M4 (is pos-v8 loaded?)" before anything moves. Flashing (ST-LINK/V2 on header H1, 12 V unplugged) and building from source are described in [`firmware/hiwonder_pos-v8/README.md`](firmware/hiwonder_pos-v8/README.md).
 
-<img src="other/additionalMedia/Others/fpv.gif">
+<img src="other/additionalMedia/Others/fpv.gif" alt="View from the robot's camera with the detections of the model drawn on each frame">
+
+*View from the robot's camera on the track. The boxes are the model's detections with their class and confidence: `RedBox`, `GreenBox` and the parking markers (`Xparking`).*
 
 The Obstacle Challenge program is structured as cooperating threads: a Hailo preprocess → inference → postprocess pipeline for the camera frames, a background LiDAR reader thread that keeps a 360-slot distance buffer up to date, and an `Obstacle_Challenge_Thread` that runs the navigation and avoidance logic and sends motion commands to the Hiwonder board through `spike_compat`.
 
@@ -1320,6 +1341,20 @@ At a similar battery voltage the measured speed (0.524 m/s at 10.7 V) is about 1
 
 **Obstacle Challenge**
 
+The ten runs used five pillar layouts, A to E, each driven once in each direction. In all five the parking lot, and with it the starting section, is in the section on the right of the drawing.
+
+<img src="other/testing/obstacle_layouts.png" alt="The five obstacle layouts A to E used in the test runs: positions of the red and green pillars and of the parking lot on the WRO playfield" width="900">
+
+*Figure 16. Obstacle layouts A to E of the test runs. Pillars and parking limits are drawn larger than scale; single drawings are in [`other/testing/`](other/testing).*
+
+| Layout | Top section | Left section | Right section (parking) | Bottom section |
+|---|---|---|---|---|
+| A | 1 red | 2 green | 1 red | 1 red |
+| B | 1 green, 1 red | 1 green | 1 green, 1 red | 1 red |
+| C | 1 green, 1 red | 1 green | 1 green, 1 red | 1 green, 1 red |
+| D | 1 green, 1 red | 1 red | 1 red | 1 red, 1 green |
+| E | 2 green | 1 green, 1 red | 1 green | 1 red |
+
 | # | Direction | Layout | Laps | Parking | Time | Result | Notes |
 |---|---|---|---|---|---|---|---|
 | 1 | CCW | A | 3 | Yes | 118.5 s | Pass | |
@@ -1337,7 +1372,20 @@ At a similar battery voltage the measured speed (0.524 m/s at 10.7 V) is about 1
 
 **What the logs tell us.** Every failure happened on **lap 3**, in both challenges, and two of the three Obstacle failures were on the same layout (E). Together with the measured gyro drift (≈ 1°/min), this points at accumulated heading and distance error late in the run rather than at a single bad manoeuvre. Next targets: the corner re-squaring on lap 3, the pillar approach of layout E, and the final parking approach.
 
-#### 6.9.3 National Final rounds (design v6)
+#### 6.9.3 What each test changed <a id="test-to-change"></a>
+
+| Test (data above) | What we found | What we did with it |
+|---|---|---|
+| Encoder counts per turn | 1320, equal to 11 pulses × 30:1 × 4 | Used as the tick constant in the firmware and in the distance conversion; no correction needed |
+| 1000 mm advance, 10 times | Mean 1001.9 mm, standard deviation 11.1 mm | Distance calibration kept without correction. Advances that must end at an exact place use a LiDAR distance to the wall (`Oradar_S2L_Advance_Until_Distance`) instead of the encoder |
+| Gyro drift | With 2 s of calibration the bench drift was about 0.5° in 20 s; with 5 s it is about 1° per minute | Calibration time set to 5 s instead of 2 s; 0.3° heading dead band ([§6.7](#67-steering-control-pd)); the gyro is re-zeroed against a wall at every corner ([§6.6](#heading)) |
+| LiDAR accuracy and wall detection, S2L against MS200k | S2L: lower noise at every distance, wall found in 98.4 % of frames against 96.2 % | The S2L became the default LiDAR ([D4](#d4)); the MS200k build is kept behind a build switch |
+| Start readings | A single wrong LiDAR return could choose the wrong start case | The Open Challenge takes 3 readings that must agree within 30 mm (`Lidar_Debounced_Read`) |
+| Vision on the track | 96 of 100 pillars correct; the 4 errors were in strong shadows | No change to the model. Strong shadows are recorded as the remaining error source, and the perception-only check is part of the [competition-day checklist](#checklist) |
+| Speed against battery voltage | −9.7 % speed on a low battery at 5.7 rev/s, −6.1 % at 4.0 rev/s | 5.7 rev/s kept for competition; the effect is in the risk register as characterised ([§7.3](#risks)) and rounds start with a full pack |
+| 10 + 10 run logs | Every failure on lap 3; two of the three Obstacle failures on layout E | Open: failures F9 to F11 in the [failure log](#failure-log) |
+
+#### 6.9.4 National Final rounds (design v6)
 
 The official rounds of the 2026 Mexico National Final (2nd place) are linked in [§11](#driving-videos).
 
@@ -1476,6 +1524,39 @@ Within the 2026 national season (v3–v6) the progress was incremental: no itera
 * **No command timeout on the new board.** If the program died, the motor kept running. Solved with the signal-based emergency stop ([D8](#d8)); a clock fault that froze the board with the last PWM applied was solved in the firmware with an IWDG watchdog (`pos-v7`).
 * **A faster robot needs new gains.** With the faster motor, the board's IMU and the S2L, the national thresholds and the PD gains no longer gave the same behaviour. We re-tuned them on the track by trial and error, with small changes to the values until the runs were satisfactory, while keeping the mission logic unchanged thanks to the compatibility layer ([D1](#d1)).
 
+### 7.5 Failure log <a id="failure-log"></a>
+
+Every failure that changed the design or is still open, with its cause and the result of the retest. Dates are from the logbook of the [Engineering Journal](Engineering_Journal_CSS_WRO2026_International.pdf).
+
+| ID | Date | Symptom | Root cause | Corrective action | Retest | Status |
+|---|---|---|---|---|---|---|
+| F1 | 2026-03 | The robot acted on old sensor readings | The 2025 Python loop read the camera and the LiDAR slower than they produced data | Acquisition and control rewritten in C/C++ | Loop above 50 Hz | Closed |
+| F2 | 2026-06-13 | The Pi and the Hailo shut down under hard acceleration with the pack still charged | Generic 18650 cells with high internal resistance: the motor current spike pulled the supply down | Panasonic NCR18650B cells; the pack is now specified by current, not by capacity | No brownouts in design v6; v7 peak current calculated in [§5.1](#power) | Closed (v7 worst case accepted, [§7.3](#risks)) |
+| F3 | 2026-07-11 | Distorted RPLidar S2L readings close to the walls | Our driver had been written for another LiDAR (RPLidar A1) and was not adapted to the S2L | First the S2L was replaced by the MS200k; in October 2026 the driver was adapted and the S2L came back ([D4](#d4)) | Wall found in 98.4 % of frames; accuracy table in [§6.9](#testing) | Closed |
+| F4 | 2026-07-25 | The robot behaved as if blind: no wall readings | After the compact repackaging the LiDAR scanned above the 100 mm walls | Mount lowered in v5 (2026-08-01); scanning plane about 75 mm above the ground in v7 | Walls and pillars are cut by the scan | Closed |
+| F5 | 2026-08-22 | Position control could not be validated on the bench | The encoder of the first drive motor was faulty | Motor replaced | Firmware `pos-v4` validated on the bench with the new motor | Closed |
+| F6 | 2026-10-04 | The board froze with the last PWM still applied to the motor | A clock fault left the firmware hung | IWDG watchdog added in firmware `pos-v7`: resets the board in about 250 ms | Validated on the bench (2026-10-04) | Closed |
+| F7 | 2026-10 | If the program on the Pi died, the motor kept its last speed | The board firmware has no command timeout | Signal-based emergency stop ([D8](#d8)) | Ctrl+C, `kill`, a closed SSH session and crashes stop the robot | Closed for those cases; `kill -9` and a frozen Pi need the power switch |
+| F8 | 2026-10 | Vision errors on the track: missed pillars, a red broom read as a red pillar, a green pillar seen in an empty corner; mostly in poor light | Small dataset (501 images) with no images without pillars | Model retrained on 23,938 images, including scenes with no pillars and poor light ([D6](#d6)) | 99.2 % correct decisions in validation; 96 of 100 on the track | Closed; strong shadows remain |
+| F9 | 2026-11-08 | Open Challenge run 9: clipped the inner wall on lap 3 | Not confirmed yet. Suspected: heading and distance error that adds up late in the run | Open | | Open |
+| F10 | 2026-11-08 | Obstacle Challenge run 8: overshot the parking bay line | Not confirmed yet | Open | | Open |
+| F11 | 2026-11-08 | Obstacle Challenge runs 9 and 10 (layout E): stuck on a red pillar and clipped a green pillar, both on lap 3 | Not confirmed yet. Same suspicion as F9 | Open | | Open |
+
+### 7.6 Known limitations and next steps <a id="limitations"></a>
+
+| Limitation today | Effect | Next step |
+|---|---|---|
+| All failures in the run logs are on lap 3 (F9 to F11); parking completed in 7 of 10 runs | The last lap and the parking are the least reliable parts of a run | Work on the corner re-squaring on lap 3, the pillar approach of layout E and the final parking approach ([§6.9](#testing)) |
+| The missions do not check that the LiDAR is still delivering scans during a run | If the LiDAR stopped mid-run, the robot would continue on old data | Use the scan counter (`Oradar_S2L_Get_Scan_Seq`) in the missions, as the camera + LiDAR demo mode already does ([§7.3](#risks)) |
+| The board firmware has no command timeout | `kill -9` or a frozen Pi is only covered by the power switch | A command timeout in the firmware ([D8](#d8)) |
+| The speed set-point (5.7 rev/s) is above what the motor reaches | Speed falls 9.7 % from a full to a low battery | Start rounds with a full pack; the 4.0 rev/s set-point (−6.1 %) is measured as an alternative ([§4.3](#drivetrain)) |
+| The IMU is read at 20 Hz | The D term of the heading PD sees few new samples; the steering may vibrate on straights | Gains re-tuned on the track ([§5.4](#noise)) |
+| PD gains and mission thresholds were tuned by trial and error | No model predicts the behaviour after a hardware change; a change needs new track time | Keep logging every run ([§6.9](#testing)) |
+| Heading is gyro plus LiDAR corrections at walls, not a fused estimate | Between corrections the heading drifts about 1° per minute | Accepted: the heading is re-squared 12 times per run ([§6.6](#heading)) |
+| Vision fails in strong shadows and in near darkness | Wrong or missed pillar colour (4 of 100 on the track) | Perception-only check at the venue before each round ([checklist](#checklist)) |
+| Worst-case current (motor and servo both stalled) is above the cells' continuous rating | Supply sag, calculated to stay above the board's 7 V minimum | Accepted; the steering clamp avoids the servo stall ([§7.3](#risks)) |
+| The assembly photos and the driving videos do not show the current electronics yet | The build sequence is the same, but some parts in the photos are different | New photos and videos to be added |
+
 ---
 
 ## 8. Reproducibility: repository, versions and testing <a id="reproducibility"></a>
@@ -1497,7 +1578,7 @@ Each milestone of the vehicle is a tagged [GitHub release](https://github.com/al
 | [`v2.0.0-beta.2`](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS/releases/tag/v2.0.0-beta.2) | 2026-11-09 | Review fixes: parking description, English program messages, v7 figures, rule compliance, firmware note |
 | [`v2.0.0-beta.3`](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS/releases/tag/v2.0.0-beta.3) | 2026-11-09 | Component photos with datasheet links, new driving videos |
 | [`v2.0.0-beta.4`](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS/releases/tag/v2.0.0-beta.4) | 2026-11-09 | Board firmware: our `pos-v8` and Hiwonder's original source (credited); IMU QMI8658 |
-| `v2.0.0` | 2026-11-09 | International Final version |
+| [`v2.0.0`](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS/releases/tag/v2.0.0) | 2026-11-10 | **International Final version** (design v7): v7 print files, assembly instructions, build from a fresh clone, failure log, checklist |
 
 ### 8.2 Repository structure
 
@@ -1519,14 +1600,14 @@ Build outputs of the design v7 programs (`build/`, `build_*` folders, compiled b
 │   │   ├── OctoberDataset/               # Photos from the car's camera for the October 2026 dataset
 │   │   ├── Others/                       # Miscellaneous diagrams and graphic assets
 │   │   └── Videos/                       # Short testing clips and component videos
-│   ├── Assembly_photos/                  # Pictures for construction guide
+│   ├── Assembly_photos/                  # Assembly instructions (Assembly_Process_EN.md) and their photos
 │   ├── dataset/                          # Computer vision dataset for model training
 │   │   ├── images/                       # Raw/annotated training images
 │   │   └── labels/                       # Bounding box labels (YOLO format)
 │   ├── datasheets/                       # Datasheets and product briefs (v6 and v7 parts)
 │   ├── releases/                         # Release notes for each tagged version
 │   ├── software_26topsRaspHAT/           # Raspberry Pi & Hailo AI HAT setup/tools
-│   ├── testing/                          # Test log of design v7 (WRO2026_v7_test_log.xlsx)
+│   ├── testing/                          # Test log of design v7 (WRO2026_v7_test_log.xlsx) and obstacle layouts A to E
 │   ├── Training_model_and_results/       # Model training scripts and evaluation logs
 │   │   └── weights/                      # Model weights (.pt, .onnx, .hef)
 │   ├── WRO-2026-FE_DocumentationRubric.pdf # WRO documentation rubric
@@ -1759,11 +1840,64 @@ sudo ./my_lidar_app
 
 </details>
 
+### 9.9 Competition-day checklist <a id="checklist"></a>
+
+**Checks that are repeated only when something changes**
+
+| Check | Repeat it when | How |
+|---|---|---|
+| Offline tests (53 + 31 checks) | Any change to the code of the hardware layer | `make test` and `reto2_test` ([§6.9](#testing)) |
+| Yaw sign and steering side | The board, the servo or the servo horn was remounted | Wheels lifted ([§5.3](#calibration)) |
+| Steering centre (servo at 750 = wheels straight) | The servo horn or the linkage was remounted | `hiwonder_config.h` ([§5.3](#calibration)) |
+| Distance (1000 mm advance) | Wheels, tyres or gears were changed | `Spike_Advance_For_distance(50, 1000, 0)` ([§5.3](#calibration)) |
+| LiDAR angle offset | The LiDAR was remounted | Check the four walls in the LiDAR window ([§5.3](#calibration)) |
+| Board firmware | The board was replaced or reflashed | The programs stop at start-up if the board does not run `pos-v8` |
+
+**Before every round**
+
+1. Battery fully charged (12.6 V): the speed depends on the battery voltage.
+2. The right program is set to start at boot: Open Challenge or Obstacle Challenge ([`SERVICES_README.md`](SERVICES_README.md)).
+3. Perception-only check under the venue lights: the pillars and the parking markers are detected and the LiDAR shows the four walls (`./run_hiwonder_h8.sh --solo-percepcion`).
+4. Wi-Fi and Bluetooth off; Ethernet cable unplugged ([rule compliance](#rule-compliance)).
+5. Wheels turn freely, steering moves to both sides, no cable near the gears or the wheels, LiDAR window clean.
+6. Motor-enable switch on the board in the on position.
+7. Place the robot in the start zone **switched off**, then switch it on with the board's main power switch.
+8. Do not touch the robot for 5 s: it centres the steering and calibrates the gyro. Wait until the button LED blinks.
+9. Press the start button.
+
 ---
 
 ## 10. Construction Guide and Bill of Materials <a id="construction-guide"></a>
 
-See the [assembly instructions](other/Assembly_photos/Assembly_Process_EN.md) for the step-by-step build with photos.
+To build the robot, follow these five steps:
+
+| | What to do | Where |
+|---|---|---|
+| 1 | Get the parts | [Bill of Materials](#bom) |
+| 2 | Print the 12 parts (16 pieces) | [3D-printed parts](#printed-parts) |
+| 3 | **Assemble the vehicle** | **[Assembly instructions](other/Assembly_photos/Assembly_Process_EN.md)**: 31 steps with photos |
+| 4 | Connect the electronics | [Wiring diagram, Figure 7](#wiring-v7) |
+| 5 | Flash the board firmware, then build and run the programs | [§9](#setup-instructions) |
+
+### Assembly instructions <a id="assembly"></a>
+
+> [!IMPORTANT]
+> **Step-by-step assembly instructions: [`other/Assembly_photos/Assembly_Process_EN.md`](other/Assembly_photos/Assembly_Process_EN.md)**
+>
+> 31 steps, one photo each, in build order: from the bare printed chassis to the robot standing on its wheels.
+
+| Phase | Steps | What you do |
+|---|---|---|
+| [Before you start](other/Assembly_photos/Assembly_Process_EN.md#before-you-start) | | Print the parts, get a soldering iron for the heat-set inserts, collect the parts of the Bill of Materials |
+| [Chassis and inserts](other/Assembly_photos/Assembly_Process_EN.md#chassis-and-inserts) | 1–2 | Clean the printed chassis and press in the heat-set inserts |
+| [Drivetrain](other/Assembly_photos/Assembly_Process_EN.md#drivetrain) | 3–7 | Rear axles and differential, then the drive motor with its gear |
+| [Electronics](other/Assembly_photos/Assembly_Process_EN.md#electronics) | 8–13 | Raspberry Pi with the AI HAT, controller, start button, drive motor cable |
+| [Battery](other/Assembly_photos/Assembly_Process_EN.md#battery) | 14–15 | Place and secure the 18650 battery pack |
+| [Front axle and steering](other/Assembly_photos/Assembly_Process_EN.md#front-axle-and-steering) | 16–20 | Steering parts and actuator, centring, pivot screws |
+| [LiDAR and camera](other/Assembly_photos/Assembly_Process_EN.md#lidar-and-camera) | 21–25 | LiDAR support, LiDAR and camera mast |
+| [Wiring check](other/Assembly_photos/Assembly_Process_EN.md#wiring-check) | 26–27 | Remaining cables and camera cable, compared with the wiring diagram |
+| [Wheels](other/Assembly_photos/Assembly_Process_EN.md#wheels) | 28–31 | The four wheels, then the robot on the ground |
+| [Final checks](other/Assembly_photos/Assembly_Process_EN.md#final-checks) | | Wheels, steering travel, cables and LiDAR view |
 
 ### 3D-printed parts <a id="printed-parts"></a>
 
@@ -1771,7 +1905,7 @@ Design v7 has 12 different printed parts, 16 pieces in total. Their STL files ar
 
 <img src="models/cad/Stl/v7/printed_parts_v7.png" alt="Preview of the 12 printed parts of design v7 with their file names and sizes" width="900">
 
-*Figure 16. The 12 printed parts of design v7 (sizes are the bounding box of each file, in mm).*
+*Figure 17. The 12 printed parts of design v7 (sizes are the bounding box of each file, in mm).*
 
 | File | Qty | SolidWorks part | What it is | Size (mm) | Solid volume (each) | Compared with design v6 |
 |---|---|---|---|---|---|---|
@@ -1790,7 +1924,7 @@ Design v7 has 12 different printed parts, 16 pieces in total. Their STL files ar
 
 **Printing.** The parts were printed on a **Creality K1C** (220 × 220 × 250 mm build volume) with a **0.4 mm nozzle** in **Creality Hyper ABS**, sliced with Creality Print using its default profile for this printer (`0.20mm Standard @Creality K1C 0.4 nozzle`). Infill, walls and supports are left to whoever prints the parts; we used the defaults. The printer and filament presets are in [`models/cad/print_profiles/`](models/cad/print_profiles). The 16 pieces add up to 161 cm³ of solid volume. The largest part, the chassis base (207.4 × 101.5 mm footprint), fits the bed in one piece. The design v6 parts are the `.STL` files directly in [`models/cad/Stl/`](models/cad/Stl) ([details](models/cad/Stl/README.md)).
 
-### Bill of Materials
+### Bill of Materials <a id="bom"></a>
 
 #### Design v7
 
@@ -1956,4 +2090,4 @@ SOFTWARE.
 
 ---
 
-> *Document maintained by CSS | Last updated: November 2026 | Latest release: v2.0.0-beta.4*
+> *Document maintained by CSS | Last updated: November 2026 | Latest release: v2.0.0*
