@@ -1,0 +1,3 @@
+[submodule "src/ondevice/rplidar_sdk"]
+	path = src/ondevice/rplidar_sdk
+	url = https://github.com/Slamtec/rplidar_sdk.git

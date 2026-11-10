@@ -1,34 +1,36 @@
 # KiCad Manual Integration Guide
 
-## Objetivo
-Reemplazar los bloques placeholder por símbolos reales de KiCad y conectarlos a las etiquetas jerárquicas ya existentes.
+> Design study: this expansion board is not mounted on the robot.
 
-## Símbolos a usar
+## Objective
+Replace the placeholder blocks with real KiCad symbols and connect them to the existing hierarchical labels.
+
+## Symbols to use
 - **MCU**: `MCU_ST_STM32F1:STM32F103R_C-D-E_Tx`
 - **IMU**: `Sensor_Motion:ICM-20948`
-- **SWD/UART/Batería/Motor/Encoder**: `Connector_Generic:Conn_01x0X`
-- **Motor driver (si existe en librería local o externa)**: `AM2861`
+- **SWD/UART/Battery/Motor/Encoder**: `Connector_Generic:Conn_01x0X`
+- **Motor driver (if available in a local or external library)**: `AM2861`
 
-## Flujo recomendado en KiCad
+## Recommended workflow in KiCad
 
-### 1. Abrir el proyecto
-- Abre `hardware/pcb/future_engineers_robotics_expansion.kicad_pro`
-- Entra al editor esquemático
+### 1. Open the project
+- Open `hardware/pcb/future_engineers_robotics_expansion.kicad_pro`
+- Go to the schematic editor
 
-### 2. Integrar el MCU real
-- Abre la hoja `mcu.kicad_sch`
-- Selecciona el bloque `U1` placeholder y elimínalo
-- Presiona `A` para agregar símbolo
-- Busca `STM32F103R_C-D-E_Tx`
-- Selecciona `MCU_ST_STM32F1:STM32F103R_C-D-E_Tx`
-- Colócalo en el centro de la hoja
-- Edita propiedades:
+### 2. Integrate the real MCU
+- Open the `mcu.kicad_sch` sheet
+- Select the `U1` placeholder block and delete it
+- Press `A` to add a symbol
+- Search for `STM32F103R_C-D-E_Tx`
+- Select `MCU_ST_STM32F1:STM32F103R_C-D-E_Tx`
+- Place it in the center of the sheet
+- Edit the properties:
   - **Reference**: `U1`
   - **Value**: `STM32F103RCT6`
   - **Footprint**: `Package_QFP:LQFP-64_10x10mm_P0.5mm`
 
-### 3. Cableado mínimo del MCU
-Conecta estos pines del símbolo a las etiquetas jerárquicas:
+### 3. Minimum MCU wiring
+Connect these symbol pins to the hierarchical labels:
 
 - `NRST` -> `NRST`
 - `BOOT0` -> `BOOT0`
@@ -44,18 +46,18 @@ Conecta estos pines del símbolo a las etiquetas jerárquicas:
 - `VDD`, `VDDA`, `VBAT` -> `+3V3`
 - `VSS`, `VSSA` -> `GND` / `AGND`
 
-### 4. Integrar la IMU real
-- Abre `imu.kicad_sch`
-- Elimina el placeholder `U5`
-- Presiona `A`
-- Busca `ICM-20948`
-- Selecciona `Sensor_Motion:ICM-20948`
-- Configura:
+### 4. Integrate the real IMU
+- Open `imu.kicad_sch`
+- Delete the `U5` placeholder
+- Press `A`
+- Search for `ICM-20948`
+- Select `Sensor_Motion:ICM-20948`
+- Set:
   - **Reference**: `U5`
   - **Value**: `ICM-20948`
   - **Footprint**: `Sensor_Motion:InvenSense_QFN-24_3x3mm_P0.4mm`
 
-### 5. Cableado mínimo de la IMU
+### 5. Minimum IMU wiring
 - `SDO/AD0` -> `IMU_AD0_SDO`
 - `SDA/SDI` -> `IMU_SDA_SDI`
 - `SCL/SCLK` -> `IMU_SCL_SCLK`
@@ -65,39 +67,39 @@ Conecta estos pines del símbolo a las etiquetas jerárquicas:
 - `VDD` -> `+3V3`
 - `GND` -> `GND`
 
-### 6. Integrar conectores reales
+### 6. Integrate the real connectors
 #### Debug
-- Usa `Conn_01x04` o `Conn_02x03`
-- Mapea: `3V3`, `SWDIO`, `SWCLK`, `GND`, opcional `NRST`
+- Use `Conn_01x04` or `Conn_02x03`
+- Map: `3V3`, `SWDIO`, `SWCLK`, `GND`, optional `NRST`
 
 #### UART
-- Usa `Conn_01x03`
-- Mapea: `GND`, `UART_TX`, `UART_RX`
+- Use `Conn_01x03`
+- Map: `GND`, `UART_TX`, `UART_RX`
 
-#### Batería
-- Usa `Conn_01x02`
-- Mapea: `BAT+`, `GND`
+#### Battery
+- Use `Conn_01x02`
+- Map: `BAT+`, `GND`
 
 #### Motor / Encoder
-- Usa `Conn_01x06`
-- Mapea: `VM`, `M1+`, `M1-`, `H1A`, `H1B`, `GND`
+- Use `Conn_01x06`
+- Map: `VM`, `M1+`, `M1-`, `H1A`, `H1B`, `GND`
 
 ### 7. Power sheet
-En `power.kicad_sch` agrega:
-- protección por inversión (`P-MOSFET` o Schottky)
+In `power.kicad_sch` add:
+- reverse polarity protection (`P-MOSFET` or Schottky)
 - `SMBJ14A`
-- capacitor bulk 470uF-1000uF
-- buck 12V->5V
-- LDO 5V->3V3
+- 470uF-1000uF bulk capacitor
+- 12V->5V buck
+- 5V->3V3 LDO
 
-### 8. Validación
-- Ejecuta ERC después de cada hoja importante
-- Primero valida `mcu`
-- Luego `imu`
-- Luego `debug/connectors/power`
+### 8. Validation
+- Run ERC after each important sheet
+- Validate `mcu` first
+- Then `imu`
+- Then `debug/connectors/power`
 
-## Consejos prácticos
-- No intentes limpiar todo el ERC en una sola pasada
-- Primero reemplaza símbolo, luego conecta señales principales
-- Si un símbolo no está en librería estándar, deja temporalmente el bloque pero actualiza `Value`, `Footprint` y `Datasheet`
-- Guarda después de cada reemplazo importante
+## Practical tips
+- Do not try to clear the whole ERC in a single pass
+- Replace the symbol first, then connect the main signals
+- If a symbol is not in the standard library, leave the block in place for now but update `Value`, `Footprint` and `Datasheet`
+- Save after each important replacement

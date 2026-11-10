@@ -1,5 +1,7 @@
 # Phase 2 Interfaces
 
+> Design study: this expansion board is not mounted on the robot.
+
 ## Global nets prepared
 - `VM`
 - `IN12V`

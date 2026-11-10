@@ -101,6 +101,6 @@ output = f"""(kicad_sch
 """
 
 # Write the output
-out_path = Path(r'c:\Users\jesus\WRO_Future_Engineers_Queretaro_CSS\hardware\pcb\imu.kicad_sch')
+out_path = Path(__file__).resolve().parent / 'imu.kicad_sch'
 out_path.write_text(output, encoding='utf-8')
 print(f"Generated {out_path} with real ICM-20948 symbol")

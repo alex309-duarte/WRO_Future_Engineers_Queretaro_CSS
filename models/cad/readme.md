@@ -16,7 +16,7 @@ To resolve this, the internal layout was heavily optimized, successfully lowerin
 ## Engineering and Kinematics
 
 ### Ackermann Steering
-The vehicle incorporates Ackermann steering geometry, allowing the robot to navigate turns smoothly without wheel slip or drag. Through this mechanical design, a maximum steering angle of 45.44 degrees was achieved.
+The vehicle incorporates Ackermann steering geometry, allowing the robot to navigate turns smoothly without wheel slip or drag. Through this mechanical design, a maximum steering angle of 45.9 degrees was achieved in design v7 (45.44 degrees in design v6). The software limits the steering to ±35 degrees.
 
 ### Wheelbase-to-Track Ratio
 To guarantee driving stability and reliable cornering, a wheelbase-to-track ratio of 1.34 was implemented. This proportion was intentionally selected to closely mimic the 1.4 ratio commonly used in real-world automotive design, ensuring optimal handling characteristics.
@@ -24,18 +24,19 @@ To guarantee driving stability and reliable cornering, a wheelbase-to-track rati
 ## Maintenance and Accessibility
 
 For competition environments, quick maintenance is crucial. The mechanical design optimizes ergonomics and accessibility:
-* **Battery Replacement:** The chassis allows for fast and effortless swapping of the LEGO Spike batteries.
+* **Battery Replacement:** The chassis allows for fast access to the battery pack.
 * **Accessible Electronics:** All connectors, wiring, and modules are strategically placed within reach, enabling rapid troubleshooting and repairs between competition rounds.
 
 ## Software and Resources
 
 * **CAD Software:** The 3D modeling and assembly were carried out using SolidWorks 2026, chosen due to the team's extensive experience with this software.
 * **CAD Libraries:** Platforms like GrabCAD were utilized to source 3D models for standard electronic components, including the Raspberry Pi and Grove modules.
-* **Manufacturer Documentation:** External components, such as the Oradar LiDAR, were integrated using official technical documentation and dimensions provided by the manufacturers.
+* **Manufacturer Documentation:** External components, such as the LiDAR, the controller board and the motors, were integrated using official technical documentation and dimensions provided by the manufacturers.
 
 ## Contents
 
 * **`v7_assembly/`**: 3D CAD assembly of design v7, the vehicle for the WRO 2026 International Final (Hiwonder ROS Robot Controller, RPLidar S2L, 3S 18650 battery pack).
-* **`v6_assembly/`**: 3D CAD assembly of design v6, the vehicle that placed 2nd at the Mexico National Final. The design notes above (LEGO Spike batteries, Oradar LiDAR) describe this version.
+* **`v6_assembly/`**: 3D CAD assembly of design v6, the vehicle that placed 2nd at the Mexico National Final.
 * **`Iterations/`**: Contains previous design iterations, early prototypes, and testing models used throughout the development process.
-* **`Stl/`**: Contains the `.stl` files of all the custom components that were physically 3D printed to build the robot.
+* **`Stl/`**: The `.STL` files of the 3D-printed parts. Design v7 parts are in [`Stl/v7/`](Stl/v7); the files directly in `Stl/` are design v6. The parts table and the printer and material are in [`Stl/README.md`](Stl/README.md).
+* **`print_profiles/`**: Creality Print presets used to print the parts (Creality K1C, 0.4 mm nozzle, Hyper ABS).

@@ -1,0 +1,11 @@
+{
+    "base_id": "GFSA04",
+    "filament_settings_id": [
+        "Hyper ABS @Creality K1C 0.4 nozzle - Copiar(1)"
+    ],
+    "from": "User",
+    "inherits": "Hyper ABS @Creality K1C 0.4 nozzle",
+    "is_custom_defined": "0",
+    "name": "Hyper ABS @Creality K1C 0.4 nozzle - Copiar(1)",
+    "version": "26.4.28.19"
+}

@@ -1,5 +1,7 @@
 # Phase 3: Real Symbols Integration - Status Report
 
+> Design study: this expansion board is not mounted on the robot.
+
 ## Objective
 Replace visual placeholder blocks with actual KiCad library symbols and connect their pins to hierarchical labels.
 
@@ -57,7 +59,7 @@ Replace visual placeholder blocks with actual KiCad library symbols and connect 
 ### In Progress
 - 🔄 Replacing `U1` placeholder in `mcu.kicad_sch` with real STM32 symbol
   - **Challenge**: Generated files had formatting issues causing KiCad parse errors
-  - **Next Approach**: Manual editing using `multi_edit` tool with exact S-expression syntax
+  - **Next Approach**: Manual editing with exact S-expression syntax
 
 ### Pending
 - ⏳ Replace `U5` placeholder in `imu.kicad_sch` with real ICM-20948 symbol

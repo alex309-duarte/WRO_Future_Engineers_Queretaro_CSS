@@ -573,7 +573,7 @@ The vehicle uses a single LEGO SPIKE Large Angular Motor (Part 45602) driving th
     </td>
     <td align="center">
       <a href="https://www.inteligenciaartificialyrobotica.com/products/balanceador-cargador-de-baterias-li-ion-bms3s10a"><img src="other/additionalMedia/Components_v7/BMS_3S_v7.jpg" width="260"></a><br>
-      <em><a href="https://www.inteligenciaartificialyrobotica.com/products/balanceador-cargador-de-baterias-li-ion-bms3s10a">3S BMS (HX-3S-01)</a></em>
+      <em><a href="https://www.inteligenciaartificialyrobotica.com/products/balanceador-cargador-de-baterias-li-ion-bms3s10a">3S BMS (BMS3S10A)</a></em>
     </td>
   </tr>
 </table>
@@ -616,7 +616,7 @@ $$t_{runtime} = \frac{36.7\text{ Wh}}{21\text{ W}} \approx 1.7\text{ h}$$
 | Quantity | Calculation | Result |
 |---|---|---|
 | Average pack current, Obstacle Challenge run | 21 W ÷ 10.8 V (1.67 A at 12.6 V full, 2.12 A at 9.9 V low) | **≈ 1.9 A**, 0.58 C, 40 % of the 4.875 A rating |
-| Peak pack current, start from standstill | motor at stall 3.2 A + 5 V side 1.45 A + servo holding 0.1 A | **≈ 4.75 A**, 98 % of the rating, for the start-up transient only |
+| Peak pack current, start from standstill | motor at stall 3.2 A + 5 V side 1.45 A + servo holding 0.1 A | **≈ 4.75 A**, 97 % of the rating, for the start-up transient only |
 | Worst case | motor and servo both stalled + 5 V side | ≈ 7.7 A (157 % of the rating); avoided by the steering clamp, see [§7.3](#risks) |
 | Voltage sag at the peak | I × R<sub>pack</sub>, R<sub>pack</sub> = 3 × 45 mΩ = 0.135 Ω (doubled to 0.27 Ω to allow for DC resistance, BMS and wiring) | 0.6–1.3 V at 4.75 A; 1.0–2.1 V at 7.7 A |
 | Lowest board input | low pack (3.3 V/cell = 9.9 V) minus the worst-case sag | **≈ 7.8 V**, above the controller's 7 V minimum, so its 5 V / 5 A output to the Pi stays regulated |
@@ -797,7 +797,10 @@ The control loop runs on the **Raspberry Pi 5**. The RPLidar S2L streams 360° s
 </table>
 
 
-> The v7 wiring is in [Figure 7](#wiring-v7) (§5.1). The processing and wiring figures below are from **design v6** (SPIKE Hub, MS200k) and are kept for comparison.
+The design v7 wiring is in [Figure 7](#wiring-v7) (§5.1) and the v7 software data flow in Figure 11 (§6.1).
+
+<details>
+<summary><b>Design v6 (national) processing and wiring diagrams (SPIKE Hub, MS200k), kept for comparison</b></summary>
 
 <img src="other/additionalMedia/Others/wro_processing_architecture_diagram.png" alt="Diagram of how the LiDAR, camera, Hailo-10H, Raspberry Pi 5, SPIKE Prime Hub, and motors are interconnected" width="800">
 
@@ -809,7 +812,7 @@ The control loop runs on the **Raspberry Pi 5**. The RPLidar S2L streams 360° s
 
 *Figure 9. Design v6 system wiring diagram showing power distribution (Geekworm X1203 UPS board from the 4P 18650 battery pack, four NCR18650B cells in parallel) and data connections between the Raspberry Pi 5, Camera Module 3 Wide (CSI), Hailo-10H AI HAT (PCIe), Oradar MS200 LiDAR (USB), LEGO SPIKE Prime hub (USB, driving the drive and steer motors), the GPIO-controlled start button/status LED (Grove LED-Button), and the Grove Relay that switches 5V power to the SPIKE hub.*
 
-For design v7 see [Figure 7](#wiring-v7).
+</details>
 
 **Custom PCB.** Design v7 has no custom PCB. The Hiwonder ROS Robot Control Board replaced both the Geekworm X1203 UPS and the SPIKE Hub, so the motor driver, the servo bus, the IMU and the Raspberry Pi's 5 V supply all come from one stock board, and the rest of the system (LiDAR, camera, Hailo-8, Grove start button) connects with standard cables, as drawn in [Figure 7](#wiring-v7). The KiCad expansion-board project in [`schemes/hardware/pcb`](schemes/hardware/pcb) is a design study and is not mounted on the robot.
 
@@ -1294,7 +1297,7 @@ Full log: [`other/testing/WRO2026_v7_test_log.xlsx`](other/testing/WRO2026_v7_te
 | `kRpsVelocidad100 = 4.0` | 12.3 V | 3.71 s | 0.539 m/s |
 | `kRpsVelocidad100 = 4.0` | 10.7 V | 3.95 s | 0.506 m/s (−6.1 %) |
 
-The measured full-battery speed is within 7 % of the calculated 0.62 m/s ([§4.3](#drivetrain)). The lower set-point reduces the speed loss on a low battery from 9.7 % to 6.1 %, at the cost of about 7 % of top speed.
+At a similar battery voltage the measured speed (0.524 m/s at 10.7 V) is about 15 % below the 0.62 m/s calculated for 10.8 V ([§4.3](#drivetrain)), and the full-battery speed (0.580 m/s at 12.3 V) is still below it, so we treat the calculated value as an upper bound: it only counts the torque needed to accelerate and to roll. The measured speed is still about 1.4 to 1.6 times the 0.365 m/s calculated for design v6. The lower set-point reduces the speed loss on a low battery from 9.7 % to 6.1 %, at the cost of about 7 % of top speed.
 
 #### 6.9.2 Run logs (2026-11-08, all runs at `speed = 100`)
 
@@ -1394,7 +1397,7 @@ How design v7 meets the round-start and communication rules of the [WRO 2026 Fut
 | LiDAR not ready at start | Decisions on an empty buffer | Waits up to 50 cycles for the first scan, aborts cleanly otherwise | Implemented |
 | Gyro drift | Heading error accumulates over 3 laps | 5 s bias calibration; heading re-squared against the side wall at every corner | Implemented |
 | Wrong pillar color | Penalty | Retrained model, 99.2 % correct decisions in validation | On track: 96 % (errors caused by shadows) ([§6.9](#testing)) |
-| Peak current (motor + servo stall) above the cells' continuous rating | Rail sag, Pi reset | Steering clamp avoids pushing against the end stops; BMS. Calculated ([§5.1](#power)): start-up peak ≈ 4.75 A (98 % of the 4.875 A rating), worst case ≈ 7.7 A with ≤ 2.1 V sag, which keeps the board input ≥ 7.8 V, above its 7 V minimum | Accepted |
+| Peak current (motor + servo stall) above the cells' continuous rating | Rail sag, Pi reset | Steering clamp avoids pushing against the end stops; BMS. Calculated ([§5.1](#power)): start-up peak ≈ 4.75 A (97 % of the 4.875 A rating), worst case ≈ 7.7 A with ≤ 2.1 V sag, which keeps the board input ≥ 7.8 V, above its 7 V minimum | Accepted |
 | Speed set-point above the motor's no-load speed | Speed changes as the battery drains | Effect measured: −9.7 % speed on a low battery at 5.7 rev/s, −6.1 % at 4.0 rev/s ([§6.9](#testing)) | Characterised |
 | LiDAR fails mid-run | Robot continues on stale data | At start the program waits for the first scan and aborts without moving if none arrives. During the run, `Oradar_S2L_Get_Scan_Seq()` counts complete scans; the camera + LiDAR demo mode already brakes when no new scan arrives for 750 ms. The competition missions do not use this check yet. | Open (was open in v6 too) |
 
@@ -1498,7 +1501,7 @@ Each milestone of the vehicle is a tagged [GitHub release](https://github.com/al
 
 ### 8.2 Repository structure
 
-Build outputs (`build/`, `build_*` folders), compiled binaries and `__pycache__/` are excluded through `.gitignore`; every program is rebuilt from source with the commands in [§9](#setup-instructions).
+Build outputs of the design v7 programs (`build/`, `build_*` folders, compiled binaries, `__pycache__/`) are excluded through `.gitignore`; both programs are rebuilt from source with the commands in [§9](#setup-instructions). Some build folders committed earlier in the season are still in the repository: the design v6 program (`src/cpp/object_detection_original_h10/build/`, used by the v6 instructions) and the Oradar SDK (`src/ondevice/oradar_sdk/build/`).
 
 ```text
 .
@@ -1507,10 +1510,13 @@ Build outputs (`build/`, `build_*` folders), compiled binaries and `__pycache__/
 │       ├── v7_assembly/                  # Design v7 CAD assembly (International Final)
 │       ├── v6_assembly/                  # Design v6 CAD assembly (Mexico National Final)
 │       ├── Iterations/                   # Prototype iterations and legacy CAD files
-│       └── Stl/                          # STL files of the 3D-printed parts
+│       ├── print_profiles/               # Creality Print presets (K1C, 0.4 mm nozzle, Hyper ABS)
+│       └── Stl/                          # STL files of the 3D-printed parts (design v6)
+│           └── v7/                       # STL files of the design v7 printed parts
 ├── other/                                # Supporting materials and external software
 │   ├── additionalMedia/                  # Extra media assets for documentation
 │   │   ├── Components_v7/                # Photos of the design v7 components
+│   │   ├── OctoberDataset/               # Photos from the car's camera for the October 2026 dataset
 │   │   ├── Others/                       # Miscellaneous diagrams and graphic assets
 │   │   └── Videos/                       # Short testing clips and component videos
 │   ├── Assembly_photos/                  # Pictures for construction guide
@@ -1547,7 +1553,9 @@ Build outputs (`build/`, `build_*` folders), compiled binaries and `__pycache__/
 ├── v-photos/                             # Required 6-view vehicle photos (design v7: *_v7.JPG, design v6: no suffix)
 │   └── Robot_More_Photos/                # High-resolution gallery & field testing shots
 ├── video/                                # Open and Obstacle Challenges YouTube video links
+├── .gitattributes                        # Keeps the firmware files byte-exact
 ├── .gitignore                            # .gitignore
+├── .gitmodules                           # Git submodule: Slamtec rplidar_sdk in src/ondevice/rplidar_sdk
 ├── Engineering_Journal_CSS_WRO2026_International.pdf   # Engineering Journal, international edition (design v7); national edition in release v1.0.0
 ├── LICENSE                               # MIT LICENSE file
 ├── SERVICES_README.md                    # Explanation for setting up daemon services
@@ -1582,7 +1590,7 @@ The v7 robot builds **two programs**: the Open Challenge (`src/ondevice/`, LiDAR
 git clone --recurse-submodules https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS.git
 ```
 
-**Slamtec LiDAR SDK (once, both programs).** The S2L driver links the Slamtec [rplidar_sdk](https://github.com/Slamtec/rplidar_sdk), whose source is in `src/ondevice/rplidar_sdk`. The Makefile and the CMakeLists look for it in `~/rplidar_sdk` by default (variable `RPLIDAR_SDK_DIR`) and link `output/Linux/Release/libsl_lidar_sdk.a`. Build it once with `make` in its root, then either point the builds at it (commands in §9.5 and §9.6) or link it to the default location:
+**Slamtec LiDAR SDK (once, both programs).** The S2L driver links the Slamtec [rplidar_sdk](https://github.com/Slamtec/rplidar_sdk), which is a Git submodule in `src/ondevice/rplidar_sdk` (fetched by `--recurse-submodules`; if that folder is empty, run `git submodule update --init`). The Makefile and the CMakeLists look for it in `~/rplidar_sdk` by default (variable `RPLIDAR_SDK_DIR`) and link `output/Linux/Release/libsl_lidar_sdk.a`. Build it once with `make` in its root, then either point the builds at it (commands in §9.5 and §9.6) or link it to the default location:
 
 ```bash
 cd WRO_Future_Engineers_Queretaro_CSS/src/ondevice/rplidar_sdk
@@ -1699,7 +1707,7 @@ git clone --recurse-submodules https://github.com/alex309-duarte/WRO_Future_Engi
 # or, if already cloned:
 git submodule update --init --recursive
 ```
-The `--recurse-submodules` step is required, `yaml-cpp` and `curl` under `src/cpp/external/` are vendored as submodules.
+`yaml-cpp` and `curl` under `src/cpp/external/` are included in the repository; the only submodule is the Slamtec SDK used by design v7.
 
 #### v6 step 3: Wire up the hardware
 
@@ -1755,7 +1763,32 @@ sudo ./my_lidar_app
 
 ## 10. Construction Guide and Bill of Materials <a id="construction-guide"></a>
 
-See the [assembly guide](other/Assembly_photos/Assembly_Process_EN.md) for all the details.
+See the [assembly instructions](other/Assembly_photos/Assembly_Process_EN.md) for the step-by-step build with photos.
+
+### 3D-printed parts <a id="printed-parts"></a>
+
+Design v7 has 12 different printed parts, 16 pieces in total. Their STL files are in [`models/cad/Stl/v7/`](models/cad/Stl/v7), exported from the SolidWorks assembly in [`models/cad/v7_assembly/`](models/cad/v7_assembly). Six are new or redesigned for v7; the camera hinge and five steering parts are unchanged from design v6.
+
+<img src="models/cad/Stl/v7/printed_parts_v7.png" alt="Preview of the 12 printed parts of design v7 with their file names and sizes" width="900">
+
+*Figure 16. The 12 printed parts of design v7 (sizes are the bounding box of each file, in mm).*
+
+| File | Qty | SolidWorks part | What it is | Size (mm) | Solid volume (each) | Compared with design v6 |
+|---|---|---|---|---|---|---|
+| [`chassis_base.STL`](models/cad/Stl/v7/chassis_base.STL) | 1 | `Base` | Chassis base: carries every other part | 207.4 × 101.5 × 62.8 | 124.94 cm³ | New in v7 |
+| [`hiwonder_lidar_support.STL`](models/cad/Stl/v7/hiwonder_lidar_support.STL) | 1 | `Soporte de hiwonder-lidar` | Plate that holds the Hiwonder board and the RPLidar S2L | 88.7 × 88.0 × 8.0 | 14.60 cm³ | New in v7 |
+| [`camera_mast.STL`](models/cad/Stl/v7/camera_mast.STL) | 1 | `camera` | Camera mast (two arms) | 122.0 × 89.8 × 7.0 | 6.96 cm³ | New in v7 |
+| [`camera_hinge.STL`](models/cad/Stl/v7/camera_hinge.STL) | 1 | `camara visagra` | Camera frame with tilt hinge | 37.0 × 30.0 × 7.0 | 2.41 cm³ | Same as v6 (`camara_tilt.STL`) |
+| [`steering_servo_arm.STL`](models/cad/Stl/v7/steering_servo_arm.STL) | 1 | `otro eslabon` | Arm on the HX-35H servo horn | 43.9 × 20.0 × 16.6 | 1.37 cm³ | New in v7 |
+| [`steering_link.STL`](models/cad/Stl/v7/steering_link.STL) | 1 | `slabon` | Steering link, 93 mm | 93.0 × 8.0 × 3.9 | 2.59 cm³ | New in v7 |
+| [`hex_standoff.STL`](models/cad/Stl/v7/hex_standoff.STL) | 2 | `soporte 2` | Hexagonal standoff, 23.8 mm | 23.8 × 7.9 × 6.8 | 0.71 cm³ | New in v7 |
+| [`ackerman_angle.STL`](models/cad/Stl/v7/ackerman_angle.STL) | 2 | `ackerman_angle` | Ackermann steering joint | 24.5 × 10.5 × 7.9 | 0.59 cm³ | Same as v6 |
+| [`ackerman_link.STL`](models/cad/Stl/v7/ackerman_link.STL) | 2 | `ackerman_link` | Ackermann steering joint (ring and axle) | 15.6 × 8.0 × 7.2 | 0.28 cm³ | Same as v6 |
+| [`ackerman_wheel_join.STL`](models/cad/Stl/v7/ackerman_wheel_join.STL) | 1 | `ackerman_wheel_join` | Front wheel knuckle | 30.7 × 23.5 × 9.7 | 2.09 cm³ | Same as v6 |
+| [`ackerman_wheel_join_mirror.STL`](models/cad/Stl/v7/ackerman_wheel_join_mirror.STL) | 1 | `ackerman_wheel_join_mirror` | Front wheel knuckle, mirrored | 30.7 × 23.5 × 9.7 | 2.09 cm³ | Same as v6 |
+| [`wheel_axis.STL`](models/cad/Stl/v7/wheel_axis.STL) | 2 | `wheel_axis` | Wheel axle hub | 24.0 × 15.6 × 8.0 | 0.54 cm³ | Same as v6 |
+
+**Printing.** The parts were printed on a **Creality K1C** (220 × 220 × 250 mm build volume) with a **0.4 mm nozzle** in **Creality Hyper ABS**, sliced with Creality Print using its default profile for this printer (`0.20mm Standard @Creality K1C 0.4 nozzle`). Infill, walls and supports are left to whoever prints the parts; we used the defaults. The printer and filament presets are in [`models/cad/print_profiles/`](models/cad/print_profiles). The 16 pieces add up to 161 cm³ of solid volume. The largest part, the chassis base (207.4 × 101.5 mm footprint), fits the bed in one piece. The design v6 parts are the `.STL` files directly in [`models/cad/Stl/`](models/cad/Stl) ([details](models/cad/Stl/README.md)).
 
 ### Bill of Materials
 
@@ -1828,10 +1861,15 @@ See the [assembly guide](other/Assembly_photos/Assembly_Process_EN.md) for all t
 
 ### 2026 Mexico National Final: official rounds
 
-| Round | Video |
-|---|---|
-| Open Challenge | [File on Google Drive](https://drive.google.com/file/d/1y1_-eNPqLfp4mYmWrwkaJP0yCElOwc-E/view?usp=sharing) |
-| Obstacle Challenge | [File on Google Drive](https://drive.google.com/file/d/1bAa3huMdQ8_E6Ghx8h6CbjzetpgeynWJ/view?usp=sharing) |
+#### [Open Challenge, official round](https://www.youtube.com/watch?v=_KF8DmQ0PTM)
+*(Click on preview to visit YouTube Video)*
+
+[![Open Challenge, official round of the 2026 Mexico National Final](https://img.youtube.com/vi/_KF8DmQ0PTM/hqdefault.jpg)](https://www.youtube.com/watch?v=_KF8DmQ0PTM)
+
+#### [Obstacle Challenge, official round](https://www.youtube.com/watch?v=a_KmYEr5aDE)
+*(Click on preview to visit YouTube Video)*
+
+[![Obstacle Challenge, official round of the 2026 Mexico National Final](https://img.youtube.com/vi/a_KmYEr5aDE/hqdefault.jpg)](https://www.youtube.com/watch?v=a_KmYEr5aDE)
 
 ---
 

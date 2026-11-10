@@ -1,7 +1,9 @@
 # Power Architecture - Expansion Board Rev A
 
+> Design study: this expansion board is not mounted on the robot.
+
 ## Overview
-Arquitectura de potencia para placa de expansión robótica con batería 3S LiPo (12.6V max), Raspberry Pi 5, STM32F103RCT6, ICM-20948 IMU y motor JGB37-520 con encoder Hall.
+Power architecture for a robotics expansion board with a 3S LiPo battery (12.6V max), Raspberry Pi 5, STM32F103RCT6, ICM-20948 IMU and a JGB37-520 motor with Hall encoder.
 
 ## Power Entry & Protection Stage
 
@@ -160,43 +162,43 @@ For JGB37-520 motor (3.2A stall current):
 - **Ceramic**: 1µF ceramic for high-frequency switching noise
 - **Flyback Diodes**: Integrated in modern H-bridges, verify in datasheet
 
-## Checklist de Potencia - Rev A
+## Power Checklist - Rev A
 
 ### Protection Stage
-- [ ] Diodo Schottky o MOSFET de protección contra inversión de polaridad
-- [ ] Diodo TVS de 14V-15V (SMBJ14A) para picos de motores
-- [ ] Fusible PPTC (5A-10A) en línea de entrada
-- [ ] Capacitor electrolítico grande (470µF - 1000µF, 25V) en entrada de 12V
+- [ ] Schottky diode or MOSFET for reverse polarity protection
+- [ ] 14V-15V TVS diode (SMBJ14A) for motor spikes
+- [ ] PPTC fuse (5A-10A) in the input line
+- [ ] Large electrolytic capacitor (470µF - 1000µF, 25V) at the 12V input
 
 ### Regulators
-- [ ] Buck converter 12V→5V con TPS54560 o equivalente (5A mínimo)
-- [ ] Inductor de 10µH, 6A para Buck
-- [ ] LDO 5V→3.3V con AMS1117-3.3 o MCP1700
-- [ ] Capacitor de 10µF + 100nF a la entrada y salida de cada regulador
+- [ ] 12V→5V buck converter with TPS54560 or equivalent (5A minimum)
+- [ ] 10µH, 6A inductor for the buck converter
+- [ ] 5V→3.3V LDO with AMS1117-3.3 or MCP1700
+- [ ] 10µF + 100nF capacitor at the input and output of each regulator
 
 ### MCU Power
-- [ ] El STM32 tiene un capacitor de 100nF en cada pin VDD/VDDA
-- [ ] VDDA con ferrite bead desde VDD
-- [ ] Capacitor bulk de 10µF cerca del MCU
+- [ ] The STM32 has a 100nF capacitor on each VDD/VDDA pin
+- [ ] VDDA with ferrite bead from VDD
+- [ ] 10µF bulk capacitor near the MCU
 
 ### IMU Power
-- [ ] 100nF + 1µF en VDD del ICM-20948
-- [ ] 100nF en VDDIO del ICM-20948
-- [ ] Caps dentro de 5mm del IC
+- [ ] 100nF + 1µF on VDD of the ICM-20948
+- [ ] 100nF on VDDIO of the ICM-20948
+- [ ] Caps within 5mm of the IC
 
 ### Ground Strategy
-- [ ] Star ground implementado cerca del conector de batería
-- [ ] PGND separado para motores (trazas anchas >2mm)
-- [ ] AGND para IMU conectado via ferrite bead o 0Ω
-- [ ] Vias de ground abundantes entre capas
+- [ ] Star ground implemented near the battery connector
+- [ ] Separate PGND for motors (wide traces >2mm)
+- [ ] AGND for the IMU connected via ferrite bead or 0Ω
+- [ ] Plenty of ground vias between layers
 
 ### Motor Driver
-- [ ] H-bridge AM2861 seleccionado (5A continuo, 8A pico)
-- [ ] Mínimo 9 vias térmicos (0.3mm) bajo pad del driver
-- [ ] Copper pour en capa inferior para disipación térmica
-- [ ] Capacitor bulk 220µF en VIN del driver
-- [ ] Capacitor cerámico 1µF para ruido de conmutación
-- [ ] Entradas PWM/DIR conectadas a pines timer del STM32 (PB8 para PWM)
+- [ ] AM2861 H-bridge selected (5A continuous, 8A peak)
+- [ ] Minimum 9 thermal vias (0.3mm) under the driver pad
+- [ ] Copper pour on the bottom layer for heat dissipation
+- [ ] 220µF bulk capacitor at the driver VIN
+- [ ] 1µF ceramic capacitor for switching noise
+- [ ] PWM/DIR inputs connected to STM32 timer pins (PB8 for PWM)
 
 ## Component Selection Summary
 

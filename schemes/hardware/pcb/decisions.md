@@ -1,5 +1,7 @@
 # Decisions - PCB Phase 2
 
+> Design study: this expansion board is not mounted on the robot.
+
 ## Closed baseline decisions
 - Control architecture: local MCU + optional external host.
 - Baseline MCU: `STM32F103RCT6` or pin-compatible equivalent.
@@ -32,7 +34,7 @@ Inactive by scope and not wired in root sheet:
 - `user_io` is kept active only for minimum reset/boot accessibility.
 - `usb_uart` remains interface-only in this phase. No USB-UART bridge IC is committed yet.
 - Ground domains `GND`, `DGND`, `AGND`, and `VGND` are exposed as explicit design domains. They are not shorted in this phase.
-- The PDF reference is treated as topological guidance; this project scope follows the current baseline message when there is a scope conflict.
+- The PDF reference is treated as topological guidance; this project scope follows the closed baseline decisions above when there is a scope conflict.
 
 ## IMU interface decision status
 Current status: not fully frozen at electrical implementation level.
