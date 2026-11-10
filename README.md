@@ -1493,6 +1493,7 @@ Each milestone of the vehicle is a tagged [GitHub release](https://github.com/al
 | [`v2.0.0-beta.1`](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS/releases/tag/v2.0.0-beta.1) | 2026-11-09 | Documentation feature-complete: power calculations, CAD views, datasheets in the repository |
 | [`v2.0.0-beta.2`](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS/releases/tag/v2.0.0-beta.2) | 2026-11-09 | Review fixes: parking description, English program messages, v7 figures, rule compliance, firmware note |
 | [`v2.0.0-beta.3`](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS/releases/tag/v2.0.0-beta.3) | 2026-11-09 | Component photos with datasheet links, new driving videos |
+| [`v2.0.0-beta.4`](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS/releases/tag/v2.0.0-beta.4) | 2026-11-09 | Board firmware: our `pos-v8` and Hiwonder's original source (credited); IMU QMI8658 |
 | `v2.0.0` | 2026-11-09 | International Final version |
 
 ### 8.2 Repository structure
