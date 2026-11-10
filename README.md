@@ -1917,4 +1917,4 @@ SOFTWARE.
 
 ---
 
-> *Document maintained by CSS | Last updated: November 2026 | Latest release: v2.0.0*
+> *Document maintained by CSS | Last updated: November 2026 | Latest release: v2.0.0-beta.4*
