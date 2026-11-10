@@ -1791,12 +1791,12 @@ See the [assembly guide](other/Assembly_photos/Assembly_Process_EN.md) for all t
 
 [***Also on  `video/video.md`***](video/video.md)
 
-### Open Challenge
+### [Open Challenge](https://www.youtube.com/shorts/fHsPBr_Bzps)
 *(Click on preview to visit YouTube Video)*
 
 [![Open Challenge](https://img.youtube.com/vi/fHsPBr_Bzps/maxresdefault.jpg)](https://www.youtube.com/shorts/fHsPBr_Bzps)
 
-### Obstacle Challenge
+### [Obstacle Challenge](https://www.youtube.com/shorts/g_2ZrS4TVyc)
 *(Click on preview to visit YouTube Video)*
 
 [![Obstacle Challenge](https://img.youtube.com/vi/g_2ZrS4TVyc/maxresdefault.jpg)](https://www.youtube.com/shorts/g_2ZrS4TVyc)
@@ -1808,6 +1808,13 @@ See the [assembly guide](other/Assembly_photos/Assembly_Process_EN.md) for all t
 | Open Challenge | [File on Google Drive](https://drive.google.com/file/d/1y1_-eNPqLfp4mYmWrwkaJP0yCElOwc-E/view?usp=sharing) |
 | Obstacle Challenge | [File on Google Drive](https://drive.google.com/file/d/1bAa3huMdQ8_E6Ghx8h6CbjzetpgeynWJ/view?usp=sharing) |
 
+---
+
+### More YouTube Shorts showing various iterations of our project across seasons in this YT channel:
+
+**[@jesussantana2872](https://www.youtube.com/@jesussantana2872/shorts)**
+
+<a href="https://www.youtube.com/@jesussantana2872/shorts"><img src="other/additionalMedia/Others/ytChannel.png"></a><br>
 ---
 
 ## 12. Resources <a id="resources"></a>
