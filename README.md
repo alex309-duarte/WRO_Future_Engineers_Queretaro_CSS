@@ -46,7 +46,7 @@ The sections follow the five criteria of the WRO 2026 documentation rubric (Appe
 8. [Reproducibility: repository, versions and testing](#reproducibility)
 9. [Setup and Execution Instructions](#setup-instructions)
 10. [Construction Guide and Bill of Materials](#construction-guide)
-    - [Assembly instructions: 31 steps with photos](other/Assembly_photos/Assembly_Process_EN.md)
+    - [Assembly instructions: 37 steps with photos](other/Assembly_photos/Assembly_Process_EN.md)
     - [3D-printed parts](#printed-parts) and [Bill of Materials](#bom)
 11. [Driving Videos](#driving-videos)
 12. [Resources](#resources)
@@ -180,7 +180,7 @@ Kept for comparison. The full design v6 state is preserved in release [`v1.0.0`]
 
 **Design v7: International Final version (current)**
 
-***"The Maker"*** is a rear-wheel-drive autonomous vehicle with regular-Ackermann front steering, built around a custom SolidWorks chassis that was modified from the national design to fit the new components cleanly and to sit as low to the ground as possible, so the LiDAR always scans below the top of the 100 mm walls. For the international final the LEGO SPIKE actuation was replaced to gain speed and control: a Hiwonder JGB37-520 30:1 DC gear motor with a Hall encoder (1320 counts per output revolution) drives the rear axle through a differential under closed-loop speed and position control, a Hiwonder HX-35H serial bus servo actuates the steering, and both are commanded by a Hiwonder ROS Robot Control Board (STM32F407), whose on-board IMU now supplies the heading. Perception comes from a Slamtec RPLidar S2L, which we brought back after fixing our own integration of it, fused with a Raspberry Pi Camera Module 3 Wide accelerated by a Hailo-8 AI accelerator. The LiDAR handles wall-following and obstacle range, while the camera detects the pillars (and recognises the magenta parking markers, so they are never taken for pillars) with a YOLOv8n model retrained on 23,938 images (9,354 originals, 3,831 of them taken with the car's own camera), reaching mAP50 0.990 at 8 ms per frame on the Hailo-8. All control and vision code still runs in C/C++ on a Raspberry Pi 5: instead of rewriting the mission logic that placed 2nd at nationals, we ported it to the new board through a SPIKE-compatibility layer verified by 84 offline tests, and added a signal-based emergency stop that cuts the motors on any program exit, because the new board's firmware has no command timeout. We also extended the board's firmware (`pos-v8`) with position control, HOLD and a watchdog for a hung firmware. Power comes from three Panasonic NCR18650B cells in series (3S, 10.8 V nominal) with a BMS, which feed the 12 V motor and servo directly. The complete vehicle weighs 1.087 kg, 72 % of the 1.5 kg limit.
+***"The Maker"*** is a rear-wheel-drive autonomous vehicle with regular-Ackermann front steering, built around a custom SolidWorks chassis that was modified from the national design to fit the new components cleanly and to sit as low to the ground as possible, so the LiDAR always scans below the top of the 100 mm walls. For the international final the LEGO SPIKE actuation was replaced to gain speed and control: a Hiwonder JGB37-520 30:1 DC gear motor with a Hall encoder (1320 counts per output revolution) drives the rear axle through a differential under closed-loop speed and position control, a Hiwonder HX-12H serial bus servo actuates the steering, and both are commanded by a Hiwonder ROS Robot Control Board (STM32F407), whose on-board IMU now supplies the heading. Perception comes from a Slamtec RPLidar S2L, which we brought back after fixing our own integration of it, fused with a Raspberry Pi Camera Module 3 Wide accelerated by a Hailo-8 AI accelerator. The LiDAR handles wall-following and obstacle range, while the camera detects the pillars (and recognises the magenta parking markers, so they are never taken for pillars) with a YOLOv8n model retrained on 23,938 images (9,354 originals, 3,831 of them taken with the car's own camera), reaching mAP50 0.990 at 8 ms per frame on the Hailo-8. All control and vision code still runs in C/C++ on a Raspberry Pi 5: instead of rewriting the mission logic that placed 2nd at nationals, we ported it to the new board through a SPIKE-compatibility layer verified by 84 offline tests, and added a signal-based emergency stop that cuts the motors on any program exit, because the new board's firmware has no command timeout. We also extended the board's firmware (`pos-v8`) with position control, HOLD and a watchdog for a hung firmware. Power comes from three Panasonic NCR18650B cells in series (3S, 10.8 V nominal) with a BMS, which feed the 12 V motor and servo directly. The complete vehicle weighs 1.087 kg, 72 % of the 1.5 kg limit.
 
 <details>
 <summary><b>Design v6: National Final version (original description)</b></summary>
@@ -196,14 +196,14 @@ The robot has gone through seven designs across two seasons (see [§7.4](#lesson
 | Repository release | Vehicle design | Event |
 |---|---|---|
 | [`v1.0.0`](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS/releases/tag/v1.0.0) | Design v6 | Mexico National Final, Tijuana (2nd place) |
-| [`v2.0.0`](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS/releases/tag/v2.0.0) | Design v7 | International Final, Puerto Rico |
+| [`v2.0.0`](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS/releases/tag/v2.0.0), [`v2.0.1`](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS/releases/tag/v2.0.1) | Design v7 | International Final, Puerto Rico |
 
 | Subsystem | Design v6: National Final (Sep 2026) | Design v7: International Final (Dec 2026) | Decision card |
 |---|---|---|---|
 | Motor controller | LEGO SPIKE Prime Hub | Hiwonder ROS Robot Control Board (STM32F407), firmware `pos-v8` | [D1](#d1) |
 | Drive motor | LEGO SPIKE Large Angular Motor (45602), 175 rpm no-load | Hiwonder JGB37-520 Hall-encoder DC gear motor, 30:1, 12 V, 320 rpm no-load | [D2](#d2) |
 | Rear differential | v6 differential | New differential (LEGO 65414 housing + 65413 28T gear in a custom mount), same 20:28 ratio | [D9](#d9) |
-| Steering actuator | LEGO SPIKE Small Angular Motor (45607) | Hiwonder HX-35H serial bus servo (35 kg·cm) | [D3](#d3) |
+| Steering actuator | LEGO SPIKE Small Angular Motor (45607) | Hiwonder HX-12H serial bus servo (12 kg·cm) | [D3](#d3) |
 | Heading (IMU) | SPIKE Hub built-in IMU | IMU on the Hiwonder board (20 Hz) | [D1](#d1) |
 | Battery | 4× Panasonic NCR18650B + Geekworm X1203 UPS | 3× Panasonic NCR18650B in series (3S, 10.8 V nominal) with a 3S BMS | [D10](#d10) |
 | LiDAR | Orbbec Oradar MS200k | Slamtec RPLidar S2L | [D4](#d4) |
@@ -221,7 +221,7 @@ The robot has gone through seven designs across two seasons (see [§7.4](#lesson
 | Dimensions (L × W × H) | 238.5 × 157.7 × 180 mm (limit 300 × 200 × 300 mm) |
 | Mass | 1.087 kg (v6: 1.006 kg; limit 1.5 kg) |
 | Drive | Rear-wheel drive, one JGB37-520 30:1 motor with Hall encoder, rear differential |
-| Steering | Front Ackermann, HX-35H bus servo |
+| Steering | Front Ackermann, HX-12H bus servo |
 | Battery | 3S Panasonic NCR18650B, 10.8 V nominal, 12.6 V full, 3400 mAh, 36.7 Wh |
 | Main computer | Raspberry Pi 5 (16 GB) |
 | Perception | RPLidar S2L (360°, 10 Hz) + Camera Module 3 Wide + Hailo-8 |
@@ -235,7 +235,7 @@ The robot has gone through seven designs across two seasons (see [§7.4](#lesson
 
 The v7 chassis is a modification of the v6 design, modeled in SolidWorks. It was changed for two reasons:
 
-1. **To fit the new components cleanly.** The Hiwonder board, the JGB37 motor, the HX-35H servo, the 3S battery with its BMS and the RPLidar S2L have different shapes and mounting points from the LEGO SPIKE Hub, the LEGO motors and the MS200k. The new parts in the assembly include a Hiwonder board mount, a combined Hiwonder/LiDAR support (`Soporte de hiwonder-lidar`), a motor mount and the rear differential.
+1. **To fit the new components cleanly.** The Hiwonder board, the JGB37 motor, the HX-12H servo, the 3S battery with its BMS and the RPLidar S2L have different shapes and mounting points from the LEGO SPIKE Hub, the LEGO motors and the MS200k. The new parts in the assembly include two printed plates screwed together above the Raspberry Pi (the LiDAR plate, `Soporte de hiwonder-lidar`, and the Hiwonder board plate, `Soporte hiwonder`), a motor mount and the rear differential.
 2. **To sit as low to the ground as possible.** In v4 we learned that a LiDAR mounted too high scans over the 100 mm walls (see [§7.4](#lessons)). v7 keeps the LiDAR scanning plane low and also lowers the heavy parts, which keeps the centre of gravity low at the higher v7 speed.
 
 <img src="v-photos/Isometric_v7.JPG" alt="Isometric view of design v7" width="800">
@@ -271,9 +271,9 @@ Repositioning the battery pack and heavier components (Raspberry Pi 5, UPS shiel
 
 The Maker's steering uses a regular Ackermann linkage. In the design v7 CAD the linkage reaches a maximum steering angle of **45.9°** (Figure 3), practically the 45.44° of design v6 (Figures 4 and 5), so the turning radius is the same as in v6. In software the steering is limited to **±35°** from center, inside that mechanical travel (see [D3](#d3)). This geometry ensures the inner and outer front wheels trace concentric arcs around a common turning center during a turn, minimizing tire scrub and keeping the front tires rolling rather than dragging through corners, a property that matters directly for both consistency and tire wear over a full run.
 
-<img src="other/additionalMedia/Others/Ackermann_v7.png" alt="Design v7 CAD top view of the Ackermann linkage and HX-35H servo at full lock, 45.9 degrees" width="320">
+<img src="other/additionalMedia/Others/Ackermann_v7.png" alt="Design v7 CAD top view of the Ackermann linkage and HX-12H servo at full lock, 45.9 degrees" width="320">
 
-*Figure 3. Design v7: Ackermann linkage driven by the HX-35H bus servo, shown at full lock (45.9° in the CAD).*
+*Figure 3. Design v7: Ackermann linkage driven by the HX-12H bus servo, shown at full lock (45.9° in the CAD).*
 
 <img src="other/additionalMedia/Others/Ackermann.jpg" alt="Design v6 plan view of the Ackermann steering linkage" width="800">
 
@@ -298,29 +298,29 @@ After weighing both options, the team concluded that the regular Ackermann's sli
 
 | | |
 |---|---|
-| **What** | The LEGO SPIKE Small Angular Motor was replaced by a **Hiwonder HX-35H serial bus servo** driving the same Ackermann linkage. |
+| **What** | The LEGO SPIKE Small Angular Motor was replaced by a **Hiwonder HX-12H serial bus servo** driving the same Ackermann linkage. |
 | **Why** | With the SPIKE Hub removed ([D1](#d1)), the steering needed an actuator that the Hiwonder board can command. A bus servo holds its position on its own (closed loop inside the servo), reports its position, temperature and voltage, and runs directly from the 3S battery (9–12.6 V), so no extra regulator is needed. Its torque margin means the steering reaches its commanded angle at the same speed regardless of tire grip on the mat. |
 | **When** | Design v7, October 2026 (bench calibration on 2026-10-04). |
 | **How** | Positions 0–1000 map to 0–240° (0.24° per unit). Center (wheels straight) = 750; the linkage is assembled with the servo at that position. All steering commands pass through one function (`set_steering`) that clamps to **±35°** (`kDireccionMaxGrados`: 35 / 0.24 = 145 units each side, positions 605–895), so the wheel can never be driven into the chassis. At start-up the program refuses to move the servo if it is outside the allowed range, and on emergency stop the servo torque is released. Parameters: [`src/ondevice/hiwonder_config.h`](src/ondevice/hiwonder_config.h). |
-| **What for** | Fast steering response (0.18 s/60° at 11.1 V) directly from battery voltage, with position feedback at start-up. |
+| **What for** | Fast steering response (0.2 s/60° at 11.1 V) directly from battery voltage, with position feedback at start-up. |
 | **Alternatives** | A PWM hobby servo (no position feedback, needs a separate PWM output); keeping a LEGO motor through an adapter. |
 
-| HX-35H specification ([Hiwonder](https://www.hiwonder.com/products/hx-35h)) | Value |
+| HX-12H specification ([Hiwonder](https://www.hiwonder.com/products/hx-12h)) | Value |
 |---|---|
 | Operating voltage | 9–12.6 V |
-| Stall torque | 35 kg·cm at 11.1 V |
-| Speed | 0.18 s/60° at 11.1 V |
+| Stall torque | 12 kg·cm at 11.1 V |
+| Speed | 0.2 s/60° at 11.1 V |
 | Range / resolution | 0–240°, command range 0–1000 |
 | Feedback | Position, temperature, voltage |
 | Interface | Serial bus (UART) |
-| Stall current | 3 A |
-| Mass | 52 g |
+| Stall current | 1.3 A |
+| Mass | 36.3 g |
 
 <table>
   <tr>
     <td align="center">
-      <a href="https://www.hiwonder.com/products/hx-35h"><img src="other/additionalMedia/Components_v7/HX-35H_servo_v7.jpg" width="220"></a><br>
-      <em><a href="https://www.hiwonder.com/products/hx-35h">Hiwonder HX-35H serial bus servo</a></em>
+      <a href="https://www.hiwonder.com/products/hx-12h"><img src="other/additionalMedia/Components_v7/HX-12H_servo_v7.jpg" width="220"></a><br>
+      <em><a href="https://www.hiwonder.com/products/hx-12h">Hiwonder HX-12H serial bus servo</a></em>
     </td>
   </tr>
 </table>
@@ -561,9 +561,9 @@ The vehicle uses a single LEGO SPIKE Large Angular Motor (Part 45602) driving th
 | | |
 |---|---|
 | **What** | Three **Panasonic NCR18650B** cells in series (**3S**): 10.8 V nominal, 12.6 V full, 3400 mAh, 36.7 Wh, protected by a **3S BMS**. |
-| **Why** | The new motor and the HX-35H servo are 12 V parts, and the Hiwonder board is designed for a 12 V supply. A 3S pack gives that voltage directly, without the boost stage of the v6 Geekworm X1203 (a 5 V UPS for the Pi only). We kept the NCR18650B cells because in v6 they solved the brownouts caused by generic high-resistance cells. |
+| **Why** | The new motor and the HX-12H servo are 12 V parts, and the Hiwonder board is designed for a 12 V supply. A 3S pack gives that voltage directly, without the boost stage of the v6 Geekworm X1203 (a 5 V UPS for the Pi only). We kept the NCR18650B cells because in v6 they solved the brownouts caused by generic high-resistance cells. |
 | **When** | Design v7, October 2026. |
-| **How** | Pack → 3S BMS → **Hiwonder ROS Robot Controller** (STM32F407VET6, input 7–14 V; [product page](https://hiwonder.com/products/ros-robot-control), [documentation](https://wiki.hiwonder.com/projects/ROS-Robot-Control-Board/en/latest/)), which drives the motor and the bus servo at battery voltage. The controller's independent **5 V / 5 A Type-C output powers the Raspberry Pi 5**, which in turn powers the Hailo-8, the camera, the LiDAR and the start button. The Pi 5 needs 5 V / 5 A to run its USB ports at full current, which matters because the LiDAR is USB-powered ([Raspberry Pi: USB Power Delivery on Raspberry Pi 5](other/datasheets/RP-009856-WP-1-USB-Power-Delivery-on-Raspberry-Pi-5.pdf)). Pi ↔ controller: USB serial (UART, 1 Mbaud). Wiring diagram below. |
+| **How** | Pack → 3S BMS → **Hiwonder ROS Robot Controller** (STM32F407VET6, input 7–14 V; [product page](https://hiwonder.com/products/ros-robot-control), [documentation](https://wiki.hiwonder.com/projects/ROS-Robot-Control-Board/en/latest/)), which drives the motor and the bus servo at battery voltage. The controller's independent **5 V / 5 A Type-C output powers the Raspberry Pi 5**, which in turn powers the Hailo-8, the camera, the LiDAR and the start button. The Pi 5 needs 5 V / 5 A to run its USB ports at full current, which matters because the LiDAR is USB-powered ([Raspberry Pi: USB Power Delivery on Raspberry Pi 5](other/datasheets/RP-009856-WP-1-USB-Power-Delivery-on-Raspberry-Pi-5.pdf)). Pi ↔ controller: USB serial (UART, 1 Mbaud). Wiring diagram below. Two cells sit end to end, held by four generic interlocking 18650 spacer brackets, and the third cell lies beside them in a printed holder ([`battery_holder.STL`](models/cad/Stl/v7/battery_holder.STL)), so the three cells are at the same height. This small change to design v7 lowered the Hiwonder board, which before partly blocked the LiDAR's view. |
 | **What for** | Estimated runtime about 1.7 h (budget below), far above a 3-minute round. |
 | **Alternatives** | v6 pack + X1203 for the Pi plus a separate 12 V pack (two batteries to charge, more mass); a 2S pack (7.2–8.4 V, too low for the 12 V motor's speed). |
 
@@ -591,13 +591,13 @@ The vehicle uses a single LEGO SPIKE Large Angular Motor (Part 45602) driving th
 | Grove LED button | 5 V | | 0.1 W |
 | **5 V subtotal** | | | **14.1 W → 15.7 W from the pack at ~90 % regulator efficiency** |
 | JGB37 drive motor | Battery | Accelerating at $a$ = 1.3 m/s² (≈ 0.35 A, linear torque–current estimate) | 3.8 W |
-| HX-35H servo | Battery | Holding / small corrections (≈ 0.1 A) | 1.1 W |
+| HX-12H servo | Battery | Holding / small corrections (≈ 0.1 A) | 1.1 W |
 | Hiwonder controller logic | Battery | Estimate | 0.5 W |
 | **Total** | | | **≈ 21 W → 1.95 A from the pack at 10.8 V** |
 
 $$t_{runtime} = \frac{36.7\text{ Wh}}{21\text{ W}} \approx 1.7\text{ h}$$
 
-**Peak current.** The motor stall current is 3.2 A and the servo stall current is 3 A. In the worst case (both stalled while the 5 V side draws 1.45 A) the pack would supply ≈ 7.7 A, above the NCR18650B's 4.875 A continuous rating. In a 3S pack all three cells carry the full current (there is no parallel branch to share it, unlike v6). This is a short-duration case, but it is the same kind of transient that caused the v6 brownouts, so we calculated its effect below and track it in the risk register ([§7.3](#risks)).
+**Peak current.** The motor stall current is 3.2 A and the servo stall current is 1.3 A. In the worst case (both stalled while the 5 V side draws 1.45 A) the pack would supply ≈ 5.95 A, above the NCR18650B's 4.875 A continuous rating. In a 3S pack all three cells carry the full current (there is no parallel branch to share it, unlike v6). This is a short-duration case, but it is the same kind of transient that caused the v6 brownouts, so we calculated its effect below and track it in the risk register ([§7.3](#risks)).
 
 #### Wiring diagram (design v7) <a id="wiring-v7"></a>
 
@@ -614,7 +614,7 @@ $$t_{runtime} = \frac{36.7\text{ Wh}}{21\text{ W}} \approx 1.7\text{ h}$$
 | Hiwonder controller, 5 V / 5 A Type-C output | Raspberry Pi 5, USB-C power input | 5 V | Powers the Pi and, through it, the Hailo-8, the camera, the LiDAR and the start button |
 | Raspberry Pi 5, USB port | Hiwonder controller, USB serial port (CH343) | USB serial, 1 Mbaud | Motion commands to the board, IMU heading back |
 | JGB37-520 drive motor (motor and Hall encoder) | Hiwonder controller, encoder-motor port **M4** | Motor cable | Closed-loop speed and position control on the board |
-| HX-35H steering servo | Hiwonder controller, serial bus servo port | Bus servo cable, battery voltage | Servo ID 1 |
+| HX-12H steering servo | Hiwonder controller, serial bus servo port | Bus servo cable, battery voltage | Servo ID 1 |
 | RPLidar S2L | Raspberry Pi 5, USB port | USB through the LiDAR's UART adapter, 1 Mbaud | Powered from the Pi's USB port |
 | Camera Module 3 Wide | Raspberry Pi 5, CSI connector | Flat camera cable | |
 | AI HAT+ 26 TOPS (Hailo-8) | Raspberry Pi 5, PCIe connector | Mounted on the Pi as a HAT | |
@@ -636,9 +636,9 @@ $$t_{runtime} = \frac{36.7\text{ Wh}}{21\text{ W}} \approx 1.7\text{ h}$$
 |---|---|---|
 | Average pack current, Obstacle Challenge run | 21 W ÷ 10.8 V (1.67 A at 12.6 V full, 2.12 A at 9.9 V low) | **≈ 1.9 A**, 0.58 C, 40 % of the 4.875 A rating |
 | Peak pack current, start from standstill | motor at stall 3.2 A + 5 V side 1.45 A + servo holding 0.1 A | **≈ 4.75 A**, 97 % of the rating, for the start-up transient only |
-| Worst case | motor and servo both stalled + 5 V side | ≈ 7.7 A (157 % of the rating); avoided by the steering clamp, see [§7.3](#risks) |
-| Voltage sag at the peak | I × R<sub>pack</sub>, R<sub>pack</sub> = 3 × 45 mΩ = 0.135 Ω (doubled to 0.27 Ω to allow for DC resistance, BMS and wiring) | 0.6–1.3 V at 4.75 A; 1.0–2.1 V at 7.7 A |
-| Lowest board input | low pack (3.3 V/cell = 9.9 V) minus the worst-case sag | **≈ 7.8 V**, above the controller's 7 V minimum, so its 5 V / 5 A output to the Pi stays regulated |
+| Worst case | motor and servo both stalled + 5 V side | ≈ 5.95 A (122 % of the rating); avoided by the steering clamp, see [§7.3](#risks) |
+| Voltage sag at the peak | I × R<sub>pack</sub>, R<sub>pack</sub> = 3 × 45 mΩ = 0.135 Ω (doubled to 0.27 Ω to allow for DC resistance, BMS and wiring) | 0.6–1.3 V at 4.75 A; 0.8–1.6 V at 5.95 A |
+| Lowest board input | low pack (3.3 V/cell = 9.9 V) minus the worst-case sag | **≈ 8.3 V**, above the controller's 7 V minimum, so its 5 V / 5 A output to the Pi stays regulated |
 | Energy per round | 21 W × 121 s (Obstacle) / 48 s (Open) | 0.71 Wh (2 % of the pack) / 0.28 Wh (0.8 %) |
 | Test session of 10 + 10 runs | 10 × 0.71 + 10 × 0.28 Wh of driving | ≈ 9.9 Wh, 29 % of the 34.6 Wh minimum capacity, plus idle time between runs (≈ 16 W) |
 | Runtime | 34.6 Wh (rated minimum) ÷ 21 W | ≈ 1.65 h (1.7 h with the typical capacity) |
@@ -800,7 +800,7 @@ Ultrasonic sensors used in previous seasons were removed in 2026; the robot reli
 
 ### 5.5 Processing architecture
 
-The control loop runs on the **Raspberry Pi 5**. The RPLidar S2L streams 360° scans over USB-serial into a background buffer. The camera frames go through the YOLOv8n model on the Hailo-8, which classifies the pillars (green, red) and the parking marker. The Pi fuses both streams and sends motion commands over USB-serial (CH343, 1 Mbaud) to the **Hiwonder board**, which closes the speed and position loops of the drive motor, drives the HX-35H steering servo, and reports the IMU heading. The Pi GPIO handles the start button (GPIO4) and its LED (GPIO3). The v6 relay that powered the SPIKE Hub is no longer used.
+The control loop runs on the **Raspberry Pi 5**. The RPLidar S2L streams 360° scans over USB-serial into a background buffer. The camera frames go through the YOLOv8n model on the Hailo-8, which classifies the pillars (green, red) and the parking marker. The Pi fuses both streams and sends motion commands over USB-serial (CH343, 1 Mbaud) to the **Hiwonder board**, which closes the speed and position loops of the drive motor, drives the HX-12H steering servo, and reports the IMU heading. The Pi GPIO handles the start button (GPIO4) and its LED (GPIO3). The v6 relay that powered the SPIKE Hub is no longer used.
 
 <table>
   <tr>
@@ -877,12 +877,12 @@ However, since the WRO Future Engineers rules prohibit wireless communication du
 | Power input | DC 7–14 V | 3S pack, 9.9–12.6 V in use ([§5.1](#power)) |
 | 5 V output | Independent 5 V / 5 A, USB Type-C | Powers the Raspberry Pi 5 and, through it, the Hailo-8, camera, LiDAR and button |
 | Encoder motors | 4 channels with PID speed control | Port M4: JGB37-520 drive motor |
-| Servos | 4 PWM servo ports (5 V), 2 serial bus servo ports (battery voltage) | One bus port: HX-35H steering servo (ID 1) |
+| Servos | 4 PWM servo ports (5 V), 2 serial bus servo ports (battery voltage) | One bus port: HX-12H steering servo (ID 1) |
 | IMU | On-board 6-axis IMU, QMI8658 (the chip the V1.2 firmware drives; Hiwonder's product page lists an MPU6050) | Heading, read by the Pi at 20 Hz |
 | Communication | 2 USB serial ports, CAN, SBUS, I²C, UART, Bluetooth module port | USB serial to the Pi at 1 Mbaud |
 | Controls and indicators | Main power switch, motor enable switch, 2 user buttons, user LED, buzzer, OLED port | Main power switch = hardware kill switch ([D8](#d8)) |
 | Protection | Over-temperature, short-circuit, over-current, reverse connection | |
-| Size and mass | 85 × 60 mm (holes 57 × 49 mm), 39.5 g | Mounted on the combined board/LiDAR support |
+| Size and mass | 85 × 60 mm (holes 57 × 49 mm), 39.5 g | Mounted on its printed plate (`hiwonder_support.STL`), which is screwed to the LiDAR plate |
 
 <table>
   <tr>
@@ -1413,7 +1413,7 @@ The official rounds of the 2026 Mexico National Final (2nd place) are linked in 
 | Time | Less than 8 weeks from the national final (2026-09-19) to the repository deadline (2026-11-10); final 2026-12-08 | Reuse of the national mission code instead of a rewrite ([D1](#d1)) |
 | Processing | Real-time vision + LiDAR on one Raspberry Pi 5 | C/C++ instead of Python; inference offloaded to the Hailo |
 | No wireless during runs | Rules 11.6, 11.10 | Wired Ethernet for SSH between runs; Wi-Fi and Bluetooth off; cable unplugged before each round (list below) |
-| Budget | Design v7 BOM **$23,679.82 MXN** at current prices ([§10](#construction-guide)) | Parts from v6 were reused (Raspberry Pi 5, camera, tyres, cells and start button); the JGB37 was chosen partly because the team already had a similar Hiwonder motor |
+| Budget | Design v7 BOM **$26,139.37 MXN** at current prices ([§10](#construction-guide)) | Parts from v6 were reused (Raspberry Pi 5, camera, tyres, cells and start button); the JGB37 was chosen partly because the team already had a similar Hiwonder motor |
 
 #### Rule compliance <a id="rule-compliance"></a>
 
@@ -1445,7 +1445,7 @@ How design v7 meets the round-start and communication rules of the [WRO 2026 Fut
 | LiDAR not ready at start | Decisions on an empty buffer | Waits up to 50 cycles for the first scan, aborts cleanly otherwise | Implemented |
 | Gyro drift | Heading error accumulates over 3 laps | 5 s bias calibration; heading re-squared against the side wall at every corner | Implemented |
 | Wrong pillar color | Penalty | Retrained model, 99.2 % correct decisions in validation | On track: 96 % (errors caused by shadows) ([§6.9](#testing)) |
-| Peak current (motor + servo stall) above the cells' continuous rating | Rail sag, Pi reset | Steering clamp avoids pushing against the end stops; BMS. Calculated ([§5.1](#power)): start-up peak ≈ 4.75 A (97 % of the 4.875 A rating), worst case ≈ 7.7 A with ≤ 2.1 V sag, which keeps the board input ≥ 7.8 V, above its 7 V minimum | Accepted |
+| Peak current (motor + servo stall) above the cells' continuous rating | Rail sag, Pi reset | Steering clamp avoids pushing against the end stops; BMS. Calculated ([§5.1](#power)): start-up peak ≈ 4.75 A (97 % of the 4.875 A rating), worst case ≈ 5.95 A with ≤ 1.6 V sag, which keeps the board input ≥ 8.3 V, above its 7 V minimum | Accepted |
 | Speed set-point above the motor's no-load speed | Speed changes as the battery drains | Effect measured: −9.7 % speed on a low battery at 5.7 rev/s, −6.1 % at 4.0 rev/s ([§6.9](#testing)) | Characterised |
 | LiDAR fails mid-run | Robot continues on stale data | At start the program waits for the first scan and aborts without moving if none arrives. During the run, `Oradar_S2L_Get_Scan_Seq()` counts complete scans; the camera + LiDAR demo mode already brakes when no new scan arrives for 750 ms. The competition missions do not use this check yet. | Open (was open in v6 too) |
 
@@ -1469,7 +1469,7 @@ Design v7 is the **seventh** distinct vehicle the team has built across two seas
 | v4 | 2026 | Packaging refinement | Component placement tightened around the new layout |
 | v5 | 2026 | Mounting revision | Serviceability fixes, including the LiDAR mount fix described below |
 | v6 | 2026 | **Final national geometry** | National final, 2nd place; documented in release v1.0.0 |
-| v7 | 2026 | **International** | Hiwonder board, JGB37 motor, rear differential, HX-35H steering servo, 3S battery, RPLidar S2L, Hailo-8, retrained model; chassis lowered and modified for the new parts. The vehicle documented in this README; see the photos in [§3](#our-robot) |
+| v7 | 2026 | **International** | Hiwonder board, JGB37 motor, rear differential, HX-12H steering servo, 3S battery, RPLidar S2L, Hailo-8, retrained model; chassis lowered and modified for the new parts. The vehicle documented in this README; see the photos in [§3](#our-robot) |
 
 Within the 2026 national season (v3–v6) the progress was incremental: no iteration after v3 changed the concept. v7 is the largest step since v3: it keeps the v6 layout but replaces the actuation, the power system and the LiDAR. See §2.5 of the journal for the full "we chose X instead of Y" reasoning behind each step.
 
@@ -1541,6 +1541,7 @@ Every failure that changed the design or is still open, with its cause and the r
 | F9 | 2026-11-08 | Open Challenge run 9: clipped the inner wall on lap 3 | Not confirmed yet. Suspected: heading and distance error that adds up late in the run | Open | | Open |
 | F10 | 2026-11-08 | Obstacle Challenge run 8: overshot the parking bay line | Not confirmed yet | Open | | Open |
 | F11 | 2026-11-08 | Obstacle Challenge runs 9 and 10 (layout E): stuck on a red pillar and clipped a green pillar, both on lap 3 | Not confirmed yet. Same suspicion as F9 | Open | | Open |
+| F12 | 2026-11 | The Hiwonder controller board partly blocked the LiDAR's view | The three cells were not all at the same height, which kept the board high | Cells re-arranged at one height (four generic spacer brackets and the printed `battery_holder.STL`), so the board could be mounted lower | Board lowered; small modification of design v7 | Closed |
 
 ### 7.6 Known limitations and next steps <a id="limitations"></a>
 
@@ -1555,7 +1556,7 @@ Every failure that changed the design or is still open, with its cause and the r
 | Heading is gyro plus LiDAR corrections at walls, not a fused estimate | Between corrections the heading drifts about 1° per minute | Accepted: the heading is re-squared 12 times per run ([§6.6](#heading)) |
 | Vision fails in strong shadows and in near darkness | Wrong or missed pillar colour (4 of 100 on the track) | Perception-only check at the venue before each round ([checklist](#checklist)) |
 | Worst-case current (motor and servo both stalled) is above the cells' continuous rating | Supply sag, calculated to stay above the board's 7 V minimum | Accepted; the steering clamp avoids the servo stall ([§7.3](#risks)) |
-| The assembly photos and the driving videos do not show the current electronics yet | The build sequence is the same, but some parts in the photos are different | New photos and videos to be added |
+| The driving videos do not show the current robot yet | Some parts in the videos look different from the robot described here | New videos to be added |
 
 ---
 
@@ -1579,6 +1580,7 @@ Each milestone of the vehicle is a tagged [GitHub release](https://github.com/al
 | [`v2.0.0-beta.3`](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS/releases/tag/v2.0.0-beta.3) | 2026-11-09 | Component photos with datasheet links, new driving videos |
 | [`v2.0.0-beta.4`](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS/releases/tag/v2.0.0-beta.4) | 2026-11-09 | Board firmware: our `pos-v8` and Hiwonder's original source (credited); IMU QMI8658 |
 | [`v2.0.0`](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS/releases/tag/v2.0.0) | 2026-11-10 | **International Final version** (design v7): v7 print files, assembly instructions, build from a fresh clone, failure log, checklist |
+| [`v2.0.1`](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS/releases/tag/v2.0.1) | 2026-11-16 | Assembly instructions with photos of the v7 build (37 steps), servo corrected to HX-12H, battery layout change, 15 print files, hardware kits in the BOM |
 
 ### 8.2 Repository structure
 
@@ -1874,8 +1876,8 @@ To build the robot, follow these five steps:
 | | What to do | Where |
 |---|---|---|
 | 1 | Get the parts | [Bill of Materials](#bom) |
-| 2 | Print the 12 parts (16 pieces) | [3D-printed parts](#printed-parts) |
-| 3 | **Assemble the vehicle** | **[Assembly instructions](other/Assembly_photos/Assembly_Process_EN.md)**: 31 steps with photos |
+| 2 | Print the 15 parts (19 pieces) | [3D-printed parts](#printed-parts) |
+| 3 | **Assemble the vehicle** | **[Assembly instructions](other/Assembly_photos/Assembly_Process_EN.md)**: 37 steps with photos |
 | 4 | Connect the electronics | [Wiring diagram, Figure 7](#wiring-v7) |
 | 5 | Flash the board firmware, then build and run the programs | [§9](#setup-instructions) |
 
@@ -1884,36 +1886,42 @@ To build the robot, follow these five steps:
 > [!IMPORTANT]
 > **Step-by-step assembly instructions: [`other/Assembly_photos/Assembly_Process_EN.md`](other/Assembly_photos/Assembly_Process_EN.md)**
 >
-> 31 steps, one photo each, in build order: from the bare printed chassis to the robot standing on its wheels.
+> 37 steps with photos of the design v7 build, in build order: from the battery pack to the finished robot. It also lists the tools, the battery safety rules and every screw, standoff and heat-set insert.
 
 | Phase | Steps | What you do |
 |---|---|---|
-| [Before you start](other/Assembly_photos/Assembly_Process_EN.md#before-you-start) | | Print the parts, get a soldering iron for the heat-set inserts, collect the parts of the Bill of Materials |
-| [Chassis and inserts](other/Assembly_photos/Assembly_Process_EN.md#chassis-and-inserts) | 1–2 | Clean the printed chassis and press in the heat-set inserts |
-| [Drivetrain](other/Assembly_photos/Assembly_Process_EN.md#drivetrain) | 3–7 | Rear axles and differential, then the drive motor with its gear |
-| [Electronics](other/Assembly_photos/Assembly_Process_EN.md#electronics) | 8–13 | Raspberry Pi with the AI HAT, controller, start button, drive motor cable |
-| [Battery](other/Assembly_photos/Assembly_Process_EN.md#battery) | 14–15 | Place and secure the 18650 battery pack |
-| [Front axle and steering](other/Assembly_photos/Assembly_Process_EN.md#front-axle-and-steering) | 16–20 | Steering parts and actuator, centring, pivot screws |
-| [LiDAR and camera](other/Assembly_photos/Assembly_Process_EN.md#lidar-and-camera) | 21–25 | LiDAR support, LiDAR and camera mast |
-| [Wiring check](other/Assembly_photos/Assembly_Process_EN.md#wiring-check) | 26–27 | Remaining cables and camera cable, compared with the wiring diagram |
-| [Wheels](other/Assembly_photos/Assembly_Process_EN.md#wheels) | 28–31 | The four wheels, then the robot on the ground |
-| [Final checks](other/Assembly_photos/Assembly_Process_EN.md#final-checks) | | Wheels, steering travel, cables and LiDAR view |
+| [Before you start](other/Assembly_photos/Assembly_Process_EN.md#before-you-start) |  | Tools and materials, battery safety, parts list with every screw, standoff and insert |
+| [1. Battery pack](other/Assembly_photos/Assembly_Process_EN.md#1-battery-pack) | 1–3 | Cells in the spacer brackets and the printed holder, nickel strips, BMS, insulation |
+| [2. Raspberry Pi and AI HAT](other/Assembly_photos/Assembly_Process_EN.md#2-raspberry-pi-and-ai-hat) | 4–6 | Cooler, standoffs, stacking header, AI HAT and camera cable |
+| [3. Camera](other/Assembly_photos/Assembly_Process_EN.md#3-camera) | 7–9 | Camera in its frame, frame on the mast |
+| [4. Heat-set inserts](other/Assembly_photos/Assembly_Process_EN.md#4-heat-set-inserts) | 10 | Brass inserts in the printed parts |
+| [5. LiDAR plate](other/Assembly_photos/Assembly_Process_EN.md#5-lidar-plate) | 11–13 | The two plates joined, LiDAR on the plate |
+| [6. Chassis and drivetrain](other/Assembly_photos/Assembly_Process_EN.md#6-chassis-and-drivetrain) | 14–21 | Differential, rear axles, drive motor and its gear |
+| [7. Raspberry Pi on the chassis](other/Assembly_photos/Assembly_Process_EN.md#7-raspberry-pi-on-the-chassis) | 22 | Raspberry Pi with the AI HAT on the chassis |
+| [8. Steering](other/Assembly_photos/Assembly_Process_EN.md#8-steering) | 23–28 | HX-12H servo, servo arm, link, joints and wheel knuckles |
+| [9. Battery and start button](other/Assembly_photos/Assembly_Process_EN.md#9-battery-and-start-button) | 29–30 | Battery pack in its bay, start button |
+| [10. LiDAR plate and controller board](other/Assembly_photos/Assembly_Process_EN.md#10-lidar-plate-and-controller-board) | 31–33 | Plate over the Raspberry Pi, controller board, cables |
+| [11. Camera mast and wheels](other/Assembly_photos/Assembly_Process_EN.md#11-camera-mast-and-wheels) | 34–37 | Camera mast, wiring check, wheels, finished robot |
+| [Final checks](other/Assembly_photos/Assembly_Process_EN.md#final-checks) |  | Wheels, steering travel, cables, LiDAR view and battery |
 
 ### 3D-printed parts <a id="printed-parts"></a>
 
-Design v7 has 12 different printed parts, 16 pieces in total. Their STL files are in [`models/cad/Stl/v7/`](models/cad/Stl/v7), exported from the SolidWorks assembly in [`models/cad/v7_assembly/`](models/cad/v7_assembly). Six are new or redesigned for v7; the camera hinge and five steering parts are unchanged from design v6.
+Design v7 has 15 different printed parts, 19 pieces in total. Their STL files are in [`models/cad/Stl/v7/`](models/cad/Stl/v7), exported from the SolidWorks assembly in [`models/cad/v7_assembly/`](models/cad/v7_assembly). Nine are new or redesigned for v7, among them the two plates, the battery holder and the motor gear; the camera hinge and five steering parts are unchanged from design v6.
 
-<img src="models/cad/Stl/v7/printed_parts_v7.png" alt="Preview of the 12 printed parts of design v7 with their file names and sizes" width="900">
+<img src="models/cad/Stl/v7/printed_parts_v7.png" alt="Preview of the 15 printed parts of design v7 with their file names and sizes" width="900">
 
-*Figure 17. The 12 printed parts of design v7 (sizes are the bounding box of each file, in mm).*
+*Figure 17. The 15 printed parts of design v7 (sizes are the bounding box of each file, in mm).*
 
 | File | Qty | SolidWorks part | What it is | Size (mm) | Solid volume (each) | Compared with design v6 |
 |---|---|---|---|---|---|---|
 | [`chassis_base.STL`](models/cad/Stl/v7/chassis_base.STL) | 1 | `Base` | Chassis base: carries every other part | 207.4 × 101.5 × 62.8 | 124.94 cm³ | New in v7 |
-| [`hiwonder_lidar_support.STL`](models/cad/Stl/v7/hiwonder_lidar_support.STL) | 1 | `Soporte de hiwonder-lidar` | Plate that holds the Hiwonder board and the RPLidar S2L | 88.7 × 88.0 × 8.0 | 14.60 cm³ | New in v7 |
+| [`hiwonder_lidar_support.STL`](models/cad/Stl/v7/hiwonder_lidar_support.STL) | 1 | `Soporte de hiwonder-lidar` | LiDAR plate: carries the RPLidar S2L and is screwed to the Hiwonder board plate | 88.7 × 88.0 × 8.0 | 14.60 cm³ | New in v7 |
+| [`hiwonder_support.STL`](models/cad/Stl/v7/hiwonder_support.STL) | 1 | `Soporte hiwonder` | Hiwonder board plate: carries the controller board on heat-set inserts | 95.0 × 62.0 × 4.0 | 11.79 cm³ | New in v7 |
+| [`battery_holder.STL`](models/cad/Stl/v7/battery_holder.STL) | 1 | `Soporte para pilas` | Holder that keeps the third cell at the same height as the other two | 42.5 × 22.7 × 21.0 | 7.01 cm³ | New in v7 (battery layout change) |
+| [`motor_gear_20t.STL`](models/cad/Stl/v7/motor_gear_20t.STL) | 1 | `Gear 20` | 20-tooth gear on the drive motor shaft (20:28 with the differential) | 21.3 × 21.3 × 7.9 | 1.86 cm³ | New in v7 |
 | [`camera_mast.STL`](models/cad/Stl/v7/camera_mast.STL) | 1 | `camera` | Camera mast (two arms) | 122.0 × 89.8 × 7.0 | 6.96 cm³ | New in v7 |
 | [`camera_hinge.STL`](models/cad/Stl/v7/camera_hinge.STL) | 1 | `camara visagra` | Camera frame with tilt hinge | 37.0 × 30.0 × 7.0 | 2.41 cm³ | Same as v6 (`camara_tilt.STL`) |
-| [`steering_servo_arm.STL`](models/cad/Stl/v7/steering_servo_arm.STL) | 1 | `otro eslabon` | Arm on the HX-35H servo horn | 43.9 × 20.0 × 16.6 | 1.37 cm³ | New in v7 |
+| [`steering_servo_arm.STL`](models/cad/Stl/v7/steering_servo_arm.STL) | 1 | `otro eslabon` | Arm on the HX-12H servo horn | 43.9 × 20.0 × 16.6 | 1.37 cm³ | New in v7 |
 | [`steering_link.STL`](models/cad/Stl/v7/steering_link.STL) | 1 | `slabon` | Steering link, 93 mm | 93.0 × 8.0 × 3.9 | 2.59 cm³ | New in v7 |
 | [`hex_standoff.STL`](models/cad/Stl/v7/hex_standoff.STL) | 2 | `soporte 2` | Hexagonal standoff, 23.8 mm | 23.8 × 7.9 × 6.8 | 0.71 cm³ | New in v7 |
 | [`ackerman_angle.STL`](models/cad/Stl/v7/ackerman_angle.STL) | 2 | `ackerman_angle` | Ackermann steering joint | 24.5 × 10.5 × 7.9 | 0.59 cm³ | Same as v6 |
@@ -1922,7 +1930,7 @@ Design v7 has 12 different printed parts, 16 pieces in total. Their STL files ar
 | [`ackerman_wheel_join_mirror.STL`](models/cad/Stl/v7/ackerman_wheel_join_mirror.STL) | 1 | `ackerman_wheel_join_mirror` | Front wheel knuckle, mirrored | 30.7 × 23.5 × 9.7 | 2.09 cm³ | Same as v6 |
 | [`wheel_axis.STL`](models/cad/Stl/v7/wheel_axis.STL) | 2 | `wheel_axis` | Wheel axle hub | 24.0 × 15.6 × 8.0 | 0.54 cm³ | Same as v6 |
 
-**Printing.** The parts were printed on a **Creality K1C** (220 × 220 × 250 mm build volume) with a **0.4 mm nozzle** in **Creality Hyper ABS**, sliced with Creality Print using its default profile for this printer (`0.20mm Standard @Creality K1C 0.4 nozzle`). Infill, walls and supports are left to whoever prints the parts; we used the defaults. The printer and filament presets are in [`models/cad/print_profiles/`](models/cad/print_profiles). The 16 pieces add up to 161 cm³ of solid volume. The largest part, the chassis base (207.4 × 101.5 mm footprint), fits the bed in one piece. The design v6 parts are the `.STL` files directly in [`models/cad/Stl/`](models/cad/Stl) ([details](models/cad/Stl/README.md)).
+**Printing.** The parts were printed on a **Creality K1C** (220 × 220 × 250 mm build volume) with a **0.4 mm nozzle** in **Creality Hyper ABS**, sliced with Creality Print using its default profile for this printer (`0.20mm Standard @Creality K1C 0.4 nozzle`). Infill, walls and supports are left to whoever prints the parts; we used the defaults. The printer and filament presets are in [`models/cad/print_profiles/`](models/cad/print_profiles). The 19 pieces add up to 182 cm³ of solid volume. The largest part, the chassis base (207.4 × 101.5 mm footprint), fits the bed in one piece. The design v6 parts are the `.STL` files directly in [`models/cad/Stl/`](models/cad/Stl) ([details](models/cad/Stl/README.md)).
 
 ### Bill of Materials <a id="bom"></a>
 
@@ -1932,20 +1940,32 @@ Design v7 has 12 different printed parts, 16 pieces in total. Their STL files ar
 | --- | --- | --- | --- |
 | [Hiwonder ROS Robot Controller (STM32F407)](https://www.hiwonder.com/products/ros-robot-control) | 1 | $929.31 | $929.31 |
 | [Hiwonder JGB37-520 Hall-encoder DC gear motor, 12 V, 30:1](https://www.hiwonder.com/products/hall-encoder-dc-geared-motor?variant=40451123675223) | 1 | $241.48 | $241.48 |
-| [Hiwonder HX-35H serial bus servo](https://www.hiwonder.com/products/hx-35h) | 1 | $353.02 | $353.02 |
+| [Hiwonder HX-12H serial bus servo](https://www.hiwonder.com/products/hx-12h) | 1 | $315.84 | $315.84 |
 | [Slamtec RPLidar S2L](https://www.dfrobot.com/product-2617.html) | 1 | $5,558.41 | $5,558.41 |
 | [Raspberry Pi AI HAT+ 26 TOPS (Hailo-8)](https://www.sparkfun.com/products/27249) | 1 | $2,453.88 | $2,453.88 |
+| [Interlocking 18650 spacer brackets (generic, sold in packs)](https://www.amazon.co.uk/100Pcs-Li-ion-Battery-Cylindrical-Bracket/dp/B07WW4JQZX) | 4 | — | — |
 | [BMS3S10A 3S Li-ion balancing / protection board](https://www.inteligenciaartificialyrobotica.com/products/balanceador-cargador-de-baterias-li-ion-bms3s10a) | 1 | $49.00 | $49.00 |
 | [LEGO Technic Gear Differential Housing (65414)](https://www.brickshop.eu/lego-parts/technics/lego-differential-housing-light-grey.html) | 1 | $82.79 | $82.79 |
 | [LEGO Technic Bevel Gear 28 Teeth (65413)](https://www.brickowl.com/catalog/lego-red-bevel-gear-with-28-teeth-65413) | 1 | $10.97 | $10.97 |
+| [LEGO Technic Axle 5.5 with Stop (32209)](https://www.toypro.com/en/product/1403/technic-axle-5-5-with-stop/dark-bluish-gray) | 3 | $2.08 | $6.24 |
+| [LEGO Technic Axle 4 with Stop (87083)](https://www.toypro.com/us/product/2232/technic-axle-4-with-stop/dark-bluish-gray) | 2 | $1.86 | $3.72 |
+| [LEGO Technic Pin Connector Round with Slot (62462)](https://www.toypro.com/us/product/1888/technic-pin-connector-round-with-slot-pin-joiner-round/black) | 2 | $6.88 | $13.76 |
+| [LEGO Technic Axle Connector Smooth (6538c)](https://www.toypro.com/us/product/1879/technic-axle-connector-smooth-with-x-hole-orientation/black) | 1 | $2.60 | $2.60 |
 | [Raspberry Pi 5 (16GB RAM)](https://www.330ohms.com/shop/raspberry-pi-raspberry-pi-5-2/rp-01113-raspberry-pi-5-16gb-1501) | 1 | $10,284.00 | $10,284.00 |
 | [Raspberry Pi Camera Module 3 Wide](https://www.330ohms.com/shop/raspberry-pi-raspberry-pi-zero-9/rp-00874-raspberry-pi-camara-3-wide-1326) | 1 | $962.00 | $962.00 |
 | [Panasonic NCR18650B 3400mAh 18650 Li-ion Battery](https://www.mercadolibre.com.mx/ncr18650b-bateria-panasonic-18650-3400mah/up/MLMU723197120) | 3 | $219.90 | $659.70 |
 | [4-Pack: LEGO Tires 62.4 x 20 S (32019) & Rims (86652)](https://www.amazon.com.mx/LEGO-Tire-86652-32019-75999/dp/B01CODUYCE) | 1 | $2,079.07 | $2,079.07 |
-| [Grove Red LED Button Module](https://www.330ohms.com/shop/sd-20069-boton-con-led-rojo-grove-361) | 1 | $16.19 | $16.19 |
-| **Total (MXN)** | | | **$23,679.82** |
+| [Grove LED Button Module](https://www.330ohms.com/shop/sd-20069-boton-con-led-rojo-grove-361) | 1 | $16.19 | $16.19 |
+| [M2.5 brass standoff kit, 320 pcs (male–female and female–female, 6/10/15/20 mm, with M2.5 × 6 screws and nuts)](https://www.amazon.com/dp/B01MXSJXLO) | 1 kit | $353.02 | $353.02 |
+| [M2.5 socket head screw kit, 533 pcs (4–25 mm)](https://vxb.com/products/m25-hex-socket-head-cap-screws-kit-pro-grade-assor) | 1 kit | $743.41 | $743.41 |
+| [M3 screw and nut kit, 2135 pcs (4–35 mm)](https://vxb.com/products/massive-m3-screw-and-nut-assortment-kit-with-4mm-t) | 1 kit | $928.20 | $928.20 |
+| [Heat-set inserts M2.5, 100 pcs (Prusa)](https://www.prusa3d.com/es/producto/insertos-roscados-m2-5-estandar100-pcs/) | 1 pack | $222.89 | $222.89 |
+| [Heat-set inserts M2 short, 100 pcs (Prusa)](https://www.prusa3d.com/es/producto/insertos-roscados-m2-cortos-100-pcs/) | 1 pack | $222.89 | $222.89 |
+| **Total (MXN)** | | | **$26,139.37** |
 
-> **Prices.** All prices retrieved from the linked pages on Nov 9, 2026. USD prices (Hiwonder controller $49.99, JGB37 motor $12.99, HX-35H $18.99, RPLidar S2L $299.00, AI HAT+ 26 TOPS $132.00, LEGO 65413 $0.59) converted at 1 USD = 18.59 MXN, and the LEGO 65414 (€3.99) at 1 EUR = 20.75 MXN (Morningstar, Nov 9, 2026, 6:10 AM UTC).
+> **Prices.** All prices retrieved from the linked pages on Nov 9, 2026. The generic 18650 spacer brackets (any interlocking bracket for 18650 cells fits) cost a few cents each and are not in the total. USD prices (Hiwonder controller $49.99, JGB37 motor $12.99, HX-12H $16.99, retrieved Nov 16, 2026, RPLidar S2L $299.00, AI HAT+ 26 TOPS $132.00, LEGO 65413 $0.59) converted at 1 USD = 18.59 MXN, and the LEGO 65414 (€3.99) at 1 EUR = 20.75 MXN (Morningstar, Nov 9, 2026, 6:10 AM UTC).
+>
+> **Screws, standoffs, inserts and small LEGO parts** (retrieved Nov 16, 2026, same conversion rates). These are sold in kits and packs, so the BOM lists the whole kit; the robot uses only part of each (the exact counts are in the [assembly instructions](other/Assembly_photos/Assembly_Process_EN.md)). Kit prices: standoff kit $18.99 (Amazon price read on a price-tracking page), M2.5 screw kit $39.99, M3 screw kit $49.93, each Prusa insert pack $11.99. The Prusa M2 short inserts are 3 mm long; any M2 insert of 2–3 mm fits. Any equivalent kit works. LEGO parts from Toypro: 32209 €0.10, 87083 $0.10, 62462 $0.37 and 6538c $0.14 (black, out of stock when checked; other colours fit too).
 
 <details>
 <summary><b>Design v6 (national) Bill of Materials</b></summary>
@@ -2032,7 +2052,7 @@ Design v7 has 12 different printed parts, 16 pieces in total. Their STL files ar
 - Our board firmware `pos-v8`: [`firmware/hiwonder_pos-v8/`](firmware/hiwonder_pos-v8) (image, patch over Hiwonder's source, build scripts, [protocol](firmware/hiwonder_pos-v8/PROTOCOL.md))
 - Hiwonder's original firmware source (V1.2) and factory images, by Hiwonder: [`firmware/hiwonder_original/`](firmware/hiwonder_original) (unmodified; third-party libraries and their licenses listed in its README)
 - [Hiwonder JGB37-520 Hall-encoder DC gear motor](https://www.hiwonder.com/products/hall-encoder-dc-geared-motor) (specifications on the product page)
-- [Hiwonder HX-35H serial bus servo](https://www.hiwonder.com/products/hx-35h) (specifications on the product page)
+- [Hiwonder HX-12H serial bus servo](https://www.hiwonder.com/products/hx-12h) (specifications on the product page)
 - [Slamtec RPLIDAR S2L](https://www.slamtec.com/en/s2) and [RPLIDAR SDK](https://github.com/Slamtec/rplidar_sdk)
 - [Raspberry Pi 5](https://www.raspberrypi.com/products/raspberry-pi-5/) and [USB Power Delivery on Raspberry Pi 5](other/datasheets/RP-009856-WP-1-USB-Power-Delivery-on-Raspberry-Pi-5.pdf) (5 V / 5 A supply; [source](https://pip-assets.raspberrypi.com/categories/685-app-notes-guides-whitepapers/documents/RP-009856-WP-1-USB%20Power%20delivery%20on%20Raspberry%20Pi%205.pdf))
 - [Raspberry Pi AI HAT+ (26 TOPS, Hailo-8) product brief](other/datasheets/RP-008133-DS-1-raspberry-pi-ai-hat-plus-product-brief.pdf) ([source](https://datasheets.raspberrypi.com/ai-hat-plus/raspberry-pi-ai-hat-plus-product-brief.pdf)) and [documentation](https://www.raspberrypi.com/documentation/accessories/ai-hat-plus.html)
@@ -2090,4 +2110,4 @@ SOFTWARE.
 
 ---
 
-> *Document maintained by CSS | Last updated: November 2026 | Latest release: v2.0.0*
+> *Document maintained by CSS | Last updated: November 2026 | Latest release: v2.0.1*

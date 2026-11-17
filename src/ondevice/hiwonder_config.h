@@ -2,7 +2,7 @@
 #define HIWONDER_CONFIG_H
 
 // Robot calibration for the Hiwonder controller board (design v7): every value
-// that depends on the mechanical assembly lives here (steering servo HX-35H,
+// that depends on the mechanical assembly lives here (steering servo HX-12H,
 // drive motor M4, IMU heading PD). Used by spike_hiwonder.cpp in both the Open
 // Challenge and the Obstacle Challenge. Values marked CHECK come from the test
 // bench (2026-10-04), not from the assembled robot; HIWONDER.md explains how
@@ -15,7 +15,7 @@
 // one explicitly:
 // HIWONDER_DEVICE=/dev/serial/by-id/usb-1a86_USB_Single_Serial_<serial>-if00
 
-// --- Steering: HX-35H serial bus servo -------------------------------------
+// --- Steering: HX-12H serial bus servo -------------------------------------
 // Positions 0..1000 (~0.24° per unit). On the bench, with "right" at the
 // higher position the heading correction came out reversed, so here right is
 // the lower position. CHECK: with the wheels lifted, the right position must

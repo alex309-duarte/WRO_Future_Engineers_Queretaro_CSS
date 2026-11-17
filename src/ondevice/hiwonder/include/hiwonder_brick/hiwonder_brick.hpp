@@ -4,7 +4,7 @@
 // (STM32F407, extended firmware pos-v8) connected to the Raspberry Pi 5 over
 // USB serial (CH343) at 1 Mbaud. It speaks the board's packet protocol
 // (0xAA 0x55, function, length, payload, CRC-8/MAXIM) to drive the DC motors,
-// the HX-35H steering bus servo and to read the on-board IMU. A background
+// the HX-12H steering bus servo and to read the on-board IMU. A background
 // reader thread decodes replies and integrates the yaw. Used by both the Open
 // Challenge and the Obstacle Challenge through spike_compat.
 
@@ -64,7 +64,7 @@ struct BusServoFeedback {
 };
 
 // Steering servo calibration. Values 0..1000 correspond to about 0..240 deg
-// on the HX-35H. The three points must be passed explicitly so the program
+// on the HX-12H. The three points must be passed explicitly so the program
 // can never assume mechanical limits that would damage the Ackermann linkage.
 // set_steering() maps -1 -> left, 0 -> center, +1 -> right.
 struct SteeringCalibration {

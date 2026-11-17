@@ -2,7 +2,7 @@
 // (heading PD on the gyro, timed turns, encoder-measured advances) rebuilt on
 // top of hiwonder::Brick, so the Open Challenge and Obstacle Challenge
 // mission code runs unchanged on the Hiwonder board. Steering goes to the
-// HX-35H bus servo, drive to motor M4 (closed-loop speed or firmware position
+// HX-12H bus servo, drive to motor M4 (closed-loop speed or firmware position
 // control), heading comes from the yaw integrated by the Brick.
 
 #include "spike_compat/spike_compat.h"
@@ -52,7 +52,7 @@ void require_steering_calibration() {
     if (g_config.pd_output_to_steering == 0.0) {
         throw std::logic_error(
             "spike_compat: pd_output_to_steering not calibrated; the LEGO factor 6.4 "
-            "does not carry over to the HX-35H Ackermann linkage");
+            "does not carry over to the HX-12H Ackermann linkage");
     }
 }
 

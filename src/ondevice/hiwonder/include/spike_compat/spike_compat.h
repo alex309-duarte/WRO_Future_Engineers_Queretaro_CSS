@@ -7,11 +7,11 @@
 //
 // The original was a REPL driver: it sent MicroPython over serial to the hub,
 // which defined functions and ran them. Here the same signatures delegate to
-// hiwonder::Brick (motor M4, HX-35H steering servo, on-board IMU). The REPL
+// hiwonder::Brick (motor M4, HX-12H steering servo, on-board IMU). The REPL
 // transport functions remain as no-ops.
 //
 // IMPORTANT: Spike_Attach() must be called before anything else. The LEGO
-// scale factors do NOT carry over to the Ackermann linkage of the HX-35H, so
+// scale factors do NOT carry over to the Ackermann linkage of the HX-12H, so
 // they have no default value: if they are not calibrated, the motion
 // functions throw std::logic_error instead of moving incorrectly.
 
@@ -27,7 +27,7 @@ struct Config {
     // --- Steering ------------------------------------------------------
     // The original did run_to_absolute_position(port.F, int(et*6.4), ...):
     // the PD output was converted to degrees of the steering motor. Here the
-    // HX-35H works in normalized units -1..1, so this factor converts the PD
+    // HX-12H works in normalized units -1..1, so this factor converts the PD
     // output directly to that scale. CALIBRATE WITH THE LINKAGE.
     double pd_output_to_steering = 0.0;
 

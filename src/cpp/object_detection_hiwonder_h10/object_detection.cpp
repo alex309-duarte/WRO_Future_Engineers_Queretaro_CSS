@@ -3,7 +3,7 @@
 // accelerator, which detects the red/green traffic signs (pillars) and the magenta
 // parking-lot markers; the Slamtec RPLidar S2L (360 deg, 10 Hz) gives wall distances
 // and wall orientation (Select_Wall / Slope / Distance_To_Wall).
-// Actuation: the Hiwonder ROS Robot Controller board (drive motor, HX-35H steering
+// Actuation: the Hiwonder ROS Robot Controller board (drive motor, HX-12H steering
 // servo, on-board IMU for heading) through the SPIKE-compatible API of spike.h.
 // main() starts the lidar reader thread and the camera -> Hailo -> postprocess
 // pipeline, then the mission thread (Obstacle_Challenge_Thread), which waits for the

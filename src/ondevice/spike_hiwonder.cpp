@@ -23,7 +23,7 @@ namespace {
 
 // turn() on the hub rotated the steering motor 179° relative, i.e. to full
 // lock. With tire_turn_to_steering = 1/179, that same value gives normalized
-// steering ±1: the calibrated limits of the HX-35H.
+// steering ±1: the calibrated limits of the HX-12H.
 constexpr int kGiroLlantaTope = 179;
 
 std::unique_ptr<hiwonder::Brick> g_brick;   // owned here, lent to spike_compat

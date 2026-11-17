@@ -385,7 +385,7 @@ void Brick::set_bus_servo_position(std::uint8_t servo_id,
         throw std::invalid_argument("servo_id must be between 0 and 253");
     }
     if (position > 1000) {
-        throw std::invalid_argument("HX-35H position must be between 0 and 1000");
+        throw std::invalid_argument("HX-12H position must be between 0 and 1000");
     }
     if (duration_ms < 20 || duration_ms > 30000) {
         throw std::invalid_argument("duration must be between 20 and 30000 ms");

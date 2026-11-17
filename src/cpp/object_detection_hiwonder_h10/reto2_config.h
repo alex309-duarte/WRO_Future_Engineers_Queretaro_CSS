@@ -25,14 +25,14 @@ constexpr double kMmPorGradoSpike = 196.035 / (1.4 * 360.0);
 
 // Hub turn()/small_turn() steered with run_to_relative_position(port.A,
 // tire_turn*4.29*dir), i.e. 4.29 steering-motor degrees per tire_turn unit.
-// The Open Challenge maps the full steering lock of the HX-35H servo
+// The Open Challenge maps the full steering lock of the HX-12H servo
 // (+/-35 deg, kDireccionMaxGrados in hiwonder_config.h) to 179 deg of that
 // motor (kGiroLlantaTope in spike_hiwonder.cpp), so tire_turn 40 = 0.96 of
 // full lock, 45 = full lock, 30 = 0.72, 15 = 0.36.
 constexpr double kGradosMotorPorTireTurn = 4.29;
 
 // Hub turn_special()/turns_special() (await = true) waited for the steering
-// to reach its position before driving. Time, in ms, the HX-35H servo is
+// to reach its position before driving. Time, in ms, the HX-12H servo is
 // given to reach the commanded steering position (it needs roughly 100 ms).
 constexpr int kEsperaDireccionAwaitMs = 150;
 
