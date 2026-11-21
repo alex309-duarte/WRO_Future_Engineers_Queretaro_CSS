@@ -23,7 +23,7 @@ C and C++ sources of the **Open Challenge** program (`main.cpp`) and of the hard
 ## More information
 
 - Flowchart, state machine and thresholds of the Open Challenge: [main README, section 6.2](../../README.md#software).
-- Build and run: [main README, section 9.5](../../README.md#setup-instructions).
+- Build and run: [main README, section 9](../../README.md#setup-instructions); the full steps are in [`other/docs/Setup_and_Execution.md`](../../other/docs/Setup_and_Execution.md).
 - Board layer, checks before the first run and troubleshooting: [`HIWONDER.md`](HIWONDER.md).
 - Wiring diagram: [`schemes/hardware/wiringSchematics_v7.png`](../../schemes/hardware/wiringSchematics_v7.png).
 
