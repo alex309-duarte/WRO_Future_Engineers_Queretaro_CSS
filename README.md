@@ -20,7 +20,8 @@ This repository contains the engineering documentation for **CSS**'s autonomous 
 
 The sections follow the five criteria of the WRO 2026 documentation rubric (Appendix C of the General Rules). The table uses the rubric's own words and links each item to the place where it is answered.
 
-> **Click to open.** To keep this page short, supporting detail (constants, long tables and calculations, biographies) is folded into blue boxes marked <kbd>Click to open</kbd>: click the line to unfold it. Cards marked <kbd>Other page</kbd> lead to a page of their own (the full setup instructions, the firmware, the design v6 robot): click the picture or the link. **Purple boxes** are [decision cards](#decision-cards), the reasoning behind each design choice. Every link in the table below leads to text that is always visible.
+> [!NOTE]
+> **How to read this page.** To keep it short, supporting detail (constants, long tables and calculations, biographies) is folded into blue boxes like this one, marked <kbd>Click to open</kbd>: click the line to unfold it. Cards marked <kbd>Other page</kbd> lead to a page of their own (the full setup instructions, the firmware, the design v6 robot): click the picture or the link. **Purple boxes** are [decision cards](#decision-cards), the reasoning behind each design choice. Every link in the table below leads to text that is always visible.
 
 | Rubric criterion | Where to find it |
 |---|---|
@@ -34,11 +35,10 @@ The sections follow the five criteria of the WRO 2026 documentation rubric (Appe
 
 ## Decision cards
 
-Every design decision in this document is written as a **decision card**, shown in a **purple box**, that answers the same six questions: **what**, **why**, **when**, **how**, **what for** and **alternatives**. There are nine: [D1 and D7](#d1) controller board, [D2](#d2) drive motor, [D3](#d3) steering servo, [D4](#d4) LiDAR, [D5](#d5) AI accelerator, [D6](#d6) detection model, [D8](#d8) emergency stop, [D9](#d9) rear differential, [D10](#d10) battery.
+Every design decision in this document is written as a **decision card**, shown in a **purple box** like the one below, that answers the same six questions: **what**, **why**, **when**, **how**, **what for** and **alternatives**. There are nine: [D1 and D7](#d1) controller board, [D2](#d2) drive motor, [D3](#d3) steering servo, [D4](#d4) LiDAR, [D5](#d5) AI accelerator, [D6](#d6) detection model, [D8](#d8) emergency stop, [D9](#d9) rear differential, [D10](#d10) battery.
 
-> [!NOTE]
-> <details>
-> <summary><kbd>Click to open</kbd> <b>What each of the six rows of a decision card means</b></summary>
+> [!IMPORTANT]
+> **A decision card looks like this.** Each of its six rows answers one question:
 >
 > | | |
 > |---|---|
@@ -48,8 +48,6 @@ Every design decision in this document is written as a **decision card**, shown 
 > | **How** | How it was implemented (files, parts, parameters) |
 > | **What for** | The result we measured |
 > | **Alternatives** | What else we considered and why we did not choose it |
->
-> </details>
 
 <table>
 <tr>
@@ -106,7 +104,7 @@ This documentation is written so that another team can build the same robot and 
 <table>
 <tr>
 <td align="center" valign="top" width="50%"><img src="t-photos/Christian.jpeg" width="150"><br><b>Christian Gael Centeno Velez</b><br>Age 17<br><b>Role:</b> Captain. Software, electronics and mechanical design</td>
-<td align="center" valign="top" width="50%"><img src="t-photos/Sebastian.jpeg" width="150"><br><b>Sebastián Esquivel Mondragón</b><br>Age 19<br><b>Role:</b> Documentation, electronics and mechanical design<br><a href="https://www.linkedin.com/in/sebastian-esquivel-mondragon/">LinkedIn</a></td>
+<td align="center" valign="top" width="50%"><img src="t-photos/Sebastian.jpeg" width="150"><br><b>Sebastián Esquivel Mondragón</b><br>Age 19<br><b>Role:</b> Documentation, electronics and mechanical design<br><a href="https://www.linkedin.com/in/sebastian-esquivel-mondragon/"><img src="other/additionalMedia/Others/linkedin.png" width="24" alt="LinkedIn profile of Sebastián Esquivel Mondragón"></a></td>
 </tr>
 </table>
 
@@ -114,9 +112,9 @@ This documentation is written so that another team can build the same robot and 
 > <details>
 > <summary><kbd>Click to open</kbd> <b>Biographies of the two team members</b></summary>
 >
-> **Christian Gael Centeno Velez.** I am currently in my senior year of high school at the Colegio de Estudios Científicos y Tecnológicos del Estado de Querétaro (CECyTEQ), specializing as a Mechatronics Technician. I have a strong background in competitive robotics, having participated in previous editions of the World Robot Olympiad (WRO). In 2024, I competed in the RoboMission category, and in 2025, I secured third place at the national level in the Future Engineers category with another team. Through my years of experience competing in the WRO, I have developed solid skills in robot programming, design, and electronics.
+> >**Christian Gael Centeno Velez.** I am currently in my senior year of high school at the Colegio de Estudios Científicos y Tecnológicos del Estado de Querétaro (CECyTEQ), specializing as a Mechatronics Technician. I have a strong background in competitive robotics, having participated in previous editions of the World Robot Olympiad (WRO). In 2024, I competed in the RoboMission category, and in 2025, I secured third place at the national level in the Future Engineers category with another team. Through my years of experience competing in the WRO, I have developed solid skills in robot programming, design, and electronics.
 >
-> **Sebastián Esquivel Mondragón.** Currently pursuing a Bachelor of Science in Mechatronics Engineering at Monterrey Institute of Technology and Higher Education (ITESM), on an academic talent scholarship. My background in robotics began in middle school with the MekLab Robotics team (UAQ), where I competed in WRO RoboMission, placing 3rd nationally in 2022 (Junior) and 2nd nationally in 2023 (Senior), qualifying for the international final in Panama. In 2025, our now independent and disaffiliated team moved into WRO Future Engineers, placing 2nd nationally. Most of my software and electronics experience comes from these competitions. I've also worked as an intern at GS de México (GS Global), in the Research and Development (R&D) department, where I further developed CAD design skills and many other engineering competencies, such as problem solving skills, now applied towards this project.
+> >**Sebastián Esquivel Mondragón.** Currently pursuing a Bachelor of Science in Mechatronics Engineering at Monterrey Institute of Technology and Higher Education (ITESM), on an academic talent scholarship. My background in robotics began in middle school with the MekLab Robotics team (UAQ), where I competed in WRO RoboMission, placing 3rd nationally in 2022 (Junior) and 2nd nationally in 2023 (Senior), qualifying for the international final in Panama. In 2025, our now independent and disaffiliated team moved into WRO Future Engineers, placing 2nd nationally. Most of my software and electronics experience comes from these competitions. I've also worked as an intern at GS de México (GS Global), in the Research and Development (R&D) department, where I further developed CAD design skills and many other engineering competencies, such as problem solving skills, now applied towards this project.
 >
 > </details>
 
@@ -137,9 +135,9 @@ This documentation is written so that another team can build the same robot and 
 
 <table>
 <tr>
-<td align="center" valign="top" width="33%"><img src="t-photos/Alejandro.jpeg" height="150"><br><b>Manuel Alejandro Cardoso Duarte</b><br>Coach</td>
+<td align="center" valign="top" width="33%"><img src="t-photos/Alejandro.jpeg" height="150"><br><b>Manuel Alejandro Cardoso Duarte</b><br>Coach<br><a href="https://www.linkedin.com/in/manuel-alejandro-cardoso-duarte-b68523129/"><img src="other/additionalMedia/Others/linkedin.png" width="24" alt="LinkedIn profile of Manuel Alejandro Cardoso Duarte"></a></td>
 <td align="center" valign="top" width="33%"><img src="t-photos/Santana.jpg" height="150"><br><b>José de Jesús Santana Ramírez, M.Sc.</b><br>Assistant coach</td>
-<td align="center" valign="top" width="33%"><img src="t-photos/Damara.jpg" height="150"><br><b>Rocío Damara Merlo Espino, Ph.D.</b><br>Administrative project manager</td>
+<td align="center" valign="top" width="33%"><img src="t-photos/Damara.jpg" height="150"><br><b>Rocío Damara Merlo Espino, Ph.D.</b><br>Administrative project manager<br><a href="https://www.linkedin.com/in/roc%C3%ADo-damara-merlo-espino-826198aa/"><img src="other/additionalMedia/Others/linkedin.png" width="24" alt="LinkedIn profile of Rocío Damara Merlo Espino"></a></td>
 </tr>
 </table>
 
@@ -349,15 +347,15 @@ The v7 chassis is a modification of the v6 design, modeled in SolidWorks. It was
 
 The Maker's steering uses a regular Ackermann linkage. In the design v7 CAD the linkage reaches a maximum steering angle of **45.9°** (Figure 3), practically the 45.44° of design v6 (Figures 4 and 5), so the turning radius is the same as in v6. In software the steering is limited to **±35°** from center, inside that mechanical travel (see [D3](#d3)). This geometry ensures the inner and outer front wheels trace concentric arcs around a common turning center during a turn, minimizing tire scrub and keeping the front tires rolling rather than dragging through corners, a property that matters directly for both consistency and tire wear over a full run.
 
-<img src="other/additionalMedia/Others/Ackermann_v7.png" alt="Design v7 CAD top view of the Ackermann linkage and HX-12H servo at full lock, 45.9 degrees" width="320">
+<img src="other/additionalMedia/Others/Ackermann_v7.png" alt="Design v7 CAD top view of the Ackermann linkage and HX-12H servo at full lock, 45.9 degrees" width="530">
 
-*Figure 3. Design v7: Ackermann linkage driven by the HX-12H bus servo, shown at full lock (45.9° in the CAD).*
+*Figure 3. Design v7: Ackermann linkage driven by the HX-12H bus servo, shown at full lock (45.9° in the CAD). The front of the robot is at the top.*
 
-<img src="other/additionalMedia/Others/Ackermann.jpg" alt="Design v6 plan view of the Ackermann steering linkage" width="800">
+<img src="other/additionalMedia/Others/Ackermann.jpg" alt="Design v6 plan view of the Ackermann steering linkage" width="640">
 
 *Figure 4. Design v6: plan view of the Ackermann steering linkage, showing the tie-rod and knuckle geometry.*
 
-<img src="other/additionalMedia/Others/AckermannAngle.jpg" alt="Design v6 CAD detail view showing the 45.44 degree Ackermann steering angle" width="800">
+<img src="other/additionalMedia/Others/AckermannAngle.jpg" alt="Design v6 CAD detail view showing the 45.44 degree Ackermann steering angle" width="640">
 
 *Figure 5. Design v6: detail view of the CAD model highlighting the maximum steering angle of 45.44°.*
 
@@ -365,7 +363,7 @@ In design v6 the linkage was actuated by a LEGO SPIKE Prime Small Angular Motor 
 
 This regular Ackermann design also represents a deliberate step back from the 2025 steering geometry (design v2). In the previous season, the team implemented a custom double-Ackermann linkage, which allowed for a tighter turning radius but introduced mechanical inconsistencies and reliability flaws during testing.
 
-<img src="other/additionalMedia/Others/Bottom2025.jpg" alt="Bottom view of last year's robot showing the double Ackermann steering system" width="800">
+<img src="other/additionalMedia/Others/Bottom2025.jpg" alt="Bottom view of last year's robot showing the double Ackermann steering system" width="640">
 
 *Figure 6. Bottom view of the previous season's robot (design v2), showing the double-Ackermann steering configuration used last year.*
 
@@ -1654,15 +1652,10 @@ Within the 2026 national season (v3–v6) the progress was incremental: no itera
 
 ### 7.5 Failure log <a id="failure-log"></a>
 
-Every failure that changed the design or is still open, with its cause and the result of the retest. Dates are from the logbook of the [Engineering Journal](Engineering_Journal_CSS_WRO2026_International.pdf).
+Every failure that changed the design or is still open, with its cause and the result of the retest. The table shows the failures since October 2026 (F6 to F12); the five earlier ones are folded below it. Dates are from the logbook of the [Engineering Journal](Engineering_Journal_CSS_WRO2026_International.pdf).
 
 | ID | Date | Symptom | Root cause | Corrective action | Retest | Status |
 |---|---|---|---|---|---|---|
-| F1 | 2026-03 | The robot acted on old sensor readings | The 2025 Python loop read the camera and the LiDAR slower than they produced data | Acquisition and control rewritten in C/C++ | Loop above 50 Hz | Closed |
-| F2 | 2026-06-13 | The Pi and the Hailo shut down under hard acceleration with the pack still charged | Generic 18650 cells with high internal resistance: the motor current spike pulled the supply down | Panasonic NCR18650B cells; the pack is now specified by current, not by capacity | No brownouts in design v6; v7 peak current calculated in [§5.1](#power) | Closed (v7 worst case accepted, [§7.3](#risks)) |
-| F3 | 2026-07-11 | Distorted RPLidar S2L readings close to the walls | Our driver had been written for another LiDAR (RPLidar A1) and was not adapted to the S2L | First the S2L was replaced by the MS200k; in October 2026 the driver was adapted and the S2L came back ([D4](#d4)) | Wall found in 98.4 % of frames; accuracy table in [§6.9](#testing) | Closed |
-| F4 | 2026-07-25 | The robot behaved as if blind: no wall readings | After the compact repackaging the LiDAR scanned above the 100 mm walls | Mount lowered in v5 (2026-08-01); scanning plane about 75 mm above the ground in v7 | Walls and pillars are cut by the scan | Closed |
-| F5 | 2026-08-22 | Position control could not be validated on the bench | The encoder of the first drive motor was faulty | Motor replaced | Firmware `pos-v4` validated on the bench with the new motor | Closed |
 | F6 | 2026-10-04 | The board froze with the last PWM still applied to the motor | A clock fault left the firmware hung | IWDG watchdog added in firmware `pos-v7`: resets the board in about 250 ms | Validated on the bench (2026-10-04) | Closed |
 | F7 | 2026-10 | If the program on the Pi died, the motor kept its last speed | The board firmware has no command timeout | Signal-based emergency stop ([D8](#d8)) | Ctrl+C, `kill`, a closed SSH session and crashes stop the robot | Closed for those cases; `kill -9` and a frozen Pi need the power switch |
 | F8 | 2026-10 | Vision errors on the track: missed pillars, a red broom read as a red pillar, a green pillar seen in an empty corner; mostly in poor light | Small dataset (501 images) with no images without pillars | Model retrained on 23,938 images, including scenes with no pillars and poor light ([D6](#d6)) | 99.2 % correct decisions in validation; 96 of 100 on the track | Closed; strong shadows remain |
@@ -1670,6 +1663,20 @@ Every failure that changed the design or is still open, with its cause and the r
 | F10 | 2026-11-08 | Obstacle Challenge run 8: overshot the parking bay line | Not confirmed yet | Open | | Open |
 | F11 | 2026-11-08 | Obstacle Challenge runs 9 and 10 (layout E): stuck on a red pillar and clipped a green pillar, both on lap 3 | Not confirmed yet. Same suspicion as F9 | Open | | Open |
 | F12 | 2026-11 | The Hiwonder controller board partly blocked the LiDAR's view | The three cells were not all at the same height, which kept the board high | Cells re-arranged at one height (four generic spacer brackets and the printed `battery_holder.STL`), so the board could be mounted lower | Board lowered; small modification of design v7 | Closed |
+
+> [!NOTE]
+> <details>
+> <summary><kbd>Click to open</kbd> <b>Earlier failures, F1 to F5 (March to August 2026)</b></summary>
+>
+> | ID | Date | Symptom | Root cause | Corrective action | Retest | Status |
+> |---|---|---|---|---|---|---|
+> | F1 | 2026-03 | The robot acted on old sensor readings | The 2025 Python loop read the camera and the LiDAR slower than they produced data | Acquisition and control rewritten in C/C++ | Loop above 50 Hz | Closed |
+> | F2 | 2026-06-13 | The Pi and the Hailo shut down under hard acceleration with the pack still charged | Generic 18650 cells with high internal resistance: the motor current spike pulled the supply down | Panasonic NCR18650B cells; the pack is now specified by current, not by capacity | No brownouts in design v6; v7 peak current calculated in [§5.1](#power) | Closed (v7 worst case accepted, [§7.3](#risks)) |
+> | F3 | 2026-07-11 | Distorted RPLidar S2L readings close to the walls | Our driver had been written for another LiDAR (RPLidar A1) and was not adapted to the S2L | First the S2L was replaced by the MS200k; in October 2026 the driver was adapted and the S2L came back ([D4](#d4)) | Wall found in 98.4 % of frames; accuracy table in [§6.9](#testing) | Closed |
+> | F4 | 2026-07-25 | The robot behaved as if blind: no wall readings | After the compact repackaging the LiDAR scanned above the 100 mm walls | Mount lowered in v5 (2026-08-01); scanning plane about 75 mm above the ground in v7 | Walls and pillars are cut by the scan | Closed |
+> | F5 | 2026-08-22 | Position control could not be validated on the bench | The encoder of the first drive motor was faulty | Motor replaced | Firmware `pos-v4` validated on the bench with the new motor | Closed |
+>
+> </details>
 
 ### 7.6 Known limitations and next steps <a id="limitations"></a>
 
@@ -1916,23 +1923,13 @@ To build the robot, follow these five steps:
 ### Assembly instructions <a id="assembly"></a>
 
 > [!TIP]
-> **Step-by-step assembly instructions: [`other/Assembly_photos/Assembly_Process_EN.md`](other/Assembly_photos/Assembly_Process_EN.md)**
+> <kbd>Other page</kbd> **Step-by-step assembly instructions: [`other/Assembly_photos/Assembly_Process_EN.md`](other/Assembly_photos/Assembly_Process_EN.md)**
 >
-> 37 steps with photos of the design v7 build, in build order: from the battery pack to the finished robot. It also lists the tools, the battery safety rules and every screw, standoff and heat-set insert.
+> 37 steps in 11 phases, each with a photo of the design v7 build, in build order: from the battery pack to the finished robot. It also lists the tools, the battery safety rules and every screw, standoff and heat-set insert.
 
-<table>
-<tr>
-<td align="center" valign="top"><a href="other/Assembly_photos/Assembly_Process_EN.md"><img src="other/Assembly_photos/v7/IMG_3643.jpg" height="190" alt="Assembly, 1. Battery pack"></a><br><sub>1. Battery pack</sub></td>
-<td align="center" valign="top"><a href="other/Assembly_photos/Assembly_Process_EN.md"><img src="other/Assembly_photos/v7/IMG_1891.jpg" height="190" alt="Assembly, 2. Raspberry Pi and AI HAT"></a><br><sub>2. Raspberry Pi and AI HAT</sub></td>
-<td align="center" valign="top"><a href="other/Assembly_photos/Assembly_Process_EN.md"><img src="other/Assembly_photos/v7/IMG_1898.jpg" height="190" alt="Assembly, 5. LiDAR on its plate"></a><br><sub>5. LiDAR on its plate</sub></td>
-<td align="center" valign="top"><a href="other/Assembly_photos/Assembly_Process_EN.md"><img src="other/Assembly_photos/v7/IMG_1918.jpg" height="190" alt="Assembly, 6. Differential and axles"></a><br><sub>6. Differential and axles</sub></td>
-<td align="center" valign="top"><a href="other/Assembly_photos/Assembly_Process_EN.md"><img src="other/Assembly_photos/v7/IMG_1937.jpg" height="190" alt="Assembly, 8. Steering"></a><br><sub>8. Steering</sub></td>
-<td align="center" valign="top"><a href="other/Assembly_photos/Assembly_Process_EN.md"><img src="other/Assembly_photos/v7/IMG_1945.jpg" height="190" alt="Assembly, 10. Controller board"></a><br><sub>10. Controller board</sub></td>
-<td align="center" valign="top"><a href="other/Assembly_photos/Assembly_Process_EN.md"><img src="other/Assembly_photos/v7/IMG_1972.jpg" height="190" alt="Assembly, 11. Finished robot"></a><br><sub>11. Finished robot</sub></td>
-</tr>
-</table>
+<a href="other/Assembly_photos/Assembly_Process_EN.md"><img src="other/additionalMedia/Others/assembly_overview_v7.jpg" width="900" alt="Overview of the assembly instructions: the photo of each of the 37 steps, numbered, with the 11 phases listed below"></a>
 
-*Seven of the 37 steps. Click a photo to open the full instructions.*
+*Overview of the assembly instructions: the photo of every step. Click the picture to open the full instructions; the table below links each phase.*
 
 | Phase | Steps | What you do |
 |---|---|---|
@@ -1992,38 +1989,32 @@ Design v7 has 15 different printed parts, 19 pieces in total. Their STL files ar
 
 **Total of the design v7 Bill of Materials: $26,139.37 MXN.**
 
-> [!NOTE]
-> <details>
-> <summary><kbd>Click to open</kbd> <b>The Bill of Materials: the 23 parts and kits, with a link, the quantity and the price of each one</b></summary>
->
-> | Component | Quantity | Unit cost (MXN) | Total (MXN) |
-> | --- | --- | --- | --- |
-> | [Hiwonder ROS Robot Controller (STM32F407)](https://www.hiwonder.com/products/ros-robot-control) | 1 | $929.31 | $929.31 |
-> | [Hiwonder JGB37-520 Hall-encoder DC gear motor, 12 V, 30:1](https://www.hiwonder.com/products/hall-encoder-dc-geared-motor?variant=40451123675223) | 1 | $241.48 | $241.48 |
-> | [Hiwonder HX-12H serial bus servo](https://www.hiwonder.com/products/hx-12h) | 1 | $315.84 | $315.84 |
-> | [Slamtec RPLidar S2L](https://www.dfrobot.com/product-2617.html) | 1 | $5,558.41 | $5,558.41 |
-> | [Raspberry Pi AI HAT+ 26 TOPS (Hailo-8)](https://www.sparkfun.com/products/27249) | 1 | $2,453.88 | $2,453.88 |
-> | [Interlocking 18650 spacer brackets (generic, sold in packs)](https://www.amazon.co.uk/100Pcs-Li-ion-Battery-Cylindrical-Bracket/dp/B07WW4JQZX) | 4 | — | — |
-> | [BMS3S10A 3S Li-ion balancing / protection board](https://www.inteligenciaartificialyrobotica.com/products/balanceador-cargador-de-baterias-li-ion-bms3s10a) | 1 | $49.00 | $49.00 |
-> | [LEGO Technic Gear Differential Housing (65414)](https://www.brickshop.eu/lego-parts/technics/lego-differential-housing-light-grey.html) | 1 | $82.79 | $82.79 |
-> | [LEGO Technic Bevel Gear 28 Teeth (65413)](https://www.brickowl.com/catalog/lego-red-bevel-gear-with-28-teeth-65413) | 1 | $10.97 | $10.97 |
-> | [LEGO Technic Axle 5.5 with Stop (32209)](https://www.toypro.com/en/product/1403/technic-axle-5-5-with-stop/dark-bluish-gray) | 3 | $2.08 | $6.24 |
-> | [LEGO Technic Axle 4 with Stop (87083)](https://www.toypro.com/us/product/2232/technic-axle-4-with-stop/dark-bluish-gray) | 2 | $1.86 | $3.72 |
-> | [LEGO Technic Pin Connector Round with Slot (62462)](https://www.toypro.com/us/product/1888/technic-pin-connector-round-with-slot-pin-joiner-round/black) | 2 | $6.88 | $13.76 |
-> | [LEGO Technic Axle Connector Smooth (6538c)](https://www.toypro.com/us/product/1879/technic-axle-connector-smooth-with-x-hole-orientation/black) | 1 | $2.60 | $2.60 |
-> | [Raspberry Pi 5 (16GB RAM)](https://www.330ohms.com/shop/raspberry-pi-raspberry-pi-5-2/rp-01113-raspberry-pi-5-16gb-1501) | 1 | $10,284.00 | $10,284.00 |
-> | [Raspberry Pi Camera Module 3 Wide](https://www.330ohms.com/shop/raspberry-pi-raspberry-pi-zero-9/rp-00874-raspberry-pi-camara-3-wide-1326) | 1 | $962.00 | $962.00 |
-> | [Panasonic NCR18650B 3400mAh 18650 Li-ion Battery](https://www.mercadolibre.com.mx/ncr18650b-bateria-panasonic-18650-3400mah/up/MLMU723197120) | 3 | $219.90 | $659.70 |
-> | [4-Pack: LEGO Tires 62.4 x 20 S (32019) & Rims (86652)](https://www.amazon.com.mx/LEGO-Tire-86652-32019-75999/dp/B01CODUYCE) | 1 | $2,079.07 | $2,079.07 |
-> | [Grove LED Button Module](https://www.330ohms.com/shop/sd-20069-boton-con-led-rojo-grove-361) | 1 | $16.19 | $16.19 |
-> | [M2.5 brass standoff kit, 320 pcs (male–female and female–female, 6/10/15/20 mm, with M2.5 × 6 screws and nuts)](https://www.amazon.com/dp/B01MXSJXLO) | 1 kit | $353.02 | $353.02 |
-> | [M2.5 socket head screw kit, 533 pcs (4–25 mm)](https://vxb.com/products/m25-hex-socket-head-cap-screws-kit-pro-grade-assor) | 1 kit | $743.41 | $743.41 |
-> | [M3 screw and nut kit, 2135 pcs (4–35 mm)](https://vxb.com/products/massive-m3-screw-and-nut-assortment-kit-with-4mm-t) | 1 kit | $928.20 | $928.20 |
-> | [Heat-set inserts M2.5, 100 pcs (Prusa)](https://www.prusa3d.com/es/producto/insertos-roscados-m2-5-estandar100-pcs/) | 1 pack | $222.89 | $222.89 |
-> | [Heat-set inserts M2 short, 100 pcs (Prusa)](https://www.prusa3d.com/es/producto/insertos-roscados-m2-cortos-100-pcs/) | 1 pack | $222.89 | $222.89 |
-> | **Total (MXN)** | | | **$26,139.37** |
->
-> </details>
+| Component | Quantity | Unit cost (MXN) | Total (MXN) |
+| --- | --- | --- | --- |
+| [Hiwonder ROS Robot Controller (STM32F407)](https://www.hiwonder.com/products/ros-robot-control) | 1 | $929.31 | $929.31 |
+| [Hiwonder JGB37-520 Hall-encoder DC gear motor, 12 V, 30:1](https://www.hiwonder.com/products/hall-encoder-dc-geared-motor?variant=40451123675223) | 1 | $241.48 | $241.48 |
+| [Hiwonder HX-12H serial bus servo](https://www.hiwonder.com/products/hx-12h) | 1 | $315.84 | $315.84 |
+| [Slamtec RPLidar S2L](https://www.dfrobot.com/product-2617.html) | 1 | $5,558.41 | $5,558.41 |
+| [Raspberry Pi AI HAT+ 26 TOPS (Hailo-8)](https://www.sparkfun.com/products/27249) | 1 | $2,453.88 | $2,453.88 |
+| [Interlocking 18650 spacer brackets (generic, sold in packs)](https://www.amazon.co.uk/100Pcs-Li-ion-Battery-Cylindrical-Bracket/dp/B07WW4JQZX) | 4 | — | — |
+| [BMS3S10A 3S Li-ion balancing / protection board](https://www.inteligenciaartificialyrobotica.com/products/balanceador-cargador-de-baterias-li-ion-bms3s10a) | 1 | $49.00 | $49.00 |
+| [LEGO Technic Gear Differential Housing (65414)](https://www.brickshop.eu/lego-parts/technics/lego-differential-housing-light-grey.html) | 1 | $82.79 | $82.79 |
+| [LEGO Technic Bevel Gear 28 Teeth (65413)](https://www.brickowl.com/catalog/lego-red-bevel-gear-with-28-teeth-65413) | 1 | $10.97 | $10.97 |
+| [LEGO Technic Axle 5.5 with Stop (32209)](https://www.toypro.com/en/product/1403/technic-axle-5-5-with-stop/dark-bluish-gray) | 3 | $2.08 | $6.24 |
+| [LEGO Technic Axle 4 with Stop (87083)](https://www.toypro.com/us/product/2232/technic-axle-4-with-stop/dark-bluish-gray) | 2 | $1.86 | $3.72 |
+| [LEGO Technic Pin Connector Round with Slot (62462)](https://www.toypro.com/us/product/1888/technic-pin-connector-round-with-slot-pin-joiner-round/black) | 2 | $6.88 | $13.76 |
+| [LEGO Technic Axle Connector Smooth (6538c)](https://www.toypro.com/us/product/1879/technic-axle-connector-smooth-with-x-hole-orientation/black) | 1 | $2.60 | $2.60 |
+| [Raspberry Pi 5 (16GB RAM)](https://www.330ohms.com/shop/raspberry-pi-raspberry-pi-5-2/rp-01113-raspberry-pi-5-16gb-1501) | 1 | $10,284.00 | $10,284.00 |
+| [Raspberry Pi Camera Module 3 Wide](https://www.330ohms.com/shop/raspberry-pi-raspberry-pi-zero-9/rp-00874-raspberry-pi-camara-3-wide-1326) | 1 | $962.00 | $962.00 |
+| [Panasonic NCR18650B 3400mAh 18650 Li-ion Battery](https://www.mercadolibre.com.mx/ncr18650b-bateria-panasonic-18650-3400mah/up/MLMU723197120) | 3 | $219.90 | $659.70 |
+| [4-Pack: LEGO Tires 62.4 x 20 S (32019) & Rims (86652)](https://www.amazon.com.mx/LEGO-Tire-86652-32019-75999/dp/B01CODUYCE) | 1 | $2,079.07 | $2,079.07 |
+| [Grove LED Button Module](https://www.330ohms.com/shop/sd-20069-boton-con-led-rojo-grove-361) | 1 | $16.19 | $16.19 |
+| [M2.5 brass standoff kit, 320 pcs (male–female and female–female, 6/10/15/20 mm, with M2.5 × 6 screws and nuts)](https://www.amazon.com/dp/B01MXSJXLO) | 1 kit | $353.02 | $353.02 |
+| [M2.5 socket head screw kit, 533 pcs (4–25 mm)](https://vxb.com/products/m25-hex-socket-head-cap-screws-kit-pro-grade-assor) | 1 kit | $743.41 | $743.41 |
+| [M3 screw and nut kit, 2135 pcs (4–35 mm)](https://vxb.com/products/massive-m3-screw-and-nut-assortment-kit-with-4mm-t) | 1 kit | $928.20 | $928.20 |
+| [Heat-set inserts M2.5, 100 pcs (Prusa)](https://www.prusa3d.com/es/producto/insertos-roscados-m2-5-estandar100-pcs/) | 1 pack | $222.89 | $222.89 |
+| [Heat-set inserts M2 short, 100 pcs (Prusa)](https://www.prusa3d.com/es/producto/insertos-roscados-m2-cortos-100-pcs/) | 1 pack | $222.89 | $222.89 |
+| **Total (MXN)** | | | **$26,139.37** |
 
 > [!NOTE]
 > <details>
@@ -2046,27 +2037,23 @@ Design v7 has 15 different printed parts, 19 pieces in total. Their STL files ar
 
 [***Also on  `video/video.md`***](video/video.md)
 
-### [Open Challenge](https://www.youtube.com/shorts/fHsPBr_Bzps)
-*(Click on preview to visit YouTube Video)*
+*Click a preview to watch the video on YouTube.*
 
-[![Open Challenge](https://img.youtube.com/vi/fHsPBr_Bzps/maxresdefault.jpg)](https://www.youtube.com/shorts/fHsPBr_Bzps)
-
-### [Obstacle Challenge](https://www.youtube.com/shorts/g_2ZrS4TVyc)
-*(Click on preview to visit YouTube Video)*
-
-[![Obstacle Challenge](https://img.youtube.com/vi/g_2ZrS4TVyc/maxresdefault.jpg)](https://www.youtube.com/shorts/g_2ZrS4TVyc)
+<table>
+<tr>
+<td align="center" width="50%"><a href="https://www.youtube.com/shorts/fHsPBr_Bzps"><img src="https://img.youtube.com/vi/fHsPBr_Bzps/maxresdefault.jpg" alt="Open Challenge video" width="400"></a><br><b><a href="https://www.youtube.com/shorts/fHsPBr_Bzps">▶ Open Challenge</a></b></td>
+<td align="center" width="50%"><a href="https://www.youtube.com/shorts/g_2ZrS4TVyc"><img src="https://img.youtube.com/vi/g_2ZrS4TVyc/maxresdefault.jpg" alt="Obstacle Challenge video" width="400"></a><br><b><a href="https://www.youtube.com/shorts/g_2ZrS4TVyc">▶ Obstacle Challenge</a></b></td>
+</tr>
+</table>
 
 ### 2026 Mexico National Final: official rounds
 
-#### [Open Challenge, official round](https://www.youtube.com/watch?v=_KF8DmQ0PTM)
-*(Click on preview to visit YouTube Video)*
-
-[![Open Challenge, official round of the 2026 Mexico National Final](https://img.youtube.com/vi/_KF8DmQ0PTM/hqdefault.jpg)](https://www.youtube.com/watch?v=_KF8DmQ0PTM)
-
-#### [Obstacle Challenge, official round](https://www.youtube.com/watch?v=a_KmYEr5aDE)
-*(Click on preview to visit YouTube Video)*
-
-[![Obstacle Challenge, official round of the 2026 Mexico National Final](https://img.youtube.com/vi/a_KmYEr5aDE/hqdefault.jpg)](https://www.youtube.com/watch?v=a_KmYEr5aDE)
+<table>
+<tr>
+<td align="center" width="50%"><a href="https://www.youtube.com/watch?v=_KF8DmQ0PTM"><img src="https://img.youtube.com/vi/_KF8DmQ0PTM/hqdefault.jpg" alt="Open Challenge, official round of the 2026 Mexico National Final" width="400"></a><br><b><a href="https://www.youtube.com/watch?v=_KF8DmQ0PTM">▶ Open Challenge, official round</a></b></td>
+<td align="center" width="50%"><a href="https://www.youtube.com/watch?v=a_KmYEr5aDE"><img src="https://img.youtube.com/vi/a_KmYEr5aDE/hqdefault.jpg" alt="Obstacle Challenge, official round of the 2026 Mexico National Final" width="400"></a><br><b><a href="https://www.youtube.com/watch?v=a_KmYEr5aDE">▶ Obstacle Challenge, official round</a></b></td>
+</tr>
+</table>
 
 ---
 
@@ -2137,29 +2124,35 @@ Released under the [MIT License](LICENSE).
 
 The MIT License covers the team's own work. Third-party code keeps its authors' terms: Hiwonder's firmware project and factory images in [`firmware/hiwonder_original/`](firmware/hiwonder_original) belong to Hiwonder, and the libraries inside it (STMicroelectronics HAL, Arm CMSIS, FreeRTOS, LVGL, U8g2 and others) keep their own licenses, listed in [its README](firmware/hiwonder_original/README.md#third-party-components-inside-hiwonders-project).
 
-```text
-MIT License
-
-Copyright (c) 2026 CSS (Christian Gael Centeno Velez, Sebastián Esquivel Mondragón)
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-```
+> [!NOTE]
+> <details>
+> <summary><kbd>Click to open</kbd> <b>The full text of the MIT License (the same text as the <code>LICENSE</code> file)</b></summary>
+>
+> ```text
+> MIT License
+>
+> Copyright (c) 2026 CSS (Christian Gael Centeno Velez, Sebastián Esquivel Mondragón)
+>
+> Permission is hereby granted, free of charge, to any person obtaining a copy
+> of this software and associated documentation files (the "Software"), to deal
+> in the Software without restriction, including without limitation the rights
+> to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+> copies of the Software, and to permit persons to whom the Software is
+> furnished to do so, subject to the following conditions:
+>
+> The above copyright notice and this permission notice shall be included in all
+> copies or substantial portions of the Software.
+>
+> THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+> IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+> FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+> AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+> LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+> OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+> SOFTWARE.
+> ```
+>
+> </details>
 
 ---
 
