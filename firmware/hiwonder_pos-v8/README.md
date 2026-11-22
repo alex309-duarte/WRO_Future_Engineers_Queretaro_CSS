@@ -2,11 +2,16 @@
 
 The Hiwonder ROS Robot Controller V1.2 (STM32F407VET6) on design v7 runs **Hiwonder's FreeRTOS firmware with our patch on top**. The patch [`extended_m1.patch`](extended_m1.patch) changes 12 files of Hiwonder's official project `RosRobotControllerM4-armclang` (+906 / −442 lines). Hiwonder's project and factory images are included unmodified, with credit, in [`../hiwonder_original/`](../hiwonder_original). The image on the robot is **`pos-v8`**, built and flashed on 2026-10-04.
 
-<a href="https://www.youtube.com/watch?v=Mzc6JfptzTI"><img src="https://img.youtube.com/vi/Mzc6JfptzTI/maxresdefault.jpg" alt="Video: the extended firmware of the Hiwonder board, from scratch in STM32CubeIDE" width="480"></a>
-
-**[▶ Video: the extended firmware explained, from scratch in STM32CubeIDE](https://www.youtube.com/watch?v=Mzc6JfptzTI)** (9:52). It creates the STM32CubeIDE project from zero, adds the sources and the settings, builds it, explains [how the firmware works](https://www.youtube.com/watch?v=Mzc6JfptzTI&t=351s) (from 5:51) and [flashes and tests it](https://www.youtube.com/watch?v=Mzc6JfptzTI&t=511s) on the board (from 8:31). The image on the robot is the `pos-v8` in this folder, built with the GCC scripts below; the build made in the IDE in the video uses the same sources but has not been run on the robot.
-
-**More detail: the development repository.** Everything behind this firmware and the host library is in **[github.com/JRavenelco/hiwonder-brick](https://github.com/JRavenelco/hiwonder-brick)**: Hiwonder's project and our extension, the C++17 host library, the bench tools, the dated bench logs (July to October 2026), the protocol and the recovery procedure. Its documentation is in Spanish.
+<table>
+<tr>
+<td align="center" width="50%"><a href="https://www.youtube.com/watch?v=Mzc6JfptzTI"><img src="https://img.youtube.com/vi/Mzc6JfptzTI/maxresdefault.jpg" alt="Video: the extended firmware of the Hiwonder board, from scratch in STM32CubeIDE" width="400"></a><br><b><a href="https://www.youtube.com/watch?v=Mzc6JfptzTI">▶ Video: the firmware explained, from scratch (9:52)</a></b></td>
+<td align="center" width="50%"><a href="https://github.com/JRavenelco/hiwonder-brick"><img src="../../other/additionalMedia/Previews/hiwonder_brick_card.png" alt="hiwonder-brick, the development repository of the board firmware" width="400"></a><br><b><a href="https://github.com/JRavenelco/hiwonder-brick">hiwonder-brick: the firmware development repository</a></b></td>
+</tr>
+<tr>
+<td>The video creates the STM32CubeIDE project from zero, adds the sources and the settings, builds it, explains <a href="https://www.youtube.com/watch?v=Mzc6JfptzTI&t=351s">how the firmware works</a> (from 5:51) and <a href="https://www.youtube.com/watch?v=Mzc6JfptzTI&t=511s">flashes and tests it</a> on the board (from 8:31). The image on the robot is the <code>pos-v8</code> in this folder, built with the GCC scripts below; the build made in the IDE in the video uses the same sources but has not been run on the robot.</td>
+<td><b>A second repository, only for the firmware:</b> <a href="https://github.com/JRavenelco/hiwonder-brick">github.com/JRavenelco/hiwonder-brick</a>. Everything behind this firmware and the host library, in more detail than this page: Hiwonder's project and our extension, the C++17 host library, the bench tools, the dated bench logs (July to October 2026), the protocol and the recovery procedure. Its documentation is in Spanish.</td>
+</tr>
+</table>
 
 The Raspberry Pi 5 talks to the board over USB at 1 Mbaud with Hiwonder's frame format `AA 55 | function | length | data | CRC8`. On the Pi, `hiwonder_brick` speaks this protocol and `spike_compat` keeps the team's SPIKE API, so the mission code did not change ([`src/ondevice/hiwonder/`](../../src/ondevice/hiwonder)).
 

@@ -80,7 +80,7 @@ This documentation is written so that another team can build the same robot and 
 | 2 | Print the chassis and the other printed parts | [STL files, quantities and printer settings](#printed-parts) | <a href="#printed-parts"><img src="models/cad/Stl/v7/printed_parts_v7.png" height="90" alt="The 13 printed parts"></a> |
 | 3 | Assemble the vehicle | [Assembly instructions](other/Assembly_photos/Assembly_Process_EN.md): one photo per step, with the tools and every screw | <a href="other/Assembly_photos/Assembly_Process_EN.md"><img src="other/additionalMedia/Previews/assembly_instructions.png" height="110" alt="Assembly instructions, first page"></a> |
 | 4 | Connect the electronics | [Wiring diagram](#wiring-v7) and [connection table](#connections) | <a href="#wiring-v7"><img src="schemes/hardware/wiringSchematics_v7.png" height="80" alt="Wiring diagram of design v7"></a> |
-| 5 | Flash the board firmware, then build and run the programs | [Setup and execution instructions](#setup-instructions) | <a href="#setup-instructions"><img src="schemes/firmware/hiwonder_firmware_architecture.png" height="80" alt="Firmware architecture of the Hiwonder board"></a> |
+| 5 | Flash the board firmware, then build and run the programs | [Setup and execution instructions](#setup-instructions). Firmware: [video](https://www.youtube.com/watch?v=Mzc6JfptzTI) and [development repository](https://github.com/JRavenelco/hiwonder-brick) | <a href="#setup-instructions"><img src="schemes/firmware/hiwonder_firmware_architecture.png" height="80" alt="Firmware architecture of the Hiwonder board"></a> |
 
 
 ---
@@ -332,7 +332,24 @@ The v7 chassis is a modification of the v6 design, modeled in SolidWorks. It was
 
 *Figure 1. Isometric view of design v7: Hiwonder controller at the front, RPLidar S2L in the centre, camera mast and JGB37 drive motor at the rear. The SolidWorks assembly is in [`models/cad/v7_assembly/`](models/cad/v7_assembly) (open `Assem1.SLDASM`).*
 
-**CAD views of design v7.**<a id="cad-v7"></a> The tyres are LEGO parts, not printed.
+#### Interactive 3D model: open it and take the vehicle apart <a id="viewer-3d"></a>
+
+> [!TIP]
+> ## [INTERACTIVE 3D MODEL: CLICK HERE TO OPEN IT](https://alex309-duarte.github.io/WRO_Future_Engineers_Queretaro_CSS/models/cad/viewer/)
+>
+> This is not a picture. The whole SolidWorks assembly of the vehicle opens **in your browser, with nothing to install**, and you can move it yourself: **rotate** it, **zoom** in, **take the vehicle apart** and put it back, and **see the name of every part**.
+
+<a href="https://alex309-duarte.github.io/WRO_Future_Engineers_Queretaro_CSS/models/cad/viewer/"><img src="other/additionalMedia/Others/vehicle_v7_exploded.gif" alt="Design v7 coming apart into its components and going back together; click to open the interactive 3D model" width="560"></a>
+
+*Click the animation to open the model.* What you can do in it:
+
+| Rotate | Zoom | Take it apart | Standard views | Name of a part |
+|:---:|:---:|:---:|:---:|:---:|
+| Drag with the left button | Mouse wheel | **Disassemble** button | **Iso**, **Front**, **Top** … buttons | Rest the pointer on it |
+
+*The model is made from the SolidWorks assembly with its colours (27 components and the parts inside them). All the controls, and how to update the model after a CAD change, are in [`models/cad/viewer/`](models/cad/viewer/README.md). GitHub can also show the whole vehicle in its own 3D viewer: [`models/cad/vehicle_v7.stl`](models/cad/vehicle_v7.stl).*
+
+**CAD views of design v7.**<a id="cad-v7"></a> The same assembly in still views and one full turn. The tyres are LEGO parts, not printed.
 
 | Isometric | One full turn |
 |---|---|
@@ -345,14 +362,6 @@ The v7 chassis is a modification of the v6 design, modeled in SolidWorks. It was
 | <img src="other/additionalMedia/Others/cad_v7_top.png" alt="Design v7 CAD top view" width="420"> | <img src="other/additionalMedia/Others/cad_v7_bottom.png" alt="Design v7 CAD bottom view" width="420"> |
 
 *Figure 2. Design v7 in SolidWorks (`models/cad/v7_assembly/Assem1.SLDASM`). Side views: steering servo, Hiwonder board and front wheels on one end; camera mast, drive motor and differential on the other; the RPLidar S2L in the middle, its scanning plane about 75 mm above the ground; the Raspberry Pi and the 3S pack below it. Bottom view: the flat underside of the chassis and the Ackermann linkage at the front.*
-
-**Interactive 3D model.**<a id="viewer-3d"></a> The same assembly opens in the browser, with nothing to install: rotate it, zoom in, take it apart with the **Disassemble** button and read the name of every part.
-
-<a href="https://alex309-duarte.github.io/WRO_Future_Engineers_Queretaro_CSS/models/cad/viewer/"><img src="other/additionalMedia/Others/vehicle_v7_exploded.gif" alt="Design v7 coming apart into its components and going back together; click to open the interactive 3D model" width="560"></a>
-
-**[Open the interactive 3D model](https://alex309-duarte.github.io/WRO_Future_Engineers_Queretaro_CSS/models/cad/viewer/)** (or click the animation).
-
-*Exploded view of design v7, made from the SolidWorks assembly with its colours (27 components and the parts inside them). The controls, and how to update the model after a CAD change, are in [`models/cad/viewer/`](models/cad/viewer/README.md). GitHub can also show the whole vehicle in its own 3D viewer: [`models/cad/vehicle_v7.stl`](models/cad/vehicle_v7.stl).*
 
 <table>
 <tr>
@@ -890,7 +899,7 @@ However, since the WRO Future Engineers rules prohibit wireless communication du
 </table>
 
 
-<a id="board-firmware"></a>**Board firmware (`pos-v8`).** The board runs Hiwonder's FreeRTOS firmware with our patch on top ([`firmware/hiwonder_pos-v8/`](firmware/hiwonder_pos-v8)): `extended_m1.patch` changes 12 files of Hiwonder's official project (+906 / −442 lines). The folder has the image on the robot (`.hex` / `.bin` with SHA-256), the patch, the GCC build scripts, the protocol description and the flashing steps. Hiwonder's original source project (V1.2) and its factory recovery images are included unmodified, with credit to Hiwonder and the third-party libraries it uses, in [`firmware/hiwonder_original/`](firmware/hiwonder_original).
+<a id="board-firmware"></a>**Board firmware (`pos-v8`).** The board runs Hiwonder's FreeRTOS firmware with our patch on top ([`firmware/hiwonder_pos-v8/`](firmware/hiwonder_pos-v8)): `extended_m1.patch` changes 12 files of Hiwonder's official project (+906 / −442 lines). The folder has the image on the robot (`.hex` / `.bin` with SHA-256), the patch, the GCC build scripts, the protocol description and the flashing steps. Hiwonder's original source project (V1.2) and its factory recovery images are included unmodified, with credit to Hiwonder and the third-party libraries it uses, in [`firmware/hiwonder_original/`](firmware/hiwonder_original). The firmware is developed in a repository of its own, **[hiwonder-brick](https://github.com/JRavenelco/hiwonder-brick)**, and explained step by step in a **[video](https://www.youtube.com/watch?v=Mzc6JfptzTI)**; both are right below the diagram.
 
 <img src="schemes/firmware/hiwonder_firmware_architecture.png" alt="Architecture of the extended pos-v8 firmware: host software on the Raspberry Pi 5, FreeRTOS tasks and the 100 Hz control loop on the STM32, and the board hardware" width="900">
 
@@ -899,16 +908,19 @@ However, since the WRO Future Engineers rules prohibit wireless communication du
 
 <table>
 <tr>
-<td align="center" width="220"><a href="https://www.youtube.com/watch?v=Mzc6JfptzTI"><img src="https://img.youtube.com/vi/Mzc6JfptzTI/maxresdefault.jpg" height="120" alt="Video: the extended firmware of the Hiwonder board, from scratch in STM32CubeIDE"></a></td>
-<td><kbd>Video</kbd> <b><a href="https://www.youtube.com/watch?v=Mzc6JfptzTI">▶ The extended firmware explained, from scratch in STM32CubeIDE</a></b> (9:52)<br>We create the project from zero, add the sources and the settings, build it, explain <a href="https://www.youtube.com/watch?v=Mzc6JfptzTI&t=351s">how the firmware works</a> (from 5:51) and <a href="https://www.youtube.com/watch?v=Mzc6JfptzTI&t=511s">flash and test it</a> on the board (from 8:31). The image on the robot is the <code>pos-v8</code> of this repository; the video builds the same sources in the IDE.</td>
+<td align="center" width="50%"><a href="https://www.youtube.com/watch?v=Mzc6JfptzTI"><img src="https://img.youtube.com/vi/Mzc6JfptzTI/maxresdefault.jpg" alt="Video: the extended firmware of the Hiwonder board, from scratch in STM32CubeIDE" width="400"></a><br><kbd>Video</kbd> <b><a href="https://www.youtube.com/watch?v=Mzc6JfptzTI">▶ The firmware explained, from scratch (9:52)</a></b></td>
+<td align="center" width="50%"><a href="https://github.com/JRavenelco/hiwonder-brick"><img src="other/additionalMedia/Previews/hiwonder_brick_card.png" alt="hiwonder-brick, the development repository of the board firmware: firmware source and our extension, C++17 host library, bench tools, bench logs, protocol and recovery" width="400"></a><br><kbd>Other repository</kbd> <b><a href="https://github.com/JRavenelco/hiwonder-brick">hiwonder-brick: the firmware development repository</a></b></td>
 </tr>
+<tr>
+<td>We create the STM32CubeIDE project from zero, add the sources and the settings, build it, explain <a href="https://www.youtube.com/watch?v=Mzc6JfptzTI&t=351s">how the firmware works</a> (from 5:51) and <a href="https://www.youtube.com/watch?v=Mzc6JfptzTI&t=511s">flash and test it</a> on the board (from 8:31). The image on the robot is the <code>pos-v8</code> of this repository; the video builds the same sources in the IDE.</td>
+<td><b>A second repository, only for the firmware:</b> <a href="https://github.com/JRavenelco/hiwonder-brick">github.com/JRavenelco/hiwonder-brick</a>. Everything behind the firmware and the host library, in more detail than this page: Hiwonder's project and our extension, the C++17 host library, the bench tools, the dated bench logs (July to October 2026), the protocol and the recovery procedure. Its documentation is in Spanish.</td>
+</tr>
+</table>
+
+<table>
 <tr>
 <td align="center" width="120"><a href="firmware/hiwonder_pos-v8/README.md"><img src="other/additionalMedia/Previews/firmware_page.png" height="120" alt="The firmware page"></a></td>
 <td><kbd>Other page</kbd> <b><a href="firmware/hiwonder_pos-v8/README.md">Firmware page</a></b><br>What we added to Hiwonder's firmware, the <code>MOTOR_EXT</code> commands, the versions, and how to flash and build it.</td>
-</tr>
-<tr>
-<td align="center" width="120"><a href="https://github.com/JRavenelco/hiwonder-brick"><img src="other/additionalMedia/Previews/hiwonder_brick_repo.png" height="120" alt="The hiwonder-brick repository"></a></td>
-<td><kbd>Other repository</kbd> <b><a href="https://github.com/JRavenelco/hiwonder-brick">hiwonder-brick: the development repository of the firmware</a></b><br>Everything behind the firmware and the host library, in more detail than this page: Hiwonder's project and our extension, the C++17 host library, the bench tools, the dated bench logs (July to October 2026), the protocol and the recovery procedure. Its documentation is in Spanish.</td>
 </tr>
 </table>
 
@@ -1037,17 +1049,23 @@ stateDiagram-v2
 
 ### 6.3 Obstacle Challenge
 
-The v7 mission is the national (v6) mission running on the Hiwonder layer: the strategy and the corner and section logic are the ones used at the national final. In November 2026 the LiDAR was remounted towards the back of the robot and rotated 90° ([§5.3](#calibration)), so the distances to the front wall in this section are about 100 mm longer than at the national final. What changed in v7 (each change is marked `Hiwonder:` in the code):
+The v7 mission is the national (v6) mission running on the Hiwonder layer: the strategy and the corner and section logic are the ones used at the national final. In November 2026 the LiDAR was remounted towards the back of the robot and rotated 90° ([§5.3](#calibration)), so the distances to the front wall in this section are about 100 mm longer than at the national final. Nine things changed in v7, each marked `Hiwonder:` in the code: the actuation through `spike_compat`, the start-up checks, a LiDAR-guarded advance, bounded waits, the **gyro correction from several walls** ([§6.6](#heading)), a start wait, a heading log, the shutdown, and a perception-only mode.
 
-- **Actuation:** the SPIKE calls of the mission go to the Hiwonder board through `spike_compat`. `Spike_Reto2_Init` converts the hub units the mission uses: steering `tire_turn` (4.29 steering-motor degrees per unit, so `40` = 0.96 of full lock) and hub degrees / millimetres to encoder ticks of the drive motor. Turns with `await` give the servo 150 ms to reach its position before the drive motor starts.
-- **Start-up:** board check, steering centring and a 5 s gyro calibration with the robot still; the robot does not move until the LiDAR has delivered its first full scan (up to 5 s); the mission thread starts once camera, inference and post-processing are running, and the start button still starts the motion.
-- **LiDAR-guarded advance:** `Advance_For_distance_Especial` (the crossing between two pillars of different color) stops early when the LiDAR ray in the direction of travel reads 370 mm or less; a ray with no return (0) is ignored. `Oradar_S2L_Advance_Until_Distance` (drive until the front wall is at a given distance) ends with a selectable brake type (`Hold` throughout the mission).
-- **Bounded waits:** the pillar-color wait when leaving the parking lot gives up after 3 s and continues as "no pillar"; the wait for a valid wall in the avoidance geometry also ends on shutdown.
-- **Gyro correction from several walls:** at every corner decision and before the final parking, the robot first waits until it is still (yaw stable for 300 ms, 1.5 s at most, then two new LiDAR scans) and then takes the **median tilt of all the walls in view** (front, right, left, behind) instead of one wall; with fewer than two walls it uses the single-wall value ([§6.6](#heading)).
-- **Start:** after the button, the robot waits up to 2 s for one side to read more than 600 mm (the hand on the button can hide a wall from the LiDAR); if neither side opens it does not move and prints why.
-- **Heading log:** every run writes a CSV with the yaw and the distance and angle of each wall at every LiDAR scan, and one row for every gyro reset (`WRO_RUMBO_LOG` sets the path). It is the data behind the two changes above.
-- **Shutdown:** Ctrl+C stops the robot at any moment (motors in coast, steering servo released, LiDAR motor stopped); a board error stops the motors and ends the mission.
-- **Perception-only mode:** `WRO_SOLO_PERCEPCION=1` runs camera, Hailo and LiDAR without opening the board, to check the model and the LiDAR orientation before arming the robot. The program also falls back to this mode when the board is not found and the window is on. The LiDAR window shows the angle of each wall and the yaw of the board.
+> [!NOTE]
+> <details>
+> <summary><kbd>Click to open</kbd> <b>The nine changes of the v7 mission, one by one</b></summary>
+>
+> - **Actuation:** the SPIKE calls of the mission go to the Hiwonder board through `spike_compat`. `Spike_Reto2_Init` converts the hub units the mission uses: steering `tire_turn` (4.29 steering-motor degrees per unit, so `40` = 0.96 of full lock) and hub degrees / millimetres to encoder ticks of the drive motor. Turns with `await` give the servo 150 ms to reach its position before the drive motor starts.
+> - **Start-up:** board check, steering centring and a 5 s gyro calibration with the robot still; the robot does not move until the LiDAR has delivered its first full scan (up to 5 s); the mission thread starts once camera, inference and post-processing are running, and the start button still starts the motion.
+> - **LiDAR-guarded advance:** `Advance_For_distance_Especial` (the crossing between two pillars of different color) stops early when the LiDAR ray in the direction of travel reads 370 mm or less; a ray with no return (0) is ignored. `Oradar_S2L_Advance_Until_Distance` (drive until the front wall is at a given distance) ends with a selectable brake type (`Hold` throughout the mission).
+> - **Bounded waits:** the pillar-color wait when leaving the parking lot gives up after 3 s and continues as "no pillar"; the wait for a valid wall in the avoidance geometry also ends on shutdown.
+> - **Gyro correction from several walls:** at every corner decision and before the final parking, the robot first waits until it is still (yaw stable for 300 ms, 1.5 s at most, then two new LiDAR scans) and then takes the **median tilt of all the walls in view** (front, right, left, behind) instead of one wall; with fewer than two walls it uses the single-wall value ([§6.6](#heading)).
+> - **Start:** after the button, the robot waits up to 2 s for one side to read more than 600 mm (the hand on the button can hide a wall from the LiDAR); if neither side opens it does not move and prints why.
+> - **Heading log:** every run writes a CSV with the yaw and the distance and angle of each wall at every LiDAR scan, and one row for every gyro reset (`WRO_RUMBO_LOG` sets the path). It is the data behind the two changes above.
+> - **Shutdown:** Ctrl+C stops the robot at any moment (motors in coast, steering servo released, LiDAR motor stopped); a board error stops the motors and ends the mission.
+> - **Perception-only mode:** `WRO_SOLO_PERCEPCION=1` runs camera, Hailo and LiDAR without opening the board, to check the model and the LiDAR orientation before arming the robot. The program also falls back to this mode when the board is not found and the window is on. The LiDAR window shows the angle of each wall and the yaw of the board.
+>
+> </details>
 
 Two threads run at once (both started from `main()`): the Hailo camera
 pipeline keeps the global `traffic_lights` struct (color, x-position, area,
@@ -1327,25 +1345,33 @@ In the competition runs every steering correction is a heading PD on the gyro: p
 
 #### Final parallel parking (Obstacle Challenge) <a id="parking"></a>
 
-**How the parking section is reached.** `Obstacle_Challenge_Impl` runs the 12 sections as a fixed sequence of calls: after leaving the lot (`estacionamiento_clockwise()` / `estacionamiento_counterclockwise()`), it calls `Corner_Case` + `Desicion` 12 times, 3 laps × 4 sections, and the 4th, 8th and 12th calls run with `parking = true` because that section holds the parking lot. The section count is therefore the position in the program, not a sensor reading. When the 12th `Desicion` returns, the robot is back in the parking section, and the parking sequence below runs, using the colour of the last pillar passed. Distances to walls come from the LiDAR (they are measured from the LiDAR, not from the front of the robot), reverses are in hub degrees (1 hub degree ≈ 0.39 mm of travel, `kMmPorGradoSpike`), and turns end when the gyro has rotated the given angle. The values were tuned by hand on the track for the geometry of the lot.
+After the 12th section the robot is back in the section that holds the parking lot, and it parks with LiDAR distances, encoder-measured reverses and gyro-controlled turns. The two figures show the manoeuvre in each driving direction.
 
 <img src="other/additionalMedia/Others/parking_sequence_ccw.png" alt="Top view of the final parallel parking in the counter-clockwise run, in six panels: approach the front wall, reverse along the wall, reverse with the wheels left, reverse with the wheels right into the lot, reverse straight, straighten" width="900">
 
-*The parking manoeuvre of the counter-clockwise run, seen from above. It is drawn from the values of the program in the table below with a simple steering model, so the positions are approximate.*
+*The parking manoeuvre of the counter-clockwise run, seen from above. It is drawn from the values of the program in the fold below with a simple steering model, so the positions are approximate.*
 
 <img src="other/additionalMedia/Others/parking_sequence_cw.png" alt="Top view of the final parallel parking in the clockwise run, in six panels: approach the front wall, reverse along the wall, reverse with the wheels right, reverse with the wheels left into the lot, reverse straight, straighten" width="900">
 
 *The same manoeuvre in the clockwise run. Here the parking lot is further from the front wall, so the first reverse is longer, and the turns are mirrored. The order of the moves and the angles are the program's; the positions are indicative.*
 
-| Step | Clockwise run | Counter-clockwise run |
-|---|---|---|
-| 1. Reposition after the last pillar | **Red:** advance to 1050 mm from the front wall, turn 90° left, advance at heading 90° to 360 mm from the wall ahead, re-zero the gyro, turn 90° right. **Green:** turn 10° left and creep at heading 10° until the LiDAR ray 10° ahead of the left side reads ≤ 180 mm, re-zero the gyro, turn 4° right. **None:** no repositioning. | **Green:** the mirror of the clockwise red case (1050 mm, 90° right, heading −90° to 360 mm, 90° left). **Red or none:** no repositioning. |
-| 2. Approach the front wall | The gyro is re-zeroed with the median tilt of the walls in view (`Slope(front)` if fewer than two); advance until the front wall is at **250 mm** (heading +2° after a red pillar). | Creep forward at heading −10° until the right-side LiDAR reading (outer wall) is ≤ **160 mm**, then advance at heading 0 until the front wall is at **300 mm**. |
-| 3. Reverse along the lot | Re-zero the gyro, reverse **2250 hub degrees** (≈ 875 mm). | Re-zero the gyro, reverse **740 hub degrees** (≈ 288 mm). |
-| 4. Reverse S-turn into the lot | Reverse with the wheels right until the gyro has turned **50°**, re-zero, reverse with the wheels left for **105°**, reverse **400 hub degrees** (≈ 156 mm) at heading −105°, brake. | Reverse with the wheels left for **52°**, re-zero, reverse with the wheels right for **100°**, reverse **390 hub degrees** (≈ 152 mm) at heading 90°, brake. |
-| 5. Straighten | Re-zero, reverse with the wheels right for **28°** and hold the motor, re-zero, short forward correction with the wheels left, centre the steering. | Mirror: reverse with the wheels left for **28°**, hold, short forward correction with the wheels right, centre the steering. |
-
-After step 5 the robot stays parked (state `FinalParking` → `Idle` in [Figure 14](#63-obstacle-challenge)) until the program is stopped.
+> [!NOTE]
+> <details>
+> <summary><kbd>Click to open</kbd> <b>How the parking section is reached and the parking sequence step by step, with the values of the program</b></summary>
+>
+> **How the parking section is reached.** `Obstacle_Challenge_Impl` runs the 12 sections as a fixed sequence of calls: after leaving the lot (`estacionamiento_clockwise()` / `estacionamiento_counterclockwise()`), it calls `Corner_Case` + `Desicion` 12 times, 3 laps × 4 sections, and the 4th, 8th and 12th calls run with `parking = true` because that section holds the parking lot. The section count is therefore the position in the program, not a sensor reading. When the 12th `Desicion` returns, the robot is back in the parking section, and the parking sequence below runs, using the colour of the last pillar passed. Distances to walls come from the LiDAR (they are measured from the LiDAR, not from the front of the robot), reverses are in hub degrees (1 hub degree ≈ 0.39 mm of travel, `kMmPorGradoSpike`), and turns end when the gyro has rotated the given angle. The values were tuned by hand on the track for the geometry of the lot.
+>
+> | Step | Clockwise run | Counter-clockwise run |
+> |---|---|---|
+> | 1. Reposition after the last pillar | **Red:** advance to 1050 mm from the front wall, turn 90° left, advance at heading 90° to 360 mm from the wall ahead, re-zero the gyro, turn 90° right. **Green:** turn 10° left and creep at heading 10° until the LiDAR ray 10° ahead of the left side reads ≤ 180 mm, re-zero the gyro, turn 4° right. **None:** no repositioning. | **Green:** the mirror of the clockwise red case (1050 mm, 90° right, heading −90° to 360 mm, 90° left). **Red or none:** no repositioning. |
+> | 2. Approach the front wall | The gyro is re-zeroed with the median tilt of the walls in view (`Slope(front)` if fewer than two); advance until the front wall is at **250 mm** (heading +2° after a red pillar). | Creep forward at heading −10° until the right-side LiDAR reading (outer wall) is ≤ **160 mm**, then advance at heading 0 until the front wall is at **300 mm**. |
+> | 3. Reverse along the lot | Re-zero the gyro, reverse **2250 hub degrees** (≈ 875 mm). | Re-zero the gyro, reverse **740 hub degrees** (≈ 288 mm). |
+> | 4. Reverse S-turn into the lot | Reverse with the wheels right until the gyro has turned **50°**, re-zero, reverse with the wheels left for **105°**, reverse **400 hub degrees** (≈ 156 mm) at heading −105°, brake. | Reverse with the wheels left for **52°**, re-zero, reverse with the wheels right for **100°**, reverse **390 hub degrees** (≈ 152 mm) at heading 90°, brake. |
+> | 5. Straighten | Re-zero, reverse with the wheels right for **28°** and hold the motor, re-zero, short forward correction with the wheels left, centre the steering. | Mirror: reverse with the wheels left for **28°**, hold, short forward correction with the wheels right, centre the steering. |
+>
+> After step 5 the robot stays parked (state `FinalParking` → `Idle` in [Figure 14](#63-obstacle-challenge)) until the program is stopped.
+>
+> </details>
 
 ### 6.9 Testing and tuning workflow <a id="testing"></a>
 
@@ -1511,12 +1537,18 @@ The official rounds of the 2026 Mexico National Final (2nd place) are linked in 
 
 On 2026-11-09 WRO published an optional extra task for the Obstacle Challenge of the International Final: the [Surprise Rule](other/WRO-2026-FE_SurpriseRule.pdf) ([source](https://wro-association.org/wp-content/uploads/WRO-2026-Future-Engineers-Extra-Task.pdf)).
 
-| The rule | |
-|---|---|
-| What changes on the field | The judges replace **one** traffic sign (never the first one the vehicle meets) with a sign of the **opposite colour** that is **50 mm or 150 mm tall** instead of 100 mm. The base (50 × 50 mm) and the position stay the same |
-| What the vehicle must do | Pass the modified sign on the side of its **original** colour, which is the opposite of the colour it shows |
-| Points | 5 points for each correct passage, up to 15 per attempt (maximum Obstacle Challenge score: 77) |
-| Participation | Optional; the team tells the judge before each attempt |
+> [!NOTE]
+> <details>
+> <summary><kbd>Click to open</kbd> <b>The rule in four lines: what changes on the field, what the vehicle must do, points, participation</b></summary>
+>
+> | The rule | |
+> |---|---|
+> | What changes on the field | The judges replace **one** traffic sign (never the first one the vehicle meets) with a sign of the **opposite colour** that is **50 mm or 150 mm tall** instead of 100 mm. The base (50 × 50 mm) and the position stay the same |
+> | What the vehicle must do | Pass the modified sign on the side of its **original** colour, which is the opposite of the colour it shows |
+> | Points | 5 points for each correct passage, up to 15 per attempt (maximum Obstacle Challenge score: 77) |
+> | Participation | Optional; the team tells the judge before each attempt |
+>
+> </details>
 
 **Our plan.** The vision model already returns a box around every sign it detects ([§6.4](#vision)). The base of a sign is always 50 mm wide, so the shape of the box tells the height of the sign:
 
@@ -2113,12 +2145,12 @@ Design v7 has 13 different printed parts, 15 pieces in total. Their STL files ar
 </tr>
 </table>
 
-### Board firmware explained
+### Board firmware explained (video and repository)
 
 <table>
 <tr>
 <td align="center" width="50%"><a href="https://www.youtube.com/watch?v=Mzc6JfptzTI"><img src="https://img.youtube.com/vi/Mzc6JfptzTI/maxresdefault.jpg" alt="Video: the extended firmware of the Hiwonder board, from scratch in STM32CubeIDE" width="400"></a><br><b><a href="https://www.youtube.com/watch?v=Mzc6JfptzTI">▶ The extended firmware, from scratch in STM32CubeIDE (9:52)</a></b></td>
-<td width="50%">How the firmware of the Hiwonder board is built and how it works (<a href="#board-firmware">§6.1</a>): 0:00 introduction · 0:39 an empty project · 2:08 the sources · 3:19 the settings · 5:04 build · 5:51 how it works · 8:31 flash and test.</td>
+<td width="50%">How the firmware of the Hiwonder board is built and how it works (<a href="#board-firmware">§6.1</a>): 0:00 introduction · 0:39 an empty project · 2:08 the sources · 3:19 the settings · 5:04 build · 5:51 how it works · 8:31 flash and test.<br><br><b>Source, bench logs and everything else about the firmware:</b> <a href="https://github.com/JRavenelco/hiwonder-brick">github.com/JRavenelco/hiwonder-brick</a> (the firmware development repository).</td>
 </tr>
 </table>
 
@@ -2144,6 +2176,7 @@ Design v7 has 13 different printed parts, 15 pieces in total. Their STL files ar
 ### GitHub Repositories
 - [2026 Repository (WRO_Future_Engineers_Queretaro_CSS)](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS)
 - [2025 Repository (WRO_2025_SSbots)](https://github.com/JRavenelco/WRO_2025_SSbots)
+- [Firmware development repository (hiwonder-brick)](https://github.com/JRavenelco/hiwonder-brick): source, host library, bench tools and bench logs of the Hiwonder board firmware
 
 ### Datasheets and documentation: design v7
 > [!NOTE]

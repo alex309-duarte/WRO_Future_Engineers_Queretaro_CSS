@@ -15,6 +15,8 @@
 
 The extended firmware of the Hiwonder ROS Robot Controller, from scratch in STM32CubeIDE (9:52): creating the project, the sources, the settings, the build, how the firmware works (5:51) and flashing and testing it (8:31).
 
+Source, bench logs and everything else about the firmware: **[github.com/JRavenelco/hiwonder-brick](https://github.com/JRavenelco/hiwonder-brick)**, the firmware development repository.
+
 ## 2026 Mexico National Final: official rounds
 
 ### Open Challenge, official round
