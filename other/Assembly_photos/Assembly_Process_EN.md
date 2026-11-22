@@ -36,7 +36,7 @@ These are needed to build the robot but are not parts of it, so they are not in 
 
 ### Parts list
 
-**Printed parts:** the 15 STL files and their quantities are in [models/cad/Stl/](../../models/cad/Stl/README.md).
+**Printed parts:** the 13 STL files and their quantities are in [models/cad/Stl/](../../models/cad/Stl/README.md).
 
 **Electronics and other bought parts** (details and links in the [Bill of Materials](../../README.md#bom)):
 
@@ -259,7 +259,7 @@ Screw the HX-12H steering servo to the front of the chassis, with its shaft faci
 
 <img src="v7/IMG_1932.jpg" alt="Printed steering link, servo arm, two wheel knuckles and small joint parts" width="480">
 
-You need the steering link (`steering_link.STL`), the servo arm (`steering_servo_arm.STL`), the two wheel knuckles (`ackerman_wheel_join.STL` and its mirror) and the small joint parts.
+You need the steering link (`steering_link.STL`), the servo arm (`steering_servo_arm.STL`), the two wheel knuckles (`ackerman_wheel_join.STL` and its mirror) and the two Ackermann arms (`ackerman_arm.STL`), which are the joints between the link and the knuckles.
 
 ### Step 25: Join the servo arm to the link
 

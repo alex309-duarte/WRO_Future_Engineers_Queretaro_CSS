@@ -29,7 +29,11 @@ The v7 robot builds **two programs**: the Open Challenge (`src/ondevice/`, LiDAR
    sudo apt install -y build-essential cmake git libopencv-dev libgpiod-dev pkg-config
    ```
    The camera is read through [libcamera](https://libcamera.org/) (part of Raspberry Pi OS) and the start button through [libgpiod](https://libgpiod.readthedocs.io/).
-4. **Hiwonder board firmware:** flash our firmware `pos-v8` once with an ST-LINK/V2 (see [Board firmware](../../README.md#board-firmware) and [`firmware/hiwonder_pos-v8/README.md`](../../firmware/hiwonder_pos-v8/README.md)); the programs refuse to run on the stock firmware.
+4. **Hiwonder board firmware:** flash our firmware `pos-v8` once with an ST-LINK/V2 programmer ([the one we use](https://es.aliexpress.com/item/1005004828761496.html); see [Board firmware](../../README.md#board-firmware) and [`firmware/hiwonder_pos-v8/README.md`](../../firmware/hiwonder_pos-v8/README.md)); the programs refuse to run on the stock firmware.
+
+<img src="../../other/additionalMedia/Components_v7/ST-LINK_V2.png" alt="ST-LINK V2 programmer with its four jumper wires" width="150">
+
+*The ST-LINK/V2 programmer used to flash the board firmware (prerequisite 4).*
 
 ## 2. Clone <a id="clone"></a>
 

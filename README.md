@@ -65,7 +65,7 @@ This documentation is written so that another team can build the same robot and 
 | | What to do | Where | Preview (click to open) |
 |---|---|---|:---:|
 | 1 | Get the parts | [Bill of Materials](#bom), with a link and a price for every part | <a href="#bom"><img src="other/additionalMedia/Others/bom_by_category_v7.png" height="70" alt="Bill of Materials, cost by category"></a> |
-| 2 | Print the chassis and the other printed parts | [STL files, quantities and printer settings](#printed-parts) | <a href="#printed-parts"><img src="models/cad/Stl/v7/printed_parts_v7.png" height="90" alt="The 15 printed parts"></a> |
+| 2 | Print the chassis and the other printed parts | [STL files, quantities and printer settings](#printed-parts) | <a href="#printed-parts"><img src="models/cad/Stl/v7/printed_parts_v7.png" height="90" alt="The 13 printed parts"></a> |
 | 3 | Assemble the vehicle | [Assembly instructions](other/Assembly_photos/Assembly_Process_EN.md): one photo per step, with the tools and every screw | <a href="other/Assembly_photos/Assembly_Process_EN.md"><img src="other/additionalMedia/Previews/assembly_instructions.png" height="110" alt="Assembly instructions, first page"></a> |
 | 4 | Connect the electronics | [Wiring diagram](#wiring-v7) and [connection table](#connections) | <a href="#wiring-v7"><img src="schemes/hardware/wiringSchematics_v7.png" height="80" alt="Wiring diagram of design v7"></a> |
 | 5 | Flash the board firmware, then build and run the programs | [Setup and execution instructions](#setup-instructions) | <a href="#setup-instructions"><img src="schemes/firmware/hiwonder_firmware_architecture.png" height="80" alt="Firmware architecture of the Hiwonder board"></a> |
@@ -239,10 +239,6 @@ More info: [WRO Official Site](https://wro-association.org/) | [Future Engineers
 | Perception | RPLidar S2L (360°, 10 Hz) + Camera Module 3 Wide + Hailo-8 |
 | Language | C/C++ |
 
-<a href="#testing"><img src="other/additionalMedia/Others/at_a_glance_v7.png" width="600" alt="Design v7 in numbers: mass 1.087 kg, top speed 0.58 m/s, vision 8 ms per frame, Open Challenge 9 of 10 runs completed, Obstacle Challenge 8 of 10 runs with 3 laps, parking in 7 of 10" width="900"></a>
-
-*Design v7 in numbers, from the test session of 2026-11-08 ([§6.9](#testing)).*
-
 ### What changed from design v6 (national) to design v7 (international) <a id="what-changed"></a>
 
 The robot has gone through seven designs across two seasons (see [§7.4](#lessons)). **Design v6** competed at the 2026 Mexico National Final; **design v7** is the international version documented here.
@@ -322,9 +318,9 @@ The v7 chassis is a modification of the v6 design, modeled in SolidWorks. It was
 
 <img src="v-photos/Isometric_v7.JPG" alt="Isometric view of design v7" width="800">
 
-*Figure 1. Isometric view of design v7: Hiwonder controller at the front, RPLidar S2L in the centre, camera mast and JGB37 drive motor at the rear. The SolidWorks assembly is in [`models/cad/v7_assembly/`](models/cad/v7_assembly).*
+*Figure 1. Isometric view of design v7: Hiwonder controller at the front, RPLidar S2L in the centre, camera mast and JGB37 drive motor at the rear. The SolidWorks assembly is in [`models/cad/v7_assembly/`](models/cad/v7_assembly) (open `Assem1.SLDASM`).*
 
-**CAD views of design v7.**<a id="cad-v7"></a> Only one tyre is drawn, for reference: the tyres are LEGO parts, not printed.
+**CAD views of design v7.**<a id="cad-v7"></a> The tyres are LEGO parts, not printed; in the five flat views only one is drawn, for reference.
 
 | Side | Opposite side |
 |---|---|
@@ -764,7 +760,7 @@ Ultrasonic sensors used in previous seasons were removed in 2026; the robot reli
 | Yaw sign | With the wheels lifted, turn the robot clockwise by hand: yaw must **decrease**, as on the SPIKE Hub. | [`src/ondevice/HIWONDER.md`](src/ondevice/HIWONDER.md) |
 | Steering center and side | Servo at 750 = wheels straight. Commanding the "right" position must turn the wheels right; if not, swap `kDireccionDerecha` and `kDireccionIzquierda`. | `hiwonder_config.h` |
 | Distance | `Spike_Advance_For_distance(50, 1000, 0)` must travel 1000 mm; if it travels L mm, multiply `kDiametroRuedaMm` by L/1000. | `reto2_config.h` |
-| LiDAR angle offset | The S2L is mounted with its 0° mark facing the front of the robot and its angles growing clockwise: `RPLIDAR_FRONT_DEG = 0`, `RPLIDAR_CLOCKWISE = 1`. The driver converts every S2L reading into the buffer layout of design v6 (`ORADAR_ANGLE_OFFSET = 270°`), so the mission code reads `FRONT`, `RIGHT`, `BACK`, `LEFT` exactly as before. If the LiDAR is remounted, rebuild with e.g. `make LIDAR_FLAGS="-DRPLIDAR_FRONT_DEG=180"` and check the four walls in the LiDAR window. | `Oradar_S2L.cpp`, `Oradar_S2L.h` |
+| LiDAR angle offset | The S2L is mounted with its own 90° angle pointing to the front of the robot, and its angles grow clockwise: `Lidar_Angle_Orientation_fixed_to_robot = 90` in `common_var.h` (used as `RPLIDAR_FRONT_DEG`) and `RPLIDAR_CLOCKWISE = 1`. The driver stores every scan already rotated to the robot and in the buffer layout of design v6 (`ORADAR_ANGLE_OFFSET = 270°`), so the mission code reads `FRONT`, `RIGHT`, `BACK`, `LEFT` exactly as before. If the LiDAR is remounted, change that one value in the `common_var.h` of both programs and rebuild, then check the four walls in the LiDAR window: a box in front of the robot must appear at the top. | `common_var.h` (in `src/ondevice/` and `src/cpp/object_detection_hiwonder_h10/`), `Oradar_S2L.cpp` |
 | Camera / lighting | No fixed camera settings: the camera runs with libcamera's automatic exposure and white balance (800×600 frames through GStreamer, stretched to 640×640 for the model). Robustness to light comes from the dataset: photos taken in poor light and with shadows, plus augmentation of brightness (±20 %) and exposure (±10 %) ([D6](#d6)). On the track: 96 of 100 pillars read correctly, the 4 errors in strong shadows. Check with `./run_hiwonder_h8.sh --solo-percepcion`, which shows the detections without moving the robot. | `toolbox.cpp`, `run_hiwonder_h8.sh` |
 
 ### 5.4 Noise, interference and failure points <a id="noise"></a>
@@ -913,9 +909,9 @@ flowchart TD
     D --> E["Spike_Reset_Gyro(0)<br/>Spike_Center_Vehicle_Short()"]
     E --> F["3 debounced lidar readings:<br/>front / right / left<br/>(Lidar_Debounced_Read)"]
     F --> G{"right or left<br/>&gt; 800&nbsp;mm?"}
-    G -- "yes: OUTSIDE case" --> H1["Speeds 40-50 %<br/>first straight 1350 motor deg"]
-    G -- "no: INSIDE case" --> H2["Speed 30 %<br/>first straight 600 motor deg"]
-    H1 --> I["Oradar_S2L_Advance_And_Detect_Side(30, 0)<br/>&rarr; sentido = right | left"]
+    G -- "yes: OUTSIDE case" --> H1["Direction search at 30 %<br/>first straight 1350 motor deg"]
+    G -- "no: INSIDE case" --> H2["Direction search at 50 %<br/>first straight 600 motor deg"]
+    H1 --> I["Oradar_S2L_Advance_And_Detect_Side(speed, 0)<br/>&rarr; sentido = right | left"]
     H2 --> I
     I --> J["First corner:<br/>Spike_Turn_For_Degrees toward sentido<br/>Spike_Center_Vehicle_Short()<br/>Spike_Advance_For_Degrees(first straight)"]
     J --> K["Oradar_S2L_Wall_Slope(outer wall)<br/>&rarr; Spike_Reset_Gyro(angle)"]
@@ -926,7 +922,7 @@ flowchart TD
     O --> P["Oradar_S2L_Wall_Slope(outer wall)<br/>&rarr; Spike_Reset_Gyro(angle)<br/>v = v + 1"]
     P --> Q{"v &lt; 11?"}
     Q -- yes --> M
-    Q -- "no: 12 corners done" --> R["Oradar_S2L_Advance_Until_Distance(30, 0, 1500)<br/>&rarr; Spike_Hold_Motors()"]
+    Q -- "no: 12 corners done" --> R["Oradar_S2L_Advance_Until_Distance(50, 0, 1500)<br/>&rarr; Spike_Hold_Motors()"]
     R --> S["Coast motors &middot; close board serial<br/>stop + join lidar thread &middot; close lidar"]
     S --> Z(["Run finished"])
 ```
@@ -941,12 +937,12 @@ flowchart TD
 >
 > | Case / `sentido` | First turn (speed, yaw) | First straight (speed, motor deg, heading) | Gap search speed | Loop turn (speed, yaw) | Loop straight (speed, motor deg, heading) | Outer wall |
 > |---|---|---|---|---|---|---|
-> | Outside, right | 50 %, 80° | 40 %, 1350, &minus;90 | 50 % | 40 %, 80° | 50 %, 600, &minus;90 | `LEFT` |
-> | Outside, left | 40 %, 80° | 50 %, 1350, +90 | 50 % | 40 %, 70° | 50 %, 600, +90 | `RIGHT` |
-> | Inside, right | 30 %, 70° | 30 %, 600, &minus;90 | 30 % | 30 %, 70° | 30 %, 600, &minus;90 | `LEFT` |
-> | Inside, left | 30 %, 70° | 30 %, 600, +90 | 30 % | 30 %, 70° | 30 %, 600, +90 | `RIGHT` |
+> | Outside, right | 60 %, 80° | 50 %, 1350, &minus;90 | 60 % | 50 %, 80° | 60 %, 600, &minus;90 | `LEFT` |
+> | Outside, left | 50 %, 80° | 60 %, 1350, +90 | 60 % | 50 %, 70° | 60 %, 600, +90 | `RIGHT` |
+> | Inside, right | 50 %, 70° | 60 %, 600, &minus;90 | 60 % | 50 %, 70° | 60 %, 600, &minus;90 | `LEFT` |
+> | Inside, left | 50 %, 70° | 60 %, 600, +90 | 60 % | 50 %, 70° | 60 %, 600, +90 | `RIGHT` |
 >
-> The "outside" case (one side wall farther than 800 mm at the start) has room for faster moves and a longer first straight; the "inside" case starts close to both walls, so every move runs at 30 %. At the end of the 12th corner the robot is back in the starting section and drives at heading 0 until the front wall is at 1500 mm, i.e. the middle of the 3000 mm side, then holds the drive motor.
+> The "outside" case (one side wall farther than 800 mm at the start) has a longer first straight and searches for the driving direction at 30 %; the "inside" case starts close to both walls, uses the short first straight and searches at 50 %. Every other move runs at 50 to 60 % in both cases. At the end of the 12th corner the robot is back in the starting section and drives at heading 0 until the front wall is at 1500 mm, i.e. the middle of the 3000 mm side, then holds the drive motor.
 >
 > </details>
 
@@ -979,7 +975,7 @@ stateDiagram-v2
 
 *Figure 13. Open Challenge high-level state machine. The Open Challenge has no parking: it ends with a stop in the starting section.*
 
-> **Emergency stop.** The Hiwonder board firmware has no command timeout (its IWDG watchdog only resets a hung firmware): if the program died with the motor running, the motor would keep its last speed. So, from the moment the LiDAR is opened, Ctrl+C, `kill` or a crash triggers `parada_emergencia` ("emergency stop"), which sends the board a COAST command for all four motors and the LiDAR its stop frames, then ends the process immediately, so no half-finished loop can send another speed. If the board or the LiDAR does not start (no scan within 5 s), `Recorrido()` returns 1 before anything moves.
+> **Emergency stop.** The Hiwonder board firmware has no command timeout (its IWDG watchdog only resets a hung firmware): if the program died with the motor running, the motor would keep its last speed. So, from the moment the LiDAR is opened, Ctrl+C, `kill` or a crash triggers `parada_emergencia` ("emergency stop"), which sends the board a COAST command for all four motors and the LiDAR its stop frames, then ends the process immediately, so no half-finished loop can send another speed. If the board or the LiDAR does not start (no scan within 5 s), `Recorrido()` returns 1 before anything moves; if only the board is missing and the window is on, the window keeps showing the LiDAR until Ctrl+C, which is useful to check the LiDAR without the board.
 
 #### Thresholds
 
@@ -1002,23 +998,26 @@ stateDiagram-v2
 > | Corner turn yaw | `80°` / `70°` | `Spike_Turn_For_Degrees`, full lock; 80° in the outside case (except the left-loop turns, 70°), 70° in the inside case. |
 > | First straight | `1350` / `600` motor deg | `Spike_Advance_For_Degrees` after the first turn, outside / inside case. |
 > | Corner straight | `600` motor deg | `Spike_Advance_For_Degrees` after every loop turn, at heading &minus;90 / +90. |
-> | Speeds | `30 %` inside, `40-50 %` outside | `Spike_*` speed scale 0-100, converted to closed-loop rev/s by `spike_compat`. |
+> | Speeds | `50-60 %`; direction search `30 %` (outside) / `50 %` (inside) | `Spike_*` speed scale 0-100, converted to closed-loop rev/s by `spike_compat`. |
 > | Corners per run | `1 + 11 = 12` (`while (v < 11)`) | First corner before the loop, 11 in the loop: 3 laps of the four-corner field. |
-> | Final stop | `≤ 1500 mm` front, `30 %` | `Oradar_S2L_Advance_Until_Distance(30, 0, 1500)`, then `Spike_Hold_Motors`: stops mid-way along the 3000 mm starting side. |
+> | Final stop | `≤ 1500 mm` front, `50 %` | `Oradar_S2L_Advance_Until_Distance(50, 0, 1500)`, then `Spike_Hold_Motors`: stops mid-way along the 3000 mm starting side. |
 >
 > </details>
 
 
 ### 6.3 Obstacle Challenge
 
-The v7 mission is the national (v6) mission running on the Hiwonder layer: the strategy, the corner and section logic, and every distance and angle in this section are the ones used at the national final. What changed in v7 (each change is marked `Hiwonder:` in the code):
+The v7 mission is the national (v6) mission running on the Hiwonder layer: the strategy and the corner and section logic are the ones used at the national final. In November 2026 the LiDAR was remounted towards the back of the robot and rotated 90° ([§5.3](#calibration)), so the distances to the front wall in this section are about 100 mm longer than at the national final. What changed in v7 (each change is marked `Hiwonder:` in the code):
 
 - **Actuation:** the SPIKE calls of the mission go to the Hiwonder board through `spike_compat`. `Spike_Reto2_Init` converts the hub units the mission uses: steering `tire_turn` (4.29 steering-motor degrees per unit, so `40` = 0.96 of full lock) and hub degrees / millimetres to encoder ticks of the drive motor. Turns with `await` give the servo 150 ms to reach its position before the drive motor starts.
 - **Start-up:** board check, steering centring and a 5 s gyro calibration with the robot still; the robot does not move until the LiDAR has delivered its first full scan (up to 5 s); the mission thread starts once camera, inference and post-processing are running, and the start button still starts the motion.
 - **LiDAR-guarded advance:** `Advance_For_distance_Especial` (the crossing between two pillars of different color) stops early when the LiDAR ray in the direction of travel reads 370 mm or less; a ray with no return (0) is ignored. `Oradar_S2L_Advance_Until_Distance` (drive until the front wall is at a given distance) ends with a selectable brake type (`Hold` throughout the mission).
 - **Bounded waits:** the pillar-color wait when leaving the parking lot gives up after 3 s and continues as "no pillar"; the wait for a valid wall in the avoidance geometry also ends on shutdown.
-- **Shutdown:** Ctrl+C stops the robot at any moment (motors in coast, steering servo released); a board error stops the motors and ends the mission.
-- **Perception-only mode:** `WRO_SOLO_PERCEPCION=1` runs camera, Hailo and LiDAR without opening the board, to check the model and the LiDAR orientation before arming the robot.
+- **Gyro correction from several walls:** at every corner decision and before the final parking, the robot first waits until it is still (yaw stable for 300 ms, 1.5 s at most, then two new LiDAR scans) and then takes the **median tilt of all the walls in view** (front, right, left, behind) instead of one wall; with fewer than two walls it uses the single-wall value ([§6.6](#heading)).
+- **Start:** after the button, the robot waits up to 2 s for one side to read more than 600 mm (the hand on the button can hide a wall from the LiDAR); if neither side opens it does not move and prints why.
+- **Heading log:** every run writes a CSV with the yaw and the distance and angle of each wall at every LiDAR scan, and one row for every gyro reset (`WRO_RUMBO_LOG` sets the path). It is the data behind the two changes above.
+- **Shutdown:** Ctrl+C stops the robot at any moment (motors in coast, steering servo released, LiDAR motor stopped); a board error stops the motors and ends the mission.
+- **Perception-only mode:** `WRO_SOLO_PERCEPCION=1` runs camera, Hailo and LiDAR without opening the board, to check the model and the LiDAR orientation before arming the robot. The program also falls back to this mode when the board is not found and the window is on. The LiDAR window shows the angle of each wall and the yaw of the board.
 
 Two threads run at once (both started from `main()`): the Hailo camera
 pipeline keeps the global `traffic_lights` struct (color, x-position, area,
@@ -1064,17 +1063,17 @@ Drawn once here rather than 12 times over.
 
 ```mermaid
 flowchart TD
-    A(["Corner_Case(past_cube, parking)"]) --> B["Advance to 1000mm from the front wall"]
+    A(["Corner_Case(past_cube, parking)"]) --> B["Advance to 1050mm from the front wall"]
     B --> C["Read the cube color the camera<br/>currently sees: traffic_lights.light_color"]
     C --> D{"cube color?"}
-    D -- "green, after a red" --> E["Advance to 600mm (parking)<br/>or 400mm (not parking)"]
-    D -- "red, after a red" --> F["Advance to 990mm"]
-    D -- "anything else" --> G["Advance to 650mm<br/>set is_middle_case from the PREVIOUS cube's color"]
+    D -- "green, after a red" --> E["Advance to 750mm (parking)<br/>or 600mm (not parking)"]
+    D -- "red, after a red" --> F["Stay at 1050mm"]
+    D -- "anything else" --> G["Advance to 770mm<br/>set is_middle_case from the PREVIOUS cube's color"]
     E --> H["Turn 86&deg; into the next section<br/>(right clockwise, left counter-clockwise),<br/>center vehicle, coast"]
     F --> H
     G --> H
     H --> I(["Desicion(cube, is_middle_case, parking)"])
-    I --> J["Slope() on the outer wall<br/>reset gyro +/-90deg to square up to the side wall, settle 0.3s"]
+    I --> J["Wait until the robot is still<br/>median tilt of the walls in view<br/>reset gyro to square up, settle 0.3s"]
     J --> K{"was a cube already<br/>seen right at the corner?"}
     K -- "no (color was none)" --> L{"is_middle_case?"}
     L -- yes --> M["esquivar_cubos_middle(parking)<br/>one cube in the middle of the section"]
@@ -1085,23 +1084,24 @@ flowchart TD
     O --> P
 ```
 
-*Figure 15. One Obstacle Challenge corner cycle (clockwise run).*
+*Figure 15. One Obstacle Challenge corner cycle (clockwise run, distances measured by the LiDAR).*
 
 > [!NOTE]
 > <details>
 > <summary><kbd>Click to open</kbd> <b>Notes on the counter-clockwise run and on the avoidance functions</b></summary>
 >
-> > In the counter-clockwise run the two corner colors are swapped: red after a
-> > green stops at 400 / 600 mm, green after a green at 990 mm.
+> > In the counter-clockwise run the two corner colors are swapped and the
+> > distances are its own: first stop at 1100 mm, red after a green at 500 mm
+> > (700 mm in the parking section), green after a green at 1090 mm, no pillar at 750 mm.
 >
 > > `esquivar_cubos_1/2/middle` each call `calculte_angle_section_start_clockwise_chr`
 > > (or its `..._counterclockwise` counterpart) to get an angle + distance to the
 > > cube, turn toward it (left for green, right for red -- the passing side is set
 > > by the rules and does not mirror with the driving direction), advance alongside
 > > it, then small-turn back straight.
-> > `esquivar_cubos_2` additionally short-circuits to a plain advance to 1000mm
+> > `esquivar_cubos_2` additionally short-circuits to a plain advance to 1100mm
 > > from the front wall when no second cube is present or it's the same color as
-> > the first (two greens in the parking section: 1500mm, then a short S-shift to
+> > the first (two greens in the parking section: 1600mm, then a short S-shift to
 > > the left).
 >
 > > `Obstacle_Challenge_Thread` also calls `Slope(front)` once, right after
@@ -1121,21 +1121,26 @@ flowchart TD
 > |---|---|---|
 > | Direction-of-run split | `600 mm` | Right reading above this at start -> clockwise run; left reading above this -> counter-clockwise run. Fixed for the whole attempt. |
 > | Start pillar wait | `3 s` | Leaving the parking lot, the robot waits this long for the camera to report a pillar, then continues as "no pillar". |
-> | Corner approach | `1000 mm` | First advance in every `Corner_Case`, before reading the cube color. |
-> | Green-cube advance | `600 mm` (parking) / `400 mm` (not) | Second advance in `Corner_Case` when the corner cube is green and the previous one was red. |
-> | Red-cube advance | `990 mm` | Second advance in `Corner_Case` when the corner cube is red and the previous one was red. |
-> | No-cube advance | `650 mm` | Second advance in `Corner_Case` in every other case (treated as no corner cube). |
-> | Corner turn | `86 deg` | Every `Corner_Case`, turning into the next section: right when running clockwise, left when running counter-clockwise. |
-> | Gyro realign | `Slope(outer wall) +/- 90 deg` | Start of every `Desicion`, squares the robot to the outer side wall (on the left running clockwise, on the right running counter-clockwise) before looking for cubes. |
+> | Start wait | up to `2 s` | After the button, until one side reads more than 600 mm; otherwise the robot does not move. |
+> | Corner approach | `1050 mm` | First advance in every `Corner_Case`, before reading the cube color. |
+> | Green-cube advance | `750 mm` (parking) / `600 mm` (not) | Second advance in `Corner_Case` when the corner cube is green and the previous one was red. |
+> | Red-cube advance | `1050 mm` | `Corner_Case` when the corner cube is red and the previous one was red: the robot turns from the first stop. |
+> | No-cube advance | `770 mm` | Second advance in `Corner_Case` in every other case (treated as no corner cube). |
+> | Corner turn | `86 deg` | Every `Corner_Case`, turning into the next section: right when running clockwise (steering `tire_turn 35`), left when running counter-clockwise (`tire_turn 40`). |
+> | Gyro realign | median tilt of the walls in view | Start of every `Desicion`, squares the robot to the walls before looking for cubes. With fewer than two walls: `Slope(outer wall) +/- 90 deg` (outer wall on the left running clockwise, on the right running counter-clockwise). |
+> | Robot-still wait | yaw change `< 0.15 deg` per 50 ms for `300 ms`, at most `1.5 s`, then 2 LiDAR scans | Before every gyro realign, so the walls are not measured while the robot is still rotating. |
 > | Corners per run | `12` (3 laps x 4) | 4th corner of each lap calls `Corner_Case`/`Desicion` with `parking=true`. |
 > | Avoidance turn | angle `+5 deg` (cube 1) / `-5 deg` (cube 2) / `+3 deg` (middle), max `70 deg` | Turn toward the computed passing point before each avoidance advance. |
 > | Cube-1 clearance | `hypotenuse - 400` (normal) / `-200` (parking, green) | `esquivar_cubos_1`'s advance-past-cube distance. |
-> | Cube-2 clearance | `hypotenuse - 250` (normal) / `-260` (parking, red after green) | `esquivar_cubos_2`'s advance-past-cube distance when the second cube has the other color. |
+> | Cube-2 clearance | `hypotenuse - 50` (normal) / `-60` (parking, red after green) | `esquivar_cubos_2`'s advance-past-cube distance when the second cube has the other color. |
 > | Middle-cube clearance | `hypotenuse - 450` (red) / `-350` (green) | `esquivar_cubos_middle`'s advance-past-cube distance. |
 > | LiDAR guard | `370 mm` | `Advance_For_distance_Especial` (cube-2 crossing) stops early when the ray in the direction of travel reads this or less. |
+> | Speeds | advances `30 %`, turns `23 %`; clockwise corner approach `50 %`, clockwise corner turn `40 %`; parking `15-23 %` | `Spike_*` speed scale 0-100. These are the values in the code while the new settings are tuned ([§6.9](#testing)). |
+> | Stage pause | `1 s` | Clockwise run: after every stage of laps 1 and 2. |
 >
-> > Values are for the clockwise run. The counter-clockwise run uses the same
-> > corner distances (colors swapped, see above) and scales the clearance
+> > Values are for the clockwise run, whose corner distances and speeds are the
+> > constants at the top of `object_detection.cpp`. The counter-clockwise run has
+> > its own corner distances (see the notes above) and scales the clearance
 > > margins by `angle / 45 deg`, with its own avoidance-turn offsets.
 >
 > </details>
@@ -1216,7 +1221,7 @@ The camera classifies the pillar color; the LiDAR's role is purely geometric: on
 
 ### 6.6 Heading estimation <a id="heading"></a>
 
-Heading comes from the IMU on the Hiwonder board (20 Hz), read and reset through `spike_compat`. LiDAR wall-orientation readings (`Slope()` / `Oradar_S2L_Wall_Slope()`) correct the heading at defined points of each maneuver, for example at the start of every corner decision, where the robot re-squares itself against the side wall (±90°).
+Heading comes from the IMU on the Hiwonder board (20 Hz), read and reset through `spike_compat`. LiDAR wall-orientation readings (`Slope()` / `Oradar_S2L_Wall_Slope()`) correct the heading at defined points of each maneuver, for example at the start of every corner decision, where the robot re-squares itself against the walls. In the Obstacle Challenge that correction is the **median tilt of all the walls in view**, measured once the robot is still, instead of the tilt of one wall: the heading log of 2026-11-16 showed that a wall partly hidden by the robot's own body could read up to 8° away from the other three, and that measuring while the robot was still rotating after a corner added about 7° ([§6.9.3](#test-to-change)).
 
 This is **not** a formal sensor fusion (no complementary or Kalman filter): it is gyro-primary heading with situational LiDAR correction. We chose this because each correction happens at a known wall reference, where the LiDAR measurement is most reliable. Without any correction the gyro drifts about 1° per minute (3.2° after 180 s with the robot still, [§6.9](#testing)); a 3-lap run lasts about 48 s (Open) to 121 s (Obstacle), and the heading is re-squared against a wall at every corner, 12 times per run, so the drift cannot accumulate over the laps.
 
@@ -1281,9 +1286,10 @@ In the competition runs every steering correction is a heading PD on the gyro: p
 
 | Edge case | Handling |
 |---|---|
-| No pillar visible at a corner | `Corner_Case` advances 650 mm and uses the previous pillar's color to decide if there is a middle pillar |
-| Second pillar missing or same color as the first | `esquivar_cubos_2` short-circuits to a plain 1000 mm advance |
-| Run direction unknown at start | Decided once from the side-wall reading (600 mm) and held for the whole run |
+| No pillar visible at a corner | `Corner_Case` advances to 770 mm from the front wall (750 mm counter-clockwise) and uses the previous pillar's color to decide if there is a middle pillar |
+| Second pillar missing or same color as the first | `esquivar_cubos_2` short-circuits to a plain advance to 1100 mm from the front wall |
+| Run direction unknown at start | Decided once from the side-wall reading (600 mm) and held for the whole run. The robot waits up to 2 s for one side to open; if neither does, it does not move and prints the two readings |
+| Board not connected | Nothing moves; with the window on, both programs keep showing the LiDAR (and the camera in the Obstacle Challenge) until Ctrl+C |
 | Start position inside or outside | Open Challenge: side reading > 800 mm → outside start |
 | LiDAR not ready at start | The program waits up to 5 s (50 × 100 ms) for the first scan and exits without moving if none arrives |
 | Start pillar not detected | The wait for the first pillar at the start gives up after 3 s and the run continues with the no-pillar case |
@@ -1291,7 +1297,7 @@ In the competition runs every steering correction is a heading PD on the gyro: p
 
 #### Final parallel parking (Obstacle Challenge) <a id="parking"></a>
 
-**How the parking section is reached.** `Obstacle_Challenge_Impl` runs the 12 sections as a fixed sequence of calls: after leaving the lot (`estacionamiento_clockwise()` / `estacionamiento_counterclockwise()`), it calls `Corner_Case` + `Desicion` 12 times, 3 laps × 4 sections, and the 4th, 8th and 12th calls run with `parking = true` because that section holds the parking lot. The section count is therefore the position in the program, not a sensor reading. When the 12th `Desicion` returns, the robot is back in the parking section, and the parking sequence below runs, using the colour of the last pillar passed. Distances to walls come from the LiDAR, reverses are in hub degrees (1 hub degree ≈ 0.39 mm of travel, `kMmPorGradoSpike`), and turns end when the gyro has rotated the given angle. The values were tuned by hand on the track for the geometry of the lot.
+**How the parking section is reached.** `Obstacle_Challenge_Impl` runs the 12 sections as a fixed sequence of calls: after leaving the lot (`estacionamiento_clockwise()` / `estacionamiento_counterclockwise()`), it calls `Corner_Case` + `Desicion` 12 times, 3 laps × 4 sections, and the 4th, 8th and 12th calls run with `parking = true` because that section holds the parking lot. The section count is therefore the position in the program, not a sensor reading. When the 12th `Desicion` returns, the robot is back in the parking section, and the parking sequence below runs, using the colour of the last pillar passed. Distances to walls come from the LiDAR (they are measured from the LiDAR, not from the front of the robot), reverses are in hub degrees (1 hub degree ≈ 0.39 mm of travel, `kMmPorGradoSpike`), and turns end when the gyro has rotated the given angle. The values were tuned by hand on the track for the geometry of the lot.
 
 <img src="other/additionalMedia/Others/parking_sequence_ccw.png" alt="Top view of the final parallel parking in the counter-clockwise run, in six panels: approach the front wall, reverse along the wall, reverse with the wheels left, reverse with the wheels right into the lot, reverse straight, straighten" width="900">
 
@@ -1303,8 +1309,8 @@ In the competition runs every steering correction is a heading PD on the gyro: p
 
 | Step | Clockwise run | Counter-clockwise run |
 |---|---|---|
-| 1. Reposition after the last pillar | **Red:** advance to 950 mm from the front wall, turn 90° left, advance at heading 90° to 260 mm from the wall ahead, re-zero the gyro, turn 90° right. **Green:** turn 10° left and creep at heading 10° until the LiDAR ray 10° ahead of the left side reads ≤ 180 mm, re-zero the gyro, turn 4° right. **None:** no repositioning. | **Green:** the mirror of the clockwise red case (950 mm, 90° right, heading −90° to 260 mm, 90° left). **Red or none:** no repositioning. |
-| 2. Approach the front wall | `Slope(front)` re-zeroes the gyro parallel to the front wall; advance until the front wall is at **150 mm** (heading +2° after a red pillar). | Creep forward at heading −10° until the right-side LiDAR reading (outer wall) is ≤ **160 mm**, then advance at heading 0 until the front wall is at **200 mm**. |
+| 1. Reposition after the last pillar | **Red:** advance to 1050 mm from the front wall, turn 90° left, advance at heading 90° to 360 mm from the wall ahead, re-zero the gyro, turn 90° right. **Green:** turn 10° left and creep at heading 10° until the LiDAR ray 10° ahead of the left side reads ≤ 180 mm, re-zero the gyro, turn 4° right. **None:** no repositioning. | **Green:** the mirror of the clockwise red case (1050 mm, 90° right, heading −90° to 360 mm, 90° left). **Red or none:** no repositioning. |
+| 2. Approach the front wall | The gyro is re-zeroed with the median tilt of the walls in view (`Slope(front)` if fewer than two); advance until the front wall is at **250 mm** (heading +2° after a red pillar). | Creep forward at heading −10° until the right-side LiDAR reading (outer wall) is ≤ **160 mm**, then advance at heading 0 until the front wall is at **300 mm**. |
 | 3. Reverse along the lot | Re-zero the gyro, reverse **2250 hub degrees** (≈ 875 mm). | Re-zero the gyro, reverse **740 hub degrees** (≈ 288 mm). |
 | 4. Reverse S-turn into the lot | Reverse with the wheels right until the gyro has turned **50°**, re-zero, reverse with the wheels left for **105°**, reverse **400 hub degrees** (≈ 156 mm) at heading −105°, brake. | Reverse with the wheels left for **52°**, re-zero, reverse with the wheels right for **100°**, reverse **390 hub degrees** (≈ 152 mm) at heading 90°, brake. |
 | 5. Straighten | Re-zero, reverse with the wheels right for **28°** and hold the motor, re-zero, short forward correction with the wheels left, centre the steering. | Mirror: reverse with the wheels left for **28°**, hold, short forward correction with the wheels right, centre the steering. |
@@ -1327,6 +1333,8 @@ After step 5 the robot stays parked (state `FinalParking` → `Idle` in [Figure 
 4. **Slow track runs.** `WRO_MAX_RPS=1.5 ./my_lidar_app`: same distances and angles, lower speed.
 5. **Competition speed**, with the emergency stop ready.
 6. **Record every run** in the tables below: one row per attempt, including the failed ones. In the national journal, the lack of logged runs was our biggest methodological gap.
+
+**Status of the code and of these results (2026-11-21).** The tables below were measured on 2026-11-08 with the settings of release v2.0.0. Since then the LiDAR was remounted towards the back of the robot and rotated 90°, the front-wall distances of the Obstacle Challenge were raised by about 100 mm, the gyro correction uses several walls, and the Obstacle Challenge speeds in the code are lower while the new settings are tuned on the track ([§6.3](#63-obstacle-challenge)). New run logs will replace these when the tuning is finished.
 
 #### 6.9.1 Component tests (2026-11-08) <a id="component-tests"></a>
 
@@ -1461,6 +1469,9 @@ The ten runs used five pillar layouts, A to E, each driven once in each directio
 | Vision on the track | 96 of 100 pillars correct; the 4 errors were in strong shadows | No change to the model. Strong shadows are recorded as the remaining error source, and the perception-only check is part of the [competition-day checklist](#checklist) |
 | Speed against battery voltage | −9.7 % speed on a low battery at 5.7 rev/s, −6.1 % at 4.0 rev/s | 5.7 rev/s kept for competition; the effect is in the risk register as characterised ([§7.3](#risks)) and rounds start with a full pack |
 | 10 + 10 run logs | Every failure on lap 3; two of the three Obstacle failures on layout E | Open: failures F9 to F11 in the [failure log](#failure-log) |
+| Heading log of 2026-11-16 (CSV written by the program: yaw and wall angles at every LiDAR scan) | With the LiDAR towards the back, the robot hides part of the left wall: its angle came out up to 8° away from the other three walls, and every gyro correction took that error | The correction uses the median tilt of all the walls in view ([§6.6](#heading)) |
+| Same log | The corner decision sometimes started with the robot still rotating at about 40°/s; the walls of that scan were out of date and the correction added about 7° | Before measuring, the robot waits until the yaw is stable for 300 ms (1.5 s at most) and for two new LiDAR scans |
+| Start readings after remounting the LiDAR (2026-11-16) | Right and left read 163 and 223 mm and no driving direction was chosen: the Obstacle Challenge build still used mounting angle 0. The hand on the start button could also read about 110 mm on one side | One mounting value for both programs (`Lidar_Angle_Orientation_fixed_to_robot = 90` in `common_var.h`); the start waits up to 2 s for one side to open and reports when none does |
 
 #### 6.9.4 National Final rounds (design v6)
 
@@ -1489,12 +1500,17 @@ On 2026-11-09 WRO published an optional extra task for the Obstacle Challenge of
 | About 2 | Standard, 100 mm | By its colour: red on the right, green on the left |
 | About 3 | Modified, 150 mm | On the **opposite** side of what its colour says |
 
+<img src="other/additionalMedia/Others/surprise_rule_detections.jpg" alt="View from the robot's camera with six signs on the mat, red and green, short, standard and tall: the model draws a box around each one" width="560">
+
+*First check with real signs: the model boxes the short, the standard and the tall signs of both colours. In this frame their boxes are about 0.9, 1.4 and 1.7 to 2.0 times as tall as they are wide.*
+
 | | |
 |---|---|
 | **Why a ratio** | The height of a box in pixels changes with the distance to the sign, but the ratio between its height and its base stays almost the same, so one pair of limits works at any distance. It needs no new sensor and no change to the vehicle |
 | **How it fits the code** | Only the colour decision changes: when the ratio says "modified", the mission receives the opposite colour and the existing avoidance manoeuvres of [§6.8](#edge-cases) are used as they are |
 | **Open point** | A 50 mm sign is lower than the scanning plane of the LiDAR (about 75 mm above the ground, [§5.2](#placement)), so the LiDAR does not see it. For that sign the distance and the angle have to come from the camera image |
-| **Status** | Not implemented or tested yet. We are working on it until the day of the competition and will update this repository with the progress as soon as possible ([§7.6](#limitations)) |
+| **First result** | In the frame above the three heights are clearly separated, but the ratios (about 0.9, 1.4 and 1.7 to 2.0) are lower than the ideal 1, 2 and 3. The limits between the three classes will therefore be set from frames like this one, taken at different distances and angles, and not from the ideal values |
+| **Status** | The model detects the short and the tall signs in our first frames. The ratio check and the change of side are not implemented or tested yet. We are working on it until the day of the competition and will update this repository with the progress as soon as possible ([§7.6](#limitations)) |
 
 ---
 
@@ -1915,7 +1931,7 @@ To build the robot, follow these five steps:
 | | What to do | Where |
 |---|---|---|
 | 1 | Get the parts | [Bill of Materials](#bom) |
-| 2 | Print the 15 parts (19 pieces) | [3D-printed parts](#printed-parts) |
+| 2 | Print the 13 parts (15 pieces) | [3D-printed parts](#printed-parts) |
 | 3 | **Assemble the vehicle** | **[Assembly instructions](other/Assembly_photos/Assembly_Process_EN.md)**: 37 steps with photos |
 | 4 | Connect the electronics | [Wiring diagram, Figure 7](#wiring-v7) |
 | 5 | Flash the board firmware, then build and run the programs | [§9](#setup-instructions) |
@@ -1923,6 +1939,8 @@ To build the robot, follow these five steps:
 ### Assembly instructions <a id="assembly"></a>
 
 > [!TIP]
+> ## [DETAILED ASSEMBLY INSTRUCTIONS: CLICK HERE](other/Assembly_photos/Assembly_Process_EN.md)
+>
 > <kbd>Other page</kbd> **Step-by-step assembly instructions: [`other/Assembly_photos/Assembly_Process_EN.md`](other/Assembly_photos/Assembly_Process_EN.md)**
 >
 > 37 steps in 11 phases, each with a photo of the design v7 build, in build order: from the battery pack to the finished robot. It also lists the tools, the battery safety rules and every screw, standoff and heat-set insert.
@@ -1949,33 +1967,31 @@ To build the robot, follow these five steps:
 
 ### 3D-printed parts <a id="printed-parts"></a>
 
-Design v7 has 15 different printed parts, 19 pieces in total. Their STL files are in [`models/cad/Stl/v7/`](models/cad/Stl/v7), exported from the SolidWorks assembly in [`models/cad/v7_assembly/`](models/cad/v7_assembly). Nine are new or redesigned for v7, among them the two plates, the battery holder and the motor gear; the camera hinge and five steering parts are unchanged from design v6.
+Design v7 has 13 different printed parts, 15 pieces in total. Their STL files are in [`models/cad/Stl/v7/`](models/cad/Stl/v7), exported from the SolidWorks assembly in [`models/cad/v7_assembly/`](models/cad/v7_assembly). Ten are new or redesigned for v7, among them the two plates, the battery holder, the motor gear and the one-piece steering arm; the camera hinge and the two wheel knuckles are unchanged from design v6.
 
-<img src="models/cad/Stl/v7/printed_parts_v7.png" alt="Preview of the 15 printed parts of design v7 with their file names and sizes" width="900">
+<img src="models/cad/Stl/v7/printed_parts_v7.png" alt="The 13 printed parts of design v7 drawn at the same scale, with their file names and sizes" width="900">
 
-*Figure 18. The 15 printed parts of design v7 (sizes are the bounding box of each file, in mm).*
+*Figure 18. The 13 printed parts of design v7, all drawn at the same scale (sizes are the bounding box of each file, in mm). Two parts are printed twice.*
 
 > [!NOTE]
 > <details>
-> <summary><kbd>Click to open</kbd> <b>The 15 files, with quantity, size and volume of each part</b></summary>
+> <summary><kbd>Click to open</kbd> <b>The 13 files, with quantity, size and volume of each part</b></summary>
 >
 > | File | Qty | SolidWorks part | What it is | Size (mm) | Solid volume (each) | Compared with design v6 |
 > |---|---|---|---|---|---|---|
-> | [`chassis_base.STL`](models/cad/Stl/v7/chassis_base.STL) | 1 | `Base` | Chassis base: carries every other part | 207.4 × 101.5 × 62.8 | 124.94 cm³ | New in v7 |
-> | [`hiwonder_lidar_support.STL`](models/cad/Stl/v7/hiwonder_lidar_support.STL) | 1 | `Soporte de hiwonder-lidar` | LiDAR plate: carries the RPLidar S2L and is screwed to the Hiwonder board plate | 88.7 × 88.0 × 8.0 | 14.60 cm³ | New in v7 |
+> | [`chassis_base.STL`](models/cad/Stl/v7/chassis_base.STL) | 1 | `Base` | Chassis base: carries every other part | 207.4 × 101.5 × 62.8 | 128.11 cm³ | New in v7 |
+> | [`hiwonder_lidar_support.STL`](models/cad/Stl/v7/hiwonder_lidar_support.STL) | 1 | `Soporte de hiwonder-lidar` | LiDAR plate: carries the RPLidar S2L and is screwed to the Hiwonder board plate | 107.9 × 94.0 × 22.0 | 24.77 cm³ | New in v7 |
 > | [`hiwonder_support.STL`](models/cad/Stl/v7/hiwonder_support.STL) | 1 | `Soporte hiwonder` | Hiwonder board plate: carries the controller board on heat-set inserts | 95.0 × 62.0 × 4.0 | 11.79 cm³ | New in v7 |
 > | [`battery_holder.STL`](models/cad/Stl/v7/battery_holder.STL) | 1 | `Soporte para pilas` | Holder that keeps the third cell at the same height as the other two | 42.5 × 22.7 × 21.0 | 7.01 cm³ | New in v7 (battery layout change) |
 > | [`motor_gear_20t.STL`](models/cad/Stl/v7/motor_gear_20t.STL) | 1 | `Gear 20` | 20-tooth gear on the drive motor shaft (20:28 with the differential) | 21.3 × 21.3 × 7.9 | 1.86 cm³ | New in v7 |
 > | [`camera_mast.STL`](models/cad/Stl/v7/camera_mast.STL) | 1 | `camera` | Camera mast (two arms) | 122.0 × 89.8 × 7.0 | 6.96 cm³ | New in v7 |
 > | [`camera_hinge.STL`](models/cad/Stl/v7/camera_hinge.STL) | 1 | `camara visagra` | Camera frame with tilt hinge | 37.0 × 30.0 × 7.0 | 2.41 cm³ | Same as v6 (`camara_tilt.STL`) |
-> | [`steering_servo_arm.STL`](models/cad/Stl/v7/steering_servo_arm.STL) | 1 | `otro eslabon` | Arm on the HX-12H servo horn | 43.9 × 20.0 × 16.6 | 1.37 cm³ | New in v7 |
-> | [`steering_link.STL`](models/cad/Stl/v7/steering_link.STL) | 1 | `slabon` | Steering link, 93 mm | 93.0 × 8.0 × 3.9 | 2.59 cm³ | New in v7 |
-> | [`hex_standoff.STL`](models/cad/Stl/v7/hex_standoff.STL) | 2 | `soporte 2` | Hexagonal standoff, 23.8 mm | 23.8 × 7.9 × 6.8 | 0.71 cm³ | New in v7 |
-> | [`ackerman_angle.STL`](models/cad/Stl/v7/ackerman_angle.STL) | 2 | `ackerman_angle` | Ackermann steering joint | 24.5 × 10.5 × 7.9 | 0.59 cm³ | Same as v6 |
-> | [`ackerman_link.STL`](models/cad/Stl/v7/ackerman_link.STL) | 2 | `ackerman_link` | Ackermann steering joint (ring and axle) | 15.6 × 8.0 × 7.2 | 0.28 cm³ | Same as v6 |
-> | [`ackerman_wheel_join.STL`](models/cad/Stl/v7/ackerman_wheel_join.STL) | 1 | `ackerman_wheel_join` | Front wheel knuckle | 30.7 × 23.5 × 9.7 | 2.09 cm³ | Same as v6 |
-> | [`ackerman_wheel_join_mirror.STL`](models/cad/Stl/v7/ackerman_wheel_join_mirror.STL) | 1 | `ackerman_wheel_join_mirror` | Front wheel knuckle, mirrored | 30.7 × 23.5 × 9.7 | 2.09 cm³ | Same as v6 |
-> | [`wheel_axis.STL`](models/cad/Stl/v7/wheel_axis.STL) | 2 | `wheel_axis` | Wheel axle hub | 24.0 × 15.6 × 8.0 | 0.54 cm³ | Same as v6 |
+> | [`steering_servo_arm.STL`](models/cad/Stl/v7/steering_servo_arm.STL) | 1 | `otro eslabon` | Arm on the HX-12H servo horn | 43.9 × 20.0 × 16.6 | 1.55 cm³ | New in v7 |
+> | [`steering_link.STL`](models/cad/Stl/v7/steering_link.STL) | 1 | `slabon` | Steering link, 93 mm | 92.7 × 8.0 × 3.9 | 2.58 cm³ | New in v7 |
+> | [`hex_standoff.STL`](models/cad/Stl/v7/hex_standoff.STL) | 2 | `soporte 2` | Hexagonal standoff, 14.8 mm | 14.8 × 7.9 × 6.8 | 0.36 cm³ | New in v7 |
+> | [`ackerman_arm.STL`](models/cad/Stl/v7/ackerman_arm.STL) | 2 | `Ackerman_Arm` | Ackermann steering arm, one piece: joins the steering link to the wheel knuckle | 39.5 × 24.0 × 12.8 | 1.87 cm³ | New in v7: replaces three pieces of v6 (`ackerman_angle`, `ackerman_link`, `wheel_axis`) |
+> | [`ackerman_wheel_join.STL`](models/cad/Stl/v7/ackerman_wheel_join.STL) | 1 | `Ackerman 2` | Front wheel knuckle | 30.7 × 23.5 × 9.7 | 2.09 cm³ | Same as v6 |
+> | [`ackerman_wheel_join_mirror.STL`](models/cad/Stl/v7/ackerman_wheel_join_mirror.STL) | 1 | `ackerman 2 mirror` | Front wheel knuckle, mirrored | 30.7 × 23.5 × 9.7 | 2.09 cm³ | Same as v6 |
 >
 > </details>
 
@@ -2025,6 +2041,13 @@ Design v7 has 15 different printed parts, 19 pieces in total. Their STL files ar
 > > **Screws, standoffs, inserts and small LEGO parts** (retrieved Nov 16, 2026, same conversion rates). These are sold in kits and packs, so the BOM lists the whole kit; the robot uses only part of each (the exact counts are in the [assembly instructions](other/Assembly_photos/Assembly_Process_EN.md)). Kit prices: standoff kit $18.99 (Amazon price read on a price-tracking page), M2.5 screw kit $39.99, M3 screw kit $49.93, each Prusa insert pack $11.99. The Prusa M2 short inserts are 3 mm long; any M2 insert of 2–3 mm fits. Any equivalent kit works. LEGO parts from Toypro: 32209 €0.10, 87083 $0.10, 62462 $0.37 and 6538c $0.14 (black, out of stock when checked; other colours fit too).
 >
 > </details>
+
+<table>
+<tr>
+<td align="center" width="120"><a href="firmware/hiwonder_pos-v8/README.md"><img src="other/additionalMedia/Components_v7/ST-LINK_V2.png" height="110" alt="ST-LINK V2 programmer with its four jumper wires"></a></td>
+<td><b>Tool, not part of the robot:</b> an ST-LINK/V2 programmer (<a href="https://es.aliexpress.com/item/1005004828761496.html">the one we use</a>) is needed once, to flash our firmware on the Hiwonder board (<a href="firmware/hiwonder_pos-v8/README.md">how to flash it</a>). It is not in the total above.</td>
+</tr>
+</table>
 
 <table>
 <tr>

@@ -52,6 +52,10 @@ Every image was built with Arm GNU Toolchain 15.2.Rel1 and gave the same SHA-256
 
 ## Flash it
 
+<img src="../../other/additionalMedia/Components_v7/ST-LINK_V2.png" alt="ST-LINK V2 programmer with its four jumper wires" width="170">
+
+*You need an ST-LINK/V2 programmer and four jumper wires ([the one we use](https://es.aliexpress.com/item/1005004828761496.html)).*
+
 1. Check the image: `sha256sum RosRobotControllerM4-extended-m4-pos-v8.hex` (Windows: `Get-FileHash`) must match `SHA256SUMS`.
 2. Connect an ST-LINK/V2 to header **H1**: pin 1 3V3, pin 3 SWCLK (PA14), pin 5 GND, pin 7 SWDIO (PA13).
 3. **Unplug the 12 V battery** and close every program using the board's serial ports.
