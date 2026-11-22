@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Querétaro CSS · Vehicle v7 · Interactive exploded view</title>
+<style>
+  :root{
+    --bg:#0f1720; --panel:#16212c; --panel2:#1d2a37; --line:#2b3b4b;
+    --ink:#e6edf3; --muted:#8fa3b5; --accent:#2f81f7; --accent2:#f0883e;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);
+    font:14px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;overflow:hidden}
+  #app{position:fixed;inset:0;display:grid;grid-template-columns:1fr 290px}
+  #stage{position:relative;overflow:hidden;background:radial-gradient(ellipse at 50% 35%,#24384c 0%,#111a23 70%)}
+  canvas{display:block;width:100%;height:100%;touch-action:none}
+  header{position:absolute;left:16px;top:12px;pointer-events:none}
+  header h1{margin:0;font-size:17px;font-weight:650;letter-spacing:.2px}
+  header p{margin:2px 0 0;color:var(--muted);font-size:12px}
+  /* toolbar */
+  #bar{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);
+    display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:center;
+    background:rgba(22,33,44,.92);border:1px solid var(--line);border-radius:12px;padding:10px 14px;
+    backdrop-filter:blur(6px);max-width:calc(100% - 24px)}
+  .grp{display:flex;gap:4px;align-items:center}
+  .sep{width:1px;height:26px;background:var(--line)}
+  button{background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:7px;
+    padding:6px 10px;font:inherit;font-size:12.5px;cursor:pointer;white-space:nowrap}
+  button:hover{border-color:var(--accent)}
+  button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+  #explode{width:190px;accent-color:var(--accent2)}
+  label.lbl{font-size:12px;color:var(--muted)}
+  #pct{width:36px;text-align:right;font-variant-numeric:tabular-nums;font-size:12px}
+  /* side panel */
+  aside{background:var(--panel);border-left:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
+  aside h2{margin:0;padding:14px 14px 6px;font-size:13px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted)}
+  #search{margin:4px 14px 8px;padding:7px 9px;border-radius:7px;border:1px solid var(--line);
+    background:var(--panel2);color:var(--ink);font:inherit}
+  #list{flex:1;overflow:auto;padding:0 6px 10px}
+  .item{display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:6px;cursor:pointer;user-select:none}
+  .item:hover{background:var(--panel2)}
+  .item.sel{background:#1f3a5c}
+  .item.child{padding-left:26px;font-size:12.5px;color:#c9d5df}
+  .sw{width:11px;height:11px;border-radius:3px;flex:none;border:1px solid rgba(255,255,255,.25)}
+  .nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .nm small{color:var(--muted)}
+  .eye{background:none;border:none;padding:2px 4px;color:var(--muted);font-size:13px}
+  .eye.off{opacity:.35}
+  .tw{width:14px;color:var(--muted);font-size:10px;flex:none;text-align:center}
+  #info{border-top:1px solid var(--line);padding:10px 14px;font-size:12px;color:var(--muted)}
+  #info b{color:var(--ink)}
+  #tip{position:absolute;pointer-events:none;background:rgba(10,15,20,.9);border:1px solid var(--line);
+    padding:4px 8px;border-radius:6px;font-size:12px;display:none;white-space:nowrap}
+  #loading{position:absolute;inset:0;display:grid;place-items:center;color:var(--muted);font-size:14px}
+  #help{position:absolute;right:12px;top:12px;font-size:11.5px;color:var(--muted);text-align:right;
+    background:rgba(22,33,44,.75);border:1px solid var(--line);border-radius:8px;padding:6px 9px}
+  #togglePanel{display:none}
+  body.clean #app{grid-template-columns:1fr} body.clean aside, body.clean #bar, body.clean #help,
+  body.clean header{display:none}
+  @media (max-width:820px){
+    #app{grid-template-columns:1fr}
+    aside{position:absolute;right:0;top:0;bottom:0;width:270px;transform:translateX(100%);transition:.2s;z-index:5}
+    aside.open{transform:none}
+    #togglePanel{display:inline-block}
+    #help{display:none}
+    #explode{width:120px}
+  }
+</style>
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+} }
+</script>
+</head>
+<body>
+<div id="app">
+  <div id="stage">
+    <header>
+      <h1>Vehicle v7 &mdash; interactive exploded view</h1>
+      <p>WRO 2026 Future Engineers &middot; Querétaro CSS &middot; source: SolidWorks assembly <code>Assem1.SLDASM</code></p>
+    </header>
+    <div id="help">Left drag: rotate &middot; Right drag / Shift: pan &middot; Wheel: zoom<br>Click: select &middot; Double-click: focus part</div>
+    <div id="loading">Loading 3D model&hellip;</div>
+    <div id="tip"></div>
+    <div id="bar">
+      <div class="grp">
+        <label class="lbl" for="explode">Explode</label>
+        <input id="explode" type="range" min="0" max="100" value="0">
+        <span id="pct">0%</span>
+        <button id="play" title="Animate assembly / disassembly">Disassemble</button>
+      </div>
+      <div class="sep"></div>
+      <div class="grp" id="views">
+        <button data-v="iso" class="on">Iso</button>
+        <button data-v="front">Front</button>
+        <button data-v="back">Back</button>
+        <button data-v="left">Left</button>
+        <button data-v="right">Right</button>
+        <button data-v="top">Top</button>
+        <button data-v="bottom">Bottom</button>
+      </div>
+      <div class="sep"></div>
+      <div class="grp">
+        <button id="fit" title="Zoom to fit">Fit</button>
+        <button id="isolate" title="Show only the selected part">Isolate</button>
+        <button id="showall">Show all</button>
+        <button id="wire" title="Wireframe">Wire</button>
+        <button id="spin" title="Auto-rotate">Spin</button>
+        <button id="togglePanel">Parts</button>
+      </div>
+    </div>
+  </div>
+  <aside id="panel">
+    <h2>Parts</h2>
+    <input id="search" placeholder="Filter parts&hellip;">
+    <div id="list"></div>
+    <div id="info">Select a part in the list or in the model.</div>
+  </aside>
+</div>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+
+const MODEL = new URLSearchParams(location.search).get('model') || 'vehicle_v7.glb';
+
+/* Display names for the CAD components (English name, CAD file name kept beside it). */
+const NAMES = {
+  'Base': 'Chassis base', 'motor hiwonder': 'Drive motor (Hiwonder)', 'Gear 20': 'Motor gear 20T',
+  'Gear_36': 'Gear 36T', 'Diferencial': 'Rear differential', 'Cuerpo diferencial': 'Differential housing',
+  'Engrane_diferencial': 'Differential gear', 'raspberry': 'Raspberry Pi 5 + AI HAT+',
+  'Servo xh12': 'Steering servo (HX-12H)', 'Ackerman 2': 'Steering knuckle (left)',
+  'ackerman 2 mirror': 'Steering knuckle (right)', 'soporte 2': 'Support bracket',
+  'Soporte de hiwonder-lidar': 'LiDAR support', 'Soporte hiwonder': 'Controller board support',
+  'Led_button_grove': 'Start button (Grove LED)', 'pilas': 'Battery pack',
+  'Soporte para pilas': 'Battery holder', 'otro eslabon': 'Steering link (B)', 'slabon': 'Steering link (A)',
+  'Ackerman_Arm': 'Ackermann arm', 'lidar2 v1': 'LiDAR', 'placa de hiwonder': 'Hiwonder controller board',
+  'camara visagra': 'Camera hinge', 'camera': 'Camera mount', 'Llantas_ensamble': 'Wheel assembly',
+  'Llanta': 'Tyre / rim', 'Camera Moudule 3 v8': 'Raspberry Pi Camera Module 3', 'Separador': 'Spacer',
+  'Separadores 6mm': 'Spacer 6 mm', 'Headers': 'Pin headers', '18650': '18650 cell',
+  '1P Holder': '1P cell holder', 'STM32': 'STM32 board', 'RPiAIHATPlus': 'Raspberry Pi AI HAT+',
+  'raspberry_pi_5': 'Raspberry Pi 5', 'axle ackerman': 'Ackermann axle', 'axle hole angle': 'Axle angle piece',
+  'axle pin and hole': 'Axle pin', 'RJ-520-37-90': 'Gear motor RJ-520'
+};
+// three.js turns spaces in node names into "_"; undo that and drop the "#n" instance tag.
+const baseName = n => n.replace(/#\d+$/, '').replace(/_/g, ' ').replace(/\s+/g, ' ').trim();
+const key = n => baseName(n).toLowerCase().replace(/[\s_-]+/g, ' ');
+const NAMES_K = Object.fromEntries(Object.entries(NAMES).map(([k, v]) => [key(k), v]));
+const pretty = n => NAMES_K[key(n)] || baseName(n);
+
+/* ---------- renderer / scene ---------- */
+const stage = document.getElementById('stage');
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
+renderer.setClearColor(0x000000, 0);
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.05;
+stage.prepend(renderer.domElement);
+const scene = new THREE.Scene();
+scene.environment = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), 0.04).texture;
+scene.add(new THREE.HemisphereLight(0xdfe9f3, 0x2a3440, 0.6));
+const sun = new THREE.DirectionalLight(0xffffff, 1.3); sun.position.set(1, 2, 1.4); scene.add(sun);
+const camera = new THREE.PerspectiveCamera(35, 1, 1, 10000);
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true; controls.dampingFactor = 0.08; controls.screenSpacePanning = true;
+controls.mouseButtons = { LEFT: THREE.MOUSE.ROTATE, MIDDLE: THREE.MOUSE.DOLLY, RIGHT: THREE.MOUSE.PAN };
+
+function resize() {
+  const w = stage.clientWidth, h = stage.clientHeight;
+  renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix();
+}
+addEventListener('resize', resize); resize();
+
+/* ---------- state ---------- */
+let root, assyBox = new THREE.Box3(), assySize = 1, assyCenter = new THREE.Vector3();
+const groups = [];            // {obj, level, parent, dirLocal, dist, name, color, item}
+const pickable = [];
+let explodeT = 0, target = 0, animating = false, selected = null, wire = false;
+
+const loader = new GLTFLoader(); loader.setMeshoptDecoder(MeshoptDecoder);
+loader.load(MODEL, gltf => {
+  root = gltf.scene;
+  // CAD is Y-up in mm: keep units, put model on the origin.
+  scene.add(root); root.updateMatrixWorld(true);
+  assyBox.setFromObject(root); assyBox.getCenter(assyCenter);
+  assySize = assyBox.getSize(new THREE.Vector3()).length();
+  root.position.sub(assyCenter); root.updateMatrixWorld(true);
+  assyBox.setFromObject(root); assyCenter.set(0, 0, 0);
+  const grid = new THREE.GridHelper(assySize * 2, 40, 0x3b5068, 0x24323f);
+  grid.position.y = assyBox.min.y - 0.5; grid.material.transparent = true; grid.material.opacity = .55;
+  scene.add(grid); window.__grid = grid;
+
+  root.traverse(o => {
+    if (o.isMesh) {
+      o.material = o.material.clone(); o.material.side = THREE.DoubleSide;
+      o.userData.baseEmissive = o.material.emissive.clone();
+      pickable.push(o);
+    }
+  });
+  // Top node of the STEP is the assembly itself; its children are the components.
+  let top = root;
+  while (componentChildren(top).length === 1) top = componentChildren(top)[0];
+  buildGroups(top);
+  buildList();
+  setView('iso', false);
+  document.getElementById('loading').remove();
+  applyExplode(0);
+}, xhr => {
+  if (xhr.total) document.getElementById('loading').textContent =
+    `Loading 3D model… ${Math.round(xhr.loaded / xhr.total * 100)}%`;
+}, err => { document.getElementById('loading').textContent = 'Could not load the model: ' + err.message; });
+
+// Component nodes (parts and sub-assemblies) are named "<CAD name>#<n>" by the exporter.
+function isComponent(o) { return /#\d+$/.test(o.name); }
+function componentChildren(o) { return o.children.filter(isComponent); }
+function hasSubComponents(o) { return componentChildren(o).length > 0; }
+function boxCenter(o) { return new THREE.Box3().setFromObject(o).getCenter(new THREE.Vector3()); }
+function firstColor(o) {
+  let c = null; o.traverse(m => { if (!c && m.isMesh) c = '#' + m.material.color.getHexString(); }); return c || '#999';
+}
+
+function buildGroups(top) {
+  const comps = componentChildren(top);
+  comps.forEach(o => {
+    const g = makeGroup(o, 1, top, assyCenter, 1.0);
+    if (hasSubComponents(o)) {
+      const pc = boxCenter(o);
+      componentChildren(o).forEach(ch => { g.kids.push(makeGroup(ch, 2, o, pc, 0.55)); });
+    }
+  });
+}
+function makeGroup(obj, level, parent, center, gain) {
+  const c = boxCenter(obj);
+  let d = c.clone().sub(center);
+  d.y *= 1.6;                                   // lift layers apart a bit more vertically
+  let len = d.length();
+  if (len < assySize * 0.01) { d.set(0, level === 1 ? 0 : 1, 0); len = 0; }
+  const dirW = d.clone().normalize();
+  const amount = (len * 0.9 + assySize * 0.07) * gain * (len === 0 && level === 1 ? 0 : 1);
+  // world-space offset -> parent's local frame
+  const inv = parent.matrixWorld.clone().invert();
+  const p0 = new THREE.Vector3().applyMatrix4(inv);
+  const dirLocal = dirW.clone().multiplyScalar(amount).applyMatrix4(inv).sub(p0);
+  const g = { obj, level, parent, base: obj.position.clone(), dirLocal, name: obj.name.replace(/#\d+$/, ''),
+              color: firstColor(obj), kids: [], visible: true };
+  obj.userData.group = g;
+  groups.push(g);
+  return g;
+}
+const ease = t => t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+function applyExplode(t) {
+  explodeT = t;
+  const t1 = ease(Math.min(1, t / 0.6)), t2 = ease(Math.max(0, (t - 0.4) / 0.6));
+  for (const g of groups) {
+    const k = g.level === 1 ? t1 : t2;
+    g.obj.position.copy(g.base).addScaledVector(g.dirLocal, k);
+  }
+  if (window.__grid) window.__grid.material.opacity = 0.55 * (1 - Math.min(1, t * 2.5));
+  document.getElementById('explode').value = Math.round(t * 100);
+  document.getElementById('pct').textContent = Math.round(t * 100) + '%';
+}
+
+/* ---------- views ---------- */
+const VIEWS = {
+  iso: [1, 0.75, 1.15], front: [1, 0, 0], back: [-1, 0, 0], left: [0, 0, -1], right: [0, 0, 1],
+  top: [0, 1, 0.0001], bottom: [0, -1, 0.0001]
+};
+let tween = null;
+function currentBox(t = explodeT) {
+  if (selected && isolated) return new THREE.Box3().setFromObject(selected.obj);
+  const keep = explodeT; applyExplode(t); root.updateMatrixWorld(true);
+  const b = new THREE.Box3().setFromObject(root); applyExplode(keep); return b;
+}
+function setView(name, animate = true, t) {
+  document.querySelectorAll('#views button').forEach(b => b.classList.toggle('on', b.dataset.v === name));
+  const box = currentBox(t);
+  const c = box.getCenter(new THREE.Vector3()), r = box.getSize(new THREE.Vector3()).length() / 2;
+  const dist = r / Math.sin(THREE.MathUtils.degToRad(camera.fov / 2)) * 1.02;
+  const dir = new THREE.Vector3(...VIEWS[name]).normalize();
+  flyTo(c, c.clone().addScaledVector(dir, dist), animate);
+}
+function fitTo(obj) {
+  const box = new THREE.Box3().setFromObject(obj);
+  const c = box.getCenter(new THREE.Vector3()), r = Math.max(box.getSize(new THREE.Vector3()).length() / 2, assySize * 0.04);
+  const dist = r / Math.sin(THREE.MathUtils.degToRad(camera.fov / 2)) * 1.1;
+  const dir = camera.position.clone().sub(controls.target).normalize();
+  flyTo(c, c.clone().addScaledVector(dir, dist), true);
+}
+function flyTo(tgt, pos, animate) {
+  camera.near = assySize / 200; camera.far = assySize * 40; camera.updateProjectionMatrix();
+  if (!animate) { controls.target.copy(tgt); camera.position.copy(pos); controls.update(); return; }
+  tween = { t: 0, t0: controls.target.clone(), p0: camera.position.clone(), t1: tgt, p1: pos };
+}
+
+/* ---------- part list ---------- */
+const listEl = document.getElementById('list');
+function buildList() {
+  const tops = groups.filter(g => g.level === 1);
+  const sorted = tops.slice().sort((a, b) => pretty(a.name).localeCompare(pretty(b.name)));
+  // number repeated names (four wheels, two arms...)
+  const count = {}; sorted.forEach(g => { const p = pretty(g.name); g.idx = (count[p] = (count[p] || 0) + 1); });
+  sorted.forEach(g => { g.total = count[pretty(g.name)]; });
+  for (const g of sorted) {
+    addItem(g, false);
+    if (g.kids.length) {
+      const wrap = document.createElement('div'); wrap.style.display = 'none'; g.kidsEl = wrap;
+      g.kids.forEach(k => { k.idx = 0; addItem(k, true, wrap); });
+      listEl.appendChild(wrap);
+    }
+  }
+}
+function label(g) {
+  const p = pretty(g.name), b = baseName(g.name);
+  const n = g.total > 1 ? ` ${g.idx}` : '';
+  return `${p}${n}` + (p !== b ? ` <small>· ${b}</small>` : '');
+}
+function addItem(g, child, parentEl = listEl) {
+  const el = document.createElement('div');
+  el.className = 'item' + (child ? ' child' : '');
+  el.innerHTML = `<span class="tw">${g.kids.length ? '▸' : ''}</span><span class="sw" style="background:${g.color}"></span>` +
+                 `<span class="nm">${label(g)}</span><button class="eye" title="Show / hide">●</button>`;
+  el.querySelector('.tw').onclick = e => {
+    e.stopPropagation(); if (!g.kidsEl) return;
+    const open = g.kidsEl.style.display === 'none'; g.kidsEl.style.display = open ? '' : 'none';
+    e.target.textContent = open ? '▾' : '▸';
+  };
+  el.querySelector('.eye').onclick = e => { e.stopPropagation(); setVisible(g, !g.visible); };
+  el.onclick = () => select(g);
+  el.ondblclick = () => { select(g); fitTo(g.obj); };
+  g.item = el; parentEl.appendChild(el);
+}
+function setVisible(g, v) {
+  g.visible = v; g.obj.visible = v; g.item.querySelector('.eye').classList.toggle('off', !v);
+}
+document.getElementById('search').oninput = e => {
+  const q = e.target.value.toLowerCase();
+  groups.forEach(g => {
+    const hit = !q || (pretty(g.name) + ' ' + g.name).toLowerCase().includes(q);
+    g.item.style.display = hit ? '' : 'none';
+    if (q && hit && g.level === 2) g.item.parentElement.style.display = '';
+  });
+};
+
+/* ---------- selection / highlight ---------- */
+const info = document.getElementById('info');
+function highlight(g, on) {
+  if (!g) return;
+  g.obj.traverse(m => { if (m.isMesh) m.material.emissive.copy(on ? new THREE.Color(0x2f81f7).multiplyScalar(.45) : m.userData.baseEmissive); });
+}
+let isolated = false;
+function select(g) {
+  if (selected) { highlight(selected, false); selected.item.classList.remove('sel'); }
+  selected = g;
+  if (!g) { info.textContent = 'Select a part in the list or in the model.'; return; }
+  highlight(g, true); g.item.classList.add('sel');
+  g.item.scrollIntoView({ block: 'nearest' });
+  const s = new THREE.Box3().setFromObject(g.obj).getSize(new THREE.Vector3());
+  let tris = 0; g.obj.traverse(m => { if (m.isMesh) tris += m.geometry.index ? m.geometry.index.count / 3 : 0; });
+  info.innerHTML = `<b>${label(g)}</b><br>CAD component: <code>${g.name}</code><br>` +
+    `Size: ${s.x.toFixed(1)} × ${s.y.toFixed(1)} × ${s.z.toFixed(1)} mm` +
+    (g.kids.length ? `<br>Sub-assembly with ${g.kids.length} parts` : '');
+  if (isolated) isolate();
+}
+function isolate() {
+  if (!selected) return;
+  isolated = true; document.getElementById('isolate').classList.add('on');
+  const keep = new Set(); let o = selected.obj; while (o) { keep.add(o); o = o.parent; }
+  groups.forEach(g => {
+    let inside = false; let p = g.obj; while (p) { if (p === selected.obj) { inside = true; break; } p = p.parent; }
+    g.obj.visible = inside || keep.has(g.obj);
+  });
+  fitTo(selected.obj);
+}
+function showAll() {
+  isolated = false; document.getElementById('isolate').classList.remove('on');
+  groups.forEach(g => setVisible(g, true));
+}
+
+/* ---------- picking ---------- */
+const ray = new THREE.Raycaster(), ndc = new THREE.Vector2(), tip = document.getElementById('tip');
+function pick(ev) {
+  const r = renderer.domElement.getBoundingClientRect();
+  ndc.set(((ev.clientX - r.left) / r.width) * 2 - 1, -((ev.clientY - r.top) / r.height) * 2 + 1);
+  ray.setFromCamera(ndc, camera);
+  const hit = ray.intersectObjects(pickable.filter(m => isShown(m)), false)[0];
+  if (!hit) return null;
+  // deepest group that is currently separated enough to make sense
+  let o = hit.object, g1 = null, g2 = null;
+  while (o) { const g = o.userData.group; if (g) { if (g.level === 2) g2 = g2 || g; else g1 = g; } o = o.parent; }
+  return (explodeT > 0.45 && g2) ? g2 : (g1 || g2);
+}
+function isShown(o) { while (o) { if (!o.visible) return false; o = o.parent; } return true; }
+let downAt = null;
+renderer.domElement.addEventListener('pointerdown', e => { downAt = [e.clientX, e.clientY]; stopSpinOnUser(); });
+renderer.domElement.addEventListener('pointerup', e => {
+  if (!downAt || Math.hypot(e.clientX - downAt[0], e.clientY - downAt[1]) > 4) return;
+  const g = pick(e); select(g);
+});
+renderer.domElement.addEventListener('dblclick', e => { const g = pick(e); if (g) { select(g); fitTo(g.obj); } });
+let lastMove = 0;
+renderer.domElement.addEventListener('pointermove', e => {
+  if (e.buttons || performance.now() - lastMove < 40) return; lastMove = performance.now();
+  const g = root && pick(e);
+  if (g) { tip.style.display = 'block'; tip.innerHTML = label(g); const r = stage.getBoundingClientRect();
+    tip.style.left = (e.clientX - r.left + 14) + 'px'; tip.style.top = (e.clientY - r.top + 12) + 'px'; }
+  else tip.style.display = 'none';
+});
+renderer.domElement.addEventListener('pointerleave', () => tip.style.display = 'none');
+
+/* ---------- toolbar ---------- */
+const playBtn = document.getElementById('play');
+document.getElementById('explode').oninput = e => { animating = false; applyExplode(e.target.value / 100); syncPlay(); };
+playBtn.onclick = () => {
+  target = explodeT > 0.5 ? 0 : 1; animating = true; syncPlay();
+  if (!isolated) setView(document.querySelector('#views .on')?.dataset.v || 'iso', true, target);
+};
+function syncPlay() { playBtn.textContent = (animating ? target : explodeT) > 0.5 ? 'Assemble' : 'Disassemble'; }
+document.querySelectorAll('#views button').forEach(b => b.onclick = () => setView(b.dataset.v));
+document.getElementById('fit').onclick = () => setView(document.querySelector('#views .on')?.dataset.v || 'iso');
+document.getElementById('isolate').onclick = () => isolated ? showAll() : isolate();
+document.getElementById('showall').onclick = showAll;
+document.getElementById('wire').onclick = e => {
+  wire = !wire; e.target.classList.toggle('on', wire); pickable.forEach(m => m.material.wireframe = wire);
+};
+const spinBtn = document.getElementById('spin');
+spinBtn.onclick = () => { controls.autoRotate = !controls.autoRotate; spinBtn.classList.toggle('on', controls.autoRotate); };
+function stopSpinOnUser() { if (tween) tween = null; }
+document.getElementById('togglePanel').onclick = () => document.getElementById('panel').classList.toggle('open');
+addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT') return;
+  const k = e.key.toLowerCase();
+  if (k === 'e') playBtn.click(); else if (k === 'f') document.getElementById('fit').click();
+  else if (k === 'escape') { select(null); showAll(); }
+  else if ('1234567'.includes(k)) setView(Object.keys(VIEWS)[+k - 1]);
+});
+
+/* URL options for embedding: ?explode=60&view=top&spin=1 */
+const qs = new URLSearchParams(location.search);
+if (qs.get('clean') === '1') { document.body.classList.add('clean'); resize(); }
+
+/* ---------- loop ---------- */
+let last = performance.now(), started = false;
+function loop(now) {
+  const dt = Math.min(0.05, (now - last) / 1000); last = now;
+  if (root && !started) {
+    started = true;
+    if (qs.get('explode')) applyExplode(+qs.get('explode') / 100);
+    setView(qs.get('view') || 'iso', false);
+    if (qs.get('spin') === '1') spinBtn.click();
+    if (qs.get('autoplay') === '1') playBtn.click();
+    syncPlay();
+  }
+  if (animating) {
+    const step = dt / 2.2; let t = explodeT + Math.sign(target - explodeT) * step;
+    if ((target - t) * Math.sign(target - explodeT) <= 0) { t = target; animating = false; }
+    applyExplode(t); syncPlay();
+  }
+  if (tween) {
+    tween.t = Math.min(1, tween.t + dt / 0.6); const k = ease(tween.t);
+    controls.target.lerpVectors(tween.t0, tween.t1, k); camera.position.lerpVectors(tween.p0, tween.p1, k);
+    if (tween.t >= 1) tween = null;
+  }
+  controls.update();
+  renderer.render(scene, camera);
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+/* hooks used to record the README animation */
+let rec = null;
+function frameExploded() {
+  const box = currentBox(1); const c = box.getCenter(new THREE.Vector3());
+  const r = box.getSize(new THREE.Vector3()).length() / 2;
+  rec = { c, dist: r / Math.sin(THREE.MathUtils.degToRad(camera.fov / 2)) * 0.98 };
+  camera.near = assySize / 200; camera.far = assySize * 40; camera.updateProjectionMatrix();
+}
+function frame(t, ang) {
+  applyExplode(t); tween = null;
+  const d = new THREE.Vector3(...VIEWS.iso).normalize();
+  d.applyAxisAngle(new THREE.Vector3(0, 1, 0), ang);
+  controls.target.copy(rec.c); camera.position.copy(rec.c).addScaledVector(d, rec.dist);
+  camera.lookAt(rec.c); renderer.render(scene, camera);
+}
+window.__viewer = { applyExplode, setView, frameExploded, frame, get ready() { return !!root && started; } };
+</script>
+</body>
+</html>

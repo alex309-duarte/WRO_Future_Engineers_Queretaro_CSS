@@ -1,0 +1,70 @@
+# Publishes the interactive 3D model of the vehicle (models/cad/viewer) with GitHub Pages.
+# Only that folder is published: the whole repository is larger than the 1 GB a Pages site may have.
+# Needs, once: Settings -> Pages -> Build and deployment -> Source: "GitHub Actions".
+# Until that setting is made, a push publishes nothing and the run says so in a notice.
+# Result: https://alex309-duarte.github.io/WRO_Future_Engineers_Queretaro_CSS/models/cad/viewer/
+name: Publish the 3D viewer
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'models/cad/viewer/**'
+      - '.github/workflows/viewer-pages.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    outputs:
+      ready: ${{ steps.pages.outputs.ready }}
+    steps:
+      - name: Check the Pages setting
+        id: pages
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          type=$(gh api "repos/${GITHUB_REPOSITORY}/pages" --jq .build_type 2>/dev/null || true)
+          if [ "$type" = "workflow" ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::GitHub Pages is not set to GitHub Actions yet (Settings, Pages, Source). Nothing was published. After changing the setting, start this workflow with the Run workflow button."
+          fi
+
+  deploy:
+    needs: check
+    if: github.event_name == 'workflow_dispatch' || needs.check.outputs.ready == 'true'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}models/cad/viewer/
+    steps:
+      - name: Checkout only the viewer folder
+        uses: actions/checkout@v6
+        with:
+          sparse-checkout: models/cad/viewer
+      - name: Build the site folder
+        run: |
+          mkdir -p _site/models/cad/viewer
+          cp models/cad/viewer/index.html models/cad/viewer/*.glb _site/models/cad/viewer/
+          printf '%s\n' '<!doctype html>' '<meta charset="utf-8">' '<title>The Maker, design v7: interactive 3D model</title>' '<meta http-equiv="refresh" content="0; url=models/cad/viewer/">' '<a href="models/cad/viewer/">Open the interactive 3D model</a>' > _site/index.html
+          ls -la _site _site/models/cad/viewer
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+      - name: Upload the site
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: _site
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

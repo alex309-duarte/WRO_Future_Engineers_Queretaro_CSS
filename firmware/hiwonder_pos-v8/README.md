@@ -2,6 +2,8 @@
 
 The Hiwonder ROS Robot Controller V1.2 (STM32F407VET6) on design v7 runs **Hiwonder's FreeRTOS firmware with our patch on top**. The patch [`extended_m1.patch`](extended_m1.patch) changes 12 files of Hiwonder's official project `RosRobotControllerM4-armclang` (+906 / −442 lines). Hiwonder's project and factory images are included unmodified, with credit, in [`../hiwonder_original/`](../hiwonder_original). The image on the robot is **`pos-v8`**, built and flashed on 2026-10-04.
 
+**More detail: the development repository.** Everything behind this firmware and the host library is in **[github.com/JRavenelco/hiwonder-brick](https://github.com/JRavenelco/hiwonder-brick)**: Hiwonder's project and our extension, the C++17 host library, the bench tools, the dated bench logs (July to October 2026), the protocol and the recovery procedure. Its documentation is in Spanish.
+
 The Raspberry Pi 5 talks to the board over USB at 1 Mbaud with Hiwonder's frame format `AA 55 | function | length | data | CRC8`. On the Pi, `hiwonder_brick` speaks this protocol and `spike_compat` keeps the team's SPIKE API, so the mission code did not change ([`src/ondevice/hiwonder/`](../../src/ondevice/hiwonder)).
 
 <img src="../../schemes/firmware/hiwonder_firmware_architecture.png" alt="Architecture of the extended pos-v8 firmware: host software on the Raspberry Pi 5, FreeRTOS tasks and the 100 Hz control loop on the STM32, and the board hardware" width="900">

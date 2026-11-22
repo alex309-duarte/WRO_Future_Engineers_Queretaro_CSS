@@ -12,7 +12,7 @@ This repository contains the engineering documentation for **CSS**'s autonomous 
 </tr>
 </table>
 
-**Quick links:** [Videos](#driving-videos) · [What changed since nationals](#what-changed) · [Assembly instructions](other/Assembly_photos/Assembly_Process_EN.md) · [Bill of Materials](#bom) · [3D-print files](#printed-parts) · [Wiring diagram](#wiring-v7) · [Setup and run](#setup-instructions) · [Engineering Journal](Engineering_Journal_CSS_WRO2026_International.pdf) · [Releases](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS/releases)
+**Quick links:** [Videos](#driving-videos) · [What changed since nationals](#what-changed) · [Assembly instructions](other/Assembly_photos/Assembly_Process_EN.md) · [Bill of Materials](#bom) · [3D-print files](#printed-parts) · [Interactive 3D model](#viewer-3d) · [Wiring diagram](#wiring-v7) · [Setup and run](#setup-instructions) · [Firmware development repository](https://github.com/JRavenelco/hiwonder-brick) · [Engineering Journal](Engineering_Journal_CSS_WRO2026_International.pdf) · [Releases](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS/releases)
 
 ---
 
@@ -25,11 +25,11 @@ The sections follow the five criteria of the WRO 2026 documentation rubric (Appe
 
 | Rubric criterion | Where to find it |
 |---|---|
-| **1. Mobility and Mechanical Design** ([§4](#mobility)) | **Torque/speed reasoning:** [torque and speed calculation](#torque-speed)<br>**Design trade-offs:** decision cards for the [drive motor](#d2), the [steering servo](#d3) and the [differential](#d9)<br>**Why components were chosen:** [chassis](#chassis), [steering](#steering), [drivetrain](#drivetrain)<br>**Testing or iterations affecting performance:** [what each test changed](#test-to-change), [iteration history v1–v7](#lessons) |
+| **1. Mobility and Mechanical Design** ([§4](#mobility)) | **Torque/speed reasoning:** [torque and speed calculation](#torque-speed)<br>**Design trade-offs:** decision cards for the [drive motor](#d2), the [steering servo](#d3) and the [differential](#d9)<br>**Why components were chosen:** [chassis](#chassis) (with an [interactive 3D model](#viewer-3d)), [steering](#steering), [drivetrain](#drivetrain)<br>**Testing or iterations affecting performance:** [what each test changed](#test-to-change), [iteration history v1–v7](#lessons) |
 | **2. Power and Sensor Architecture** ([§5](#power-sensors)) | **Power budget:** [power budget and peak current](#power-budget), [wiring diagram](#wiring-v7)<br>**Sensor trade-offs:** decision cards for the [LiDAR](#d4) and the [AI accelerator](#d5)<br>**Placement justified using field geometry:** [placement and field geometry](#placement)<br>**Calibration method:** [calibration](#calibration)<br>**Failure-point considerations:** [noise, interference and failure points](#noise)<br>**Iteration evidence:** [failure log](#failure-log) |
 | **3. Software Architecture and Obstacle Strategy** ([§6](#software)) | **State machine with rationale:** [Open Challenge states](#open-states), [Obstacle Challenge states](#obstacle-states)<br>**Algorithm justification (PID, CV, IMU):** [steering PD](#pd), [vision model](#vision), [LiDAR processing](#lidar), [heading estimation](#heading)<br>**Handling edge cases:** [avoidance, parking and edge cases](#edge-cases), [surprise rule: modified traffic sign](#surprise-rule)<br>**Testing/tuning process:** [testing and tuning workflow](#testing)<br>**Metrics used to validate performance:** [component tests](#component-tests), [run logs](#run-logs) |
 | **4. Systems Thinking and Engineering Decisions** ([§7](#systems)) | **Explicit constraints:** [constraints](#constraints), [rule compliance](#rule-compliance)<br>**Trade-offs:** [how the subsystems interact](#interactions)<br>**Iteration cycles:** [iteration history v1–v7](#lessons), [what changed from v6 to v7](#what-changed)<br>**Risk/failure analysis:** [risk and failure-mode register](#risks), [failure log](#failure-log), [known limitations and next steps](#limitations)<br>**"Why we chose X instead of Y":** the *Alternatives* row of every decision card ([D1](#d1), [D2](#d2), [D3](#d3), [D4](#d4), [D5](#d5), [D6](#d6), [D8](#d8), [D9](#d9), [D10](#d10)) |
-| **5. Reproducibility and GitHub Quality** ([§8](#reproducibility), [§9](#setup-instructions), [§10](#construction-guide)) | **Fully reproducible system:** [build this robot yourself](#build-it)<br>**Clear project structure:** [repository structure](#structure)<br>**Meaningful commit messages:** [commit history](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS/commits/main)<br>**Testing workflow documented:** [testing and tuning workflow](#testing), [competition-day checklist](#checklist)<br>**Versioning or release notes:** [versions and releases](#versions), [release notes](other/releases) |
+| **5. Reproducibility and GitHub Quality** ([§8](#reproducibility), [§9](#setup-instructions), [§10](#construction-guide)) | **Fully reproducible system:** [build this robot yourself](#build-it), [board firmware](#board-firmware) and its [development repository](https://github.com/JRavenelco/hiwonder-brick)<br>**Clear project structure:** [repository structure](#structure)<br>**Meaningful commit messages:** [commit history](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS/commits/main)<br>**Testing workflow documented:** [testing and tuning workflow](#testing), [competition-day checklist](#checklist)<br>**Versioning or release notes:** [versions and releases](#versions), [release notes](other/releases) |
 
 ---
 
@@ -270,7 +270,7 @@ The robot has gone through seven designs across two seasons (see [§7.4](#lesson
 | Repository release | Vehicle design | Event |
 |---|---|---|
 | [`v1.0.0`](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS/releases/tag/v1.0.0) | Design v6 | Mexico National Final, Tijuana (2nd place) |
-| [`v2.0.3`](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS/releases/tag/v2.0.3) | Design v7 | International Final, Puerto Rico |
+| [`v2.0.4`](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS/releases/tag/v2.0.4) | Design v7 | International Final, Puerto Rico |
 
 | Subsystem | Design v6: National Final (Sep 2026) | Design v7: International Final (Dec 2026) | Decision card |
 |---|---|---|---|
@@ -333,6 +333,14 @@ The v7 chassis is a modification of the v6 design, modeled in SolidWorks. It was
 | <img src="other/additionalMedia/Others/cad_v7_top.png" alt="Design v7 CAD top view" width="420"> | <img src="other/additionalMedia/Others/cad_v7_bottom.png" alt="Design v7 CAD bottom view" width="420"> |
 
 *Figure 2. Design v7 in SolidWorks (`models/cad/v7_assembly/Assem1.SLDASM`). Side views: steering servo, Hiwonder board and front wheels on one end; camera mast, drive motor and differential on the other; the RPLidar S2L in the middle, its scanning plane about 75 mm above the ground; the Raspberry Pi and the 3S pack below it. Bottom view: the flat underside of the chassis and the Ackermann linkage at the front.*
+
+**Interactive 3D model.**<a id="viewer-3d"></a> The same assembly opens in the browser, with nothing to install: rotate it, zoom in, take it apart with the **Disassemble** button and read the name of every part.
+
+<a href="https://alex309-duarte.github.io/WRO_Future_Engineers_Queretaro_CSS/models/cad/viewer/"><img src="other/additionalMedia/Others/vehicle_v7_exploded.gif" alt="Design v7 coming apart into its components and going back together; click to open the interactive 3D model" width="560"></a>
+
+**[Open the interactive 3D model](https://alex309-duarte.github.io/WRO_Future_Engineers_Queretaro_CSS/models/cad/viewer/)** (or click the animation).
+
+*Exploded view of design v7, made from the SolidWorks assembly with its colours (27 components and the parts inside them). The controls, and how to update the model after a CAD change, are in [`models/cad/viewer/`](models/cad/viewer/README.md). GitHub can also show the whole vehicle in its own 3D viewer: [`models/cad/vehicle_v7.stl`](models/cad/vehicle_v7.stl).*
 
 <table>
 <tr>
@@ -881,6 +889,10 @@ However, since the WRO Future Engineers rules prohibit wireless communication du
 <tr>
 <td align="center" width="120"><a href="firmware/hiwonder_pos-v8/README.md"><img src="other/additionalMedia/Previews/firmware_page.png" height="120" alt="The firmware page"></a></td>
 <td><kbd>Other page</kbd> <b><a href="firmware/hiwonder_pos-v8/README.md">Firmware page</a></b><br>What we added to Hiwonder's firmware, the <code>MOTOR_EXT</code> commands, the versions, and how to flash and build it.</td>
+</tr>
+<tr>
+<td align="center" width="120"><a href="https://github.com/JRavenelco/hiwonder-brick"><img src="other/additionalMedia/Previews/hiwonder_brick_repo.png" height="120" alt="The hiwonder-brick repository"></a></td>
+<td><kbd>Other repository</kbd> <b><a href="https://github.com/JRavenelco/hiwonder-brick">hiwonder-brick: the development repository of the firmware</a></b><br>Everything behind the firmware and the host library, in more detail than this page: Hiwonder's project and our extension, the C++17 host library, the bench tools, the dated bench logs (July to October 2026), the protocol and the recovery procedure. Its documentation is in Spanish.</td>
 </tr>
 </table>
 
@@ -1727,7 +1739,7 @@ timeline
     August : v0.2.0, new chassis : Design v6, final national geometry
     September : v0.3.0, full documentation : Mexico National Final, 2nd place
     October : v1.0.0, the national version : Hiwonder board, RPLidar S2L and new vision model on the robot
-    November : v2.0.0, design v7 documented : v2.0.3, current version
+    November : v2.0.0, design v7 documented : v2.0.4, current version
     December : International Final, Puerto Rico
 ```
 
@@ -1740,7 +1752,8 @@ timeline
 | [`v2.0.0`](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS/releases/tag/v2.0.0) | 2026-11-10 | **International Final version** (design v7): v7 print files, assembly instructions, build from a fresh clone, failure log, checklist |
 | [`v2.0.1`](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS/releases/tag/v2.0.1) | 2026-11-16 | Updated assembly instructions with photos of the v7 build (37 steps), servo corrected to HX-12H, battery layout change, 15 print files, hardware kits in the BOM |
 | [`v2.0.2`](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS/releases/tag/v2.0.2) | 2026-11-21 | README reorganised for a faster review (videos first, rubric map, folded detail), surprise rule plan, new photos of the vehicle |
-| [`v2.0.3`](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS/releases/tag/v2.0.3) | 2026-11-21 | **International Final version, current** (design v7): Obstacle Challenge code updated (gyro correction from the median of the walls, start wait, new distances, heading log), print files and SolidWorks assembly updated to the current CAD (13 print files), CAD views, first frames with modified signs |
+| [`v2.0.3`](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS/releases/tag/v2.0.3) | 2026-11-21 | Obstacle Challenge code updated (gyro correction from the median of the walls, start wait, new distances, heading log), print files updated to the current CAD (13 print files), CAD views, first frames with modified signs |
+| [`v2.0.4`](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS/releases/tag/v2.0.4) | 2026-11-22 | **International Final version, current** (design v7): interactive 3D model of the vehicle (rotate, zoom, exploded view), SolidWorks assembly of the current design (`Assem1.SLDASM`), link to the development repository of the board firmware |
 
 > [!NOTE]
 > <details>
@@ -1763,8 +1776,8 @@ timeline
 | Folder or file | What it holds |
 |---|---|
 | [`src/`](src) | The code of the robot: Open Challenge and hardware layer in [`ondevice/`](src/ondevice), Obstacle Challenge in [`cpp/object_detection_hiwonder_h10/`](src/cpp/object_detection_hiwonder_h10), compiled vision models in [`HailoModels/`](src/HailoModels), auto-start at boot with systemd in [`SERVICES_README.md`](src/SERVICES_README.md) |
-| [`firmware/`](firmware) | Firmware of the Hiwonder board: ours in [`hiwonder_pos-v8/`](firmware/hiwonder_pos-v8), Hiwonder's original in [`hiwonder_original/`](firmware/hiwonder_original) |
-| [`models/`](models/cad) | SolidWorks CAD of every design, STL files to print ([`Stl/v7/`](models/cad/Stl/v7)) and printer presets |
+| [`firmware/`](firmware) | Firmware of the Hiwonder board: ours in [`hiwonder_pos-v8/`](firmware/hiwonder_pos-v8), Hiwonder's original in [`hiwonder_original/`](firmware/hiwonder_original). Its development repository, with the bench logs, is [hiwonder-brick](https://github.com/JRavenelco/hiwonder-brick) |
+| [`models/`](models/cad) | SolidWorks CAD of every design, the [interactive 3D model](models/cad/viewer) of design v7, STL files to print ([`Stl/v7/`](models/cad/Stl/v7)) and printer presets |
 | [`schemes/`](schemes) | Wiring diagrams and the firmware architecture diagram |
 | [`other/`](other) | [Assembly instructions](other/Assembly_photos/Assembly_Process_EN.md) with photos, [full setup instructions](other/docs/Setup_and_Execution.md), the [design v6 page](other/docs/Design_v6_National.md), datasheets, dataset and training results, test log, release notes, WRO rules |
 | [`v-photos/`](v-photos), [`t-photos/`](t-photos) | Vehicle photos (six views of each design and the design history) and team photos |
@@ -1782,6 +1795,8 @@ The complete folder tree, with a comment on every folder:
 ├── models/                               # CAD designs and 3D vehicle models
 │   └── cad/                              # Computer-Aided Design files
 │       ├── v7_assembly/                  # Design v7 CAD assembly (International Final)
+│       ├── viewer/                       # Interactive 3D model of design v7 (web page, .glb model, tools to rebuild it)
+│       ├── vehicle_v7.stl                # Design v7 in one STL, for GitHub's 3D viewer
 │       ├── v6_assembly/                  # Design v6 CAD assembly (Mexico National Final)
 │       ├── Iterations/                   # Prototype iterations and legacy CAD files
 │       ├── print_profiles/               # Creality Print presets (K1C, 0.4 mm nozzle, Hyper ABS)
@@ -1832,6 +1847,7 @@ The complete folder tree, with a comment on every folder:
 ├── v-photos/                             # Required 6-view vehicle photos (design v7: *_v7.JPG, design v6: no suffix)
 │   └── Robot_More_Photos/                # High-resolution gallery & field testing shots
 ├── video/                                # Open and Obstacle Challenges YouTube video links
+├── .github/workflows/                    # Publishes the interactive 3D model with GitHub Pages
 ├── .gitattributes                        # Keeps the firmware files byte-exact
 ├── .gitignore                            # .gitignore
 ├── .gitmodules                           # Git submodule: Slamtec rplidar_sdk in src/ondevice/rplidar_sdk
@@ -2110,7 +2126,7 @@ Design v7 has 13 different printed parts, 15 pieces in total. Their STL files ar
 > <summary><kbd>Click to open</kbd> <b>Datasheets and documentation of the design v7 parts</b></summary>
 >
 > - [Hiwonder ROS Robot Controller](https://hiwonder.com/products/ros-robot-control) (STM32F407VET6) and its [documentation](https://wiki.hiwonder.com/projects/ROS-Robot-Control-Board/en/latest/)
-> - Our board firmware `pos-v8`: [`firmware/hiwonder_pos-v8/`](firmware/hiwonder_pos-v8) (image, patch over Hiwonder's source, build scripts, [protocol](firmware/hiwonder_pos-v8/PROTOCOL.md))
+> - Our board firmware `pos-v8`: [`firmware/hiwonder_pos-v8/`](firmware/hiwonder_pos-v8) (image, patch over Hiwonder's source, build scripts, [protocol](firmware/hiwonder_pos-v8/PROTOCOL.md)); development repository with the bench logs: [hiwonder-brick](https://github.com/JRavenelco/hiwonder-brick)
 > - Hiwonder's original firmware source (V1.2) and factory images, by Hiwonder: [`firmware/hiwonder_original/`](firmware/hiwonder_original) (unmodified; third-party libraries and their licenses listed in its README)
 > - [Hiwonder JGB37-520 Hall-encoder DC gear motor](https://www.hiwonder.com/products/hall-encoder-dc-geared-motor) (specifications on the product page)
 > - [Hiwonder HX-12H serial bus servo](https://www.hiwonder.com/products/hx-12h) (specifications on the product page)
@@ -2182,4 +2198,4 @@ The MIT License covers the team's own work. Third-party code keeps its authors' 
 
 ---
 
-> *Document maintained by CSS | Last updated: November 2026 | Latest release: v2.0.3*
+> *Document maintained by CSS | Last updated: November 2026 | Latest release: v2.0.4*
