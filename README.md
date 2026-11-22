@@ -270,7 +270,7 @@ The robot has gone through seven designs across two seasons (see [§7.4](#lesson
 | Repository release | Vehicle design | Event |
 |---|---|---|
 | [`v1.0.0`](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS/releases/tag/v1.0.0) | Design v6 | Mexico National Final, Tijuana (2nd place) |
-| [`v2.0.2`](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS/releases/tag/v2.0.2) | Design v7 | International Final, Puerto Rico |
+| [`v2.0.3`](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS/releases/tag/v2.0.3) | Design v7 | International Final, Puerto Rico |
 
 | Subsystem | Design v6: National Final (Sep 2026) | Design v7: International Final (Dec 2026) | Decision card |
 |---|---|---|---|
@@ -320,17 +320,19 @@ The v7 chassis is a modification of the v6 design, modeled in SolidWorks. It was
 
 *Figure 1. Isometric view of design v7: Hiwonder controller at the front, RPLidar S2L in the centre, camera mast and JGB37 drive motor at the rear. The SolidWorks assembly is in [`models/cad/v7_assembly/`](models/cad/v7_assembly) (open `Assem1.SLDASM`).*
 
-**CAD views of design v7.**<a id="cad-v7"></a> The tyres are LEGO parts, not printed; in the five flat views only one is drawn, for reference.
+**CAD views of design v7.**<a id="cad-v7"></a> The tyres are LEGO parts, not printed.
 
-| Side | Opposite side |
+| Isometric | One full turn |
 |---|---|
+| <img src="other/additionalMedia/Others/cad_v7_isometric.png" alt="Design v7 CAD isometric view" width="420"> | <img src="other/additionalMedia/Others/vehicle_cad_v7.gif" alt="The SolidWorks assembly of design v7 turning one full turn around its vertical axis" width="420"> |
+| **Side** | **Opposite side** |
 | <img src="other/additionalMedia/Others/cad_v7_side_a.png" alt="Design v7 CAD side view" width="420"> | <img src="other/additionalMedia/Others/cad_v7_side_b.png" alt="Design v7 CAD side view, opposite side" width="420"> |
 | **Front** | **Rear** |
 | <img src="other/additionalMedia/Others/cad_v7_front.png" alt="Design v7 CAD front view" width="420"> | <img src="other/additionalMedia/Others/cad_v7_rear.png" alt="Design v7 CAD rear view" width="420"> |
-| **Top** | **Isometric** |
-| <img src="other/additionalMedia/Others/cad_v7_top.png" alt="Design v7 CAD top view" width="420"> | <img src="other/additionalMedia/Others/cad_v7_isometric.png" alt="Design v7 CAD isometric view" width="420"> |
+| **Top** | **Bottom** |
+| <img src="other/additionalMedia/Others/cad_v7_top.png" alt="Design v7 CAD top view" width="420"> | <img src="other/additionalMedia/Others/cad_v7_bottom.png" alt="Design v7 CAD bottom view" width="420"> |
 
-*Figure 2. Design v7 in SolidWorks. Side views: steering servo, Hiwonder board and front wheel on one end; camera mast, drive motor and differential on the other; the RPLidar S2L in the middle, its scanning plane about 75 mm above the ground; the Raspberry Pi and the 3S pack below it. Top view: Ackermann linkage with the wheel at full lock.*
+*Figure 2. Design v7 in SolidWorks (`models/cad/v7_assembly/Assem1.SLDASM`). Side views: steering servo, Hiwonder board and front wheels on one end; camera mast, drive motor and differential on the other; the RPLidar S2L in the middle, its scanning plane about 75 mm above the ground; the Raspberry Pi and the 3S pack below it. Bottom view: the flat underside of the chassis and the Ackermann linkage at the front.*
 
 <table>
 <tr>
@@ -1725,7 +1727,7 @@ timeline
     August : v0.2.0, new chassis : Design v6, final national geometry
     September : v0.3.0, full documentation : Mexico National Final, 2nd place
     October : v1.0.0, the national version : Hiwonder board, RPLidar S2L and new vision model on the robot
-    November : v2.0.0, design v7 documented : v2.0.2, current version
+    November : v2.0.0, design v7 documented : v2.0.3, current version
     December : International Final, Puerto Rico
 ```
 
@@ -1737,7 +1739,8 @@ timeline
 | [`v1.0.0`](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS/releases/tag/v1.0.0) | 2026-10-03 | **Mexico National Final, 2nd place** (design v6; tagged after the 18–19 September event) |
 | [`v2.0.0`](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS/releases/tag/v2.0.0) | 2026-11-10 | **International Final version** (design v7): v7 print files, assembly instructions, build from a fresh clone, failure log, checklist |
 | [`v2.0.1`](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS/releases/tag/v2.0.1) | 2026-11-16 | Updated assembly instructions with photos of the v7 build (37 steps), servo corrected to HX-12H, battery layout change, 15 print files, hardware kits in the BOM |
-| [`v2.0.2`](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS/releases/tag/v2.0.2) | 2026-11-21 | **International Final version, current** (design v7): README reorganised for a faster review (videos first, rubric map, folded detail), surprise rule plan, new photos of the vehicle |
+| [`v2.0.2`](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS/releases/tag/v2.0.2) | 2026-11-21 | README reorganised for a faster review (videos first, rubric map, folded detail), surprise rule plan, new photos of the vehicle |
+| [`v2.0.3`](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS/releases/tag/v2.0.3) | 2026-11-21 | **International Final version, current** (design v7): Obstacle Challenge code updated (gyro correction from the median of the walls, start wait, new distances, heading log), print files and SolidWorks assembly updated to the current CAD (13 print files), CAD views, first frames with modified signs |
 
 > [!NOTE]
 > <details>
@@ -2179,4 +2182,4 @@ The MIT License covers the team's own work. Third-party code keeps its authors' 
 
 ---
 
-> *Document maintained by CSS | Last updated: November 2026 | Latest release: v2.0.2*
+> *Document maintained by CSS | Last updated: November 2026 | Latest release: v2.0.3*
