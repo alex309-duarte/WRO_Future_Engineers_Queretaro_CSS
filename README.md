@@ -7,12 +7,12 @@ This repository contains the engineering documentation for **CSS**'s autonomous 
 
 <table>
 <tr>
-<td align="center" width="50%"><a href="https://www.youtube.com/shorts/fHsPBr_Bzps"><img src="https://img.youtube.com/vi/fHsPBr_Bzps/maxresdefault.jpg" alt="Open Challenge video" width="400"></a><br><b><a href="https://www.youtube.com/shorts/fHsPBr_Bzps">▶ Watch the Open Challenge</a></b></td>
-<td align="center" width="50%"><a href="https://www.youtube.com/shorts/g_2ZrS4TVyc"><img src="https://img.youtube.com/vi/g_2ZrS4TVyc/maxresdefault.jpg" alt="Obstacle Challenge video" width="400"></a><br><b><a href="https://www.youtube.com/shorts/g_2ZrS4TVyc">▶ Watch the Obstacle Challenge</a></b></td>
+<td align="center" width="50%"><a href="https://www.youtube.com/shorts/fHsPBr_Bzps"><img src="other/additionalMedia/Previews/video_open_challenge.jpg" alt="Open Challenge video" width="400"></a><br><b><a href="https://www.youtube.com/shorts/fHsPBr_Bzps">▶ Watch the Open Challenge</a></b></td>
+<td align="center" width="50%"><a href="https://www.youtube.com/shorts/g_2ZrS4TVyc"><img src="other/additionalMedia/Previews/video_obstacle_challenge.jpg" alt="Obstacle Challenge video" width="400"></a><br><b><a href="https://www.youtube.com/shorts/g_2ZrS4TVyc">▶ Watch the Obstacle Challenge</a></b></td>
 </tr>
 </table>
 
-**Quick links:** [Videos](#driving-videos) · [What changed since nationals](#what-changed) · [Assembly instructions](other/Assembly_photos/Assembly_Process_EN.md) · [Bill of Materials](#bom) · [3D-print files](#printed-parts) · [Interactive 3D model](#viewer-3d) · [Wiring diagram](#wiring-v7) · [Setup and run](#setup-instructions) · [Firmware development repository](https://github.com/JRavenelco/hiwonder-brick) · [Firmware video](https://www.youtube.com/watch?v=Mzc6JfptzTI) · [Engineering Journal](Engineering_Journal_CSS_WRO2026_International.pdf) · [Releases](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS/releases)
+**Quick links:** [Videos](#driving-videos) · [What changed since nationals](#what-changed) · [Assembly instructions](other/Assembly_photos/Assembly_Process_EN.md) · [Bill of Materials](#bom) · [3D-print files](#printed-parts) · [Interactive 3D model](#viewer-3d) · [Wiring diagram](#wiring-v7) · [Setup and run](#setup-instructions) · <a href="https://github.com/JRavenelco/hiwonder-brick"><img src="other/additionalMedia/Others/repo_icon.png" width="22" alt="Open the firmware repository"></a> [Firmware development repository](https://github.com/JRavenelco/hiwonder-brick) · [Firmware video](https://www.youtube.com/watch?v=Mzc6JfptzTI) · [Engineering Journal](Engineering_Journal_CSS_WRO2026_International.pdf) · [Releases](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS/releases)
 
 ---
 
@@ -21,7 +21,7 @@ This repository contains the engineering documentation for **CSS**'s autonomous 
 The sections follow the five criteria of the WRO 2026 documentation rubric (Appendix C of the General Rules). The table uses the rubric's own words and links each item to the place where it is answered.
 
 > [!NOTE]
-> **How to read this page.** To keep it short, supporting detail (constants, long tables and calculations, biographies) is folded into blue boxes like this one, marked <kbd>Click to open</kbd>: click the line to unfold it. Cards marked <kbd>Other page</kbd> lead to a page of their own (the full setup instructions, the firmware, the design v6 robot): click the picture or the link. **Purple boxes** are [decision cards](#decision-cards), the reasoning behind each design choice. Every link in the table below leads to text that is always visible.
+> **How to read this page.** To keep it short, supporting detail (constants, long tables and calculations, biographies) is folded into blue boxes like this one, marked <kbd>Click to open</kbd>: click the line to unfold it. Cards marked <kbd>Other page</kbd> lead to a page of their own (the full setup instructions, the firmware, the design v6 robot): click the picture or the link. A picture with this round blue mark <img src="other/additionalMedia/Others/click_icon.png" width="20" alt="Click to open"> opens a page, a document or a product page when you click it; a picture with a play button <img src="other/additionalMedia/Others/play_icon.png" width="20" alt="Play button"> is a video. **Purple boxes** are [decision cards](#decision-cards), the reasoning behind each design choice. Every link in the table below leads to text that is always visible.
 
 | Rubric criterion | Where to find it |
 |---|---|
@@ -76,11 +76,11 @@ This documentation is written so that another team can build the same robot and 
 
 | | What to do | Where | Preview (click to open) |
 |---|---|---|:---:|
-| 1 | Get the parts | [Bill of Materials](#bom), with a link and a price for every part | <a href="#bom"><img src="other/additionalMedia/Others/bom_by_category_v7.png" height="70" alt="Bill of Materials, cost by category"></a> |
-| 2 | Print the chassis and the other printed parts | [STL files, quantities and printer settings](#printed-parts) | <a href="#printed-parts"><img src="models/cad/Stl/v7/printed_parts_v7.png" height="90" alt="The 13 printed parts"></a> |
+| 1 | Get the parts | [Bill of Materials](#bom), with a link and a price for every part | <a href="#bom"><img src="other/additionalMedia/Previews/build_bom.png" height="70" alt="Bill of Materials, cost by category"></a> |
+| 2 | Print the chassis and the other printed parts | [STL files, quantities and printer settings](#printed-parts) | <a href="#printed-parts"><img src="other/additionalMedia/Previews/build_printed_parts.png" height="90" alt="The 13 printed parts"></a> |
 | 3 | Assemble the vehicle | [Assembly instructions](other/Assembly_photos/Assembly_Process_EN.md): one photo per step, with the tools and every screw | <a href="other/Assembly_photos/Assembly_Process_EN.md"><img src="other/additionalMedia/Previews/assembly_instructions.png" height="110" alt="Assembly instructions, first page"></a> |
-| 4 | Connect the electronics | [Wiring diagram](#wiring-v7) and [connection table](#connections) | <a href="#wiring-v7"><img src="schemes/hardware/wiringSchematics_v7.png" height="80" alt="Wiring diagram of design v7"></a> |
-| 5 | Flash the board firmware, then build and run the programs | [Setup and execution instructions](#setup-instructions). Firmware: [video](https://www.youtube.com/watch?v=Mzc6JfptzTI) and [development repository](https://github.com/JRavenelco/hiwonder-brick) | <a href="#setup-instructions"><img src="schemes/firmware/hiwonder_firmware_architecture.png" height="80" alt="Firmware architecture of the Hiwonder board"></a> |
+| 4 | Connect the electronics | [Wiring diagram](#wiring-v7) and [connection table](#connections) | <a href="#wiring-v7"><img src="other/additionalMedia/Previews/build_wiring.png" height="80" alt="Wiring diagram of design v7"></a> |
+| 5 | Flash the board firmware, then build and run the programs | [Setup and execution instructions](#setup-instructions). Firmware: [video](https://www.youtube.com/watch?v=Mzc6JfptzTI) and [development repository](https://github.com/JRavenelco/hiwonder-brick) | <a href="#setup-instructions"><img src="other/additionalMedia/Previews/build_firmware.png" height="80" alt="Firmware architecture of the Hiwonder board"></a> |
 
 
 ---
@@ -159,24 +159,21 @@ This documentation is written so that another team can build the same robot and 
 >
 > #### Manuel Alejandro Cardoso Duarte
 > **Age:** 27\
-> **Role:** Coach\
-> <img src="t-photos/Alejandro.jpeg" width="150">
+> **Role:** Coach
 > > Bachelor of Technology from the Universidad Nacional Autónoma de México (UNAM), Centro de Física Aplicada y Tecnología Avanzada (CFATA), and currently works as an Embedded Software Engineer at KOSTAL Automotive Services Mexicana, developing AUTOSAR-based embedded software (C, CAN/LIN bus communication, memory stack integration) for automotive door control modules serving clients such as Stellantis, FORD, and Rivian. His background in robotics coaching spans since February 2018, guiding high school teams at the Facultad de Ingeniería, Universidad Autónoma de Querétaro (UAQ) through the World Robot Olympiad, including leading our team to the 2023 international final in Panama City and to a national podium finish in RoboMission. As coach, his role is to teach the underlying engineering and programming concepts (Python, C, embedded systems) and guide the team's problem-solving process, without building or programming the vehicle himself. For more information visit: [CV Alejandro](other/additionalMedia/Others/CV_Manuel_Alejandro_Cardoso_Duarte_2026-compressed.pdf)
 >
 > ---
 >
 > #### José de Jesús Santana Ramírez, M.Sc.
 > **Age:** 40\
-> **Role:** Assistant coach\
-> <img src="t-photos/Santana.jpg" width="150">
+> **Role:** Assistant coach
 >
 > >Mechatronics Engineer and Master of Science in Instrumentation and Control, with a solid track record in teaching, technological development, and innovation-oriented engineering applications. Currently pursuing a Ph.D. in Computer Science, focusing on research areas related to artificial intelligence, neural networks, computational modeling of physical systems, and control of mechanical systems. His expertise integrates hardware and software development for robotics, automation, and embedded systems projects. He serves as the coordinator of the Center for Studies in Robotics and Sciences (CEROC) at UAQ, as well as a professor in the Space Engineering degree program at ENES-UNAM. His professional profile is distinguished by connecting academic training, applied research, and a commitment to the scientific and technological education of future generations.
 > ---
 >
 > #### Rocío Damara Merlo Espino, Ph.D.
 > **Age:** 36\
-> **Role:** Administrative project manager\
-> <img src="t-photos/Damara.jpg" width="150">
+> **Role:** Administrative project manager
 >
 > >Academic Degrees:
 > >- Bachelor’s Degree in Psychology, Educational concentration.
@@ -335,13 +332,13 @@ The v7 chassis is a modification of the v6 design, modeled in SolidWorks. It was
 #### Interactive 3D model: open it and take the vehicle apart <a id="viewer-3d"></a>
 
 > [!TIP]
-> ## [INTERACTIVE 3D MODEL: CLICK HERE TO OPEN IT](https://alex309-duarte.github.io/WRO_Future_Engineers_Queretaro_CSS/models/cad/viewer/)
+> ## <img src="other/additionalMedia/Others/click_icon.png" width="30" alt="Click to open"> [INTERACTIVE 3D MODEL: CLICK HERE TO OPEN IT](https://alex309-duarte.github.io/WRO_Future_Engineers_Queretaro_CSS/models/cad/viewer/)
 >
 > This is not a picture. The whole SolidWorks assembly of the vehicle opens **in your browser, with nothing to install**, and you can move it yourself: **rotate** it, **zoom** in, **take the vehicle apart** and put it back, and **see the name of every part**.
 
 <a href="https://alex309-duarte.github.io/WRO_Future_Engineers_Queretaro_CSS/models/cad/viewer/"><img src="other/additionalMedia/Others/vehicle_v7_exploded.gif" alt="Design v7 coming apart into its components and going back together; click to open the interactive 3D model" width="560"></a>
 
-*Click the animation to open the model.* What you can do in it:
+<img src="other/additionalMedia/Others/click_icon.png" width="20" alt="Click to open"> *Click the animation to open the model.* What you can do in it:
 
 | Rotate | Zoom | Take it apart | Standard views | Name of a part |
 |:---:|:---:|:---:|:---:|:---:|
@@ -365,7 +362,7 @@ The v7 chassis is a modification of the v6 design, modeled in SolidWorks. It was
 
 <table>
 <tr>
-<td align="center" width="190"><a href="other/docs/Design_v6_National.md#chassis"><img src="other/additionalMedia/Others/CAD_isometric.jpeg" height="120" alt="CAD of the design v6 chassis"></a></td>
+<td align="center" width="190"><a href="other/docs/Design_v6_National.md#chassis"><img src="other/additionalMedia/Previews/v6_chassis.png" height="120" alt="CAD of the design v6 chassis"></a></td>
 <td><kbd>Other page</kbd> <b><a href="other/docs/Design_v6_National.md#chassis">Design v6 (national): the chassis</a></b><br>The national chassis and how it was designed.</td>
 </tr>
 </table>
@@ -546,7 +543,7 @@ Both 2026 designs (v6 and v7) also mark a layout change from last year's all-whe
 
 <table>
 <tr>
-<td align="center" width="250"><a href="other/docs/Design_v6_National.md#drivetrain"><img src="other/additionalMedia/Others/45602_LEGO.jpg" height="100" alt="LEGO SPIKE Large Angular Motor"></a> <a href="other/docs/Design_v6_National.md#drivetrain"><img src="other/additionalMedia/Others/Tire.jpg" height="100" alt="LEGO tyre 62.4 x 20"></a></td>
+<td align="center" width="250"><a href="other/docs/Design_v6_National.md#drivetrain"><img src="other/additionalMedia/Previews/v6_motor.png" height="100" alt="LEGO SPIKE Large Angular Motor"></a> <a href="other/docs/Design_v6_National.md#drivetrain"><img src="other/additionalMedia/Previews/v6_tire.png" height="100" alt="LEGO tyre 62.4 x 20"></a></td>
 <td><kbd>Other page</kbd> <b><a href="other/docs/Design_v6_National.md#drivetrain">Design v6 (national): drivetrain analysis</a></b><br>Torque and speed calculation with the LEGO SPIKE Large Angular Motor.</td>
 </tr>
 </table>
@@ -826,7 +823,7 @@ The design v7 wiring is in [Figure 7](#wiring-v7) (§5.1) and the v7 software da
 
 <table>
 <tr>
-<td align="center" width="330"><a href="other/docs/Design_v6_National.md#wiring"><img src="other/additionalMedia/Others/wro_processing_architecture_diagram.png" height="100" alt="Design v6 processing diagram"></a> <a href="other/docs/Design_v6_National.md#wiring"><img src="schemes/hardware/wiringSchematics.jpeg" height="100" alt="Design v6 wiring diagram"></a></td>
+<td align="center" width="330"><a href="other/docs/Design_v6_National.md#wiring"><img src="other/additionalMedia/Previews/v6_processing.png" height="100" alt="Design v6 processing diagram"></a> <a href="other/docs/Design_v6_National.md#wiring"><img src="other/additionalMedia/Previews/v6_wiring.png" height="100" alt="Design v6 wiring diagram"></a></td>
 <td><kbd>Other page</kbd> <b><a href="other/docs/Design_v6_National.md#wiring">Design v6 (national): processing and wiring diagrams</a></b><br>How the SPIKE Hub, the MS200k LiDAR, the camera and the Raspberry Pi were connected.</td>
 </tr>
 </table>
@@ -908,12 +905,12 @@ However, since the WRO Future Engineers rules prohibit wireless communication du
 
 <table>
 <tr>
-<td align="center" width="50%"><a href="https://www.youtube.com/watch?v=Mzc6JfptzTI"><img src="https://img.youtube.com/vi/Mzc6JfptzTI/maxresdefault.jpg" alt="Video: the extended firmware of the Hiwonder board, from scratch in STM32CubeIDE" width="400"></a><br><kbd>Video</kbd> <b><a href="https://www.youtube.com/watch?v=Mzc6JfptzTI">▶ The firmware explained, from scratch (9:52)</a></b></td>
+<td align="center" width="50%"><a href="https://www.youtube.com/watch?v=Mzc6JfptzTI"><img src="other/additionalMedia/Previews/video_firmware.jpg" alt="Video: the extended firmware of the Hiwonder board, from scratch in STM32CubeIDE" width="400"></a><br><kbd>Video</kbd> <b><a href="https://www.youtube.com/watch?v=Mzc6JfptzTI">▶ The firmware explained, from scratch (9:52)</a></b></td>
 <td align="center" width="50%"><a href="https://github.com/JRavenelco/hiwonder-brick"><img src="other/additionalMedia/Previews/hiwonder_brick_card.png" alt="hiwonder-brick, the development repository of the board firmware: firmware source and our extension, C++17 host library, bench tools, bench logs, protocol and recovery" width="400"></a><br><kbd>Other repository</kbd> <b><a href="https://github.com/JRavenelco/hiwonder-brick">hiwonder-brick: the firmware development repository</a></b></td>
 </tr>
 <tr>
 <td>We create the STM32CubeIDE project from zero, add the sources and the settings, build it, explain <a href="https://www.youtube.com/watch?v=Mzc6JfptzTI&t=351s">how the firmware works</a> (from 5:51) and <a href="https://www.youtube.com/watch?v=Mzc6JfptzTI&t=511s">flash and test it</a> on the board (from 8:31). The image on the robot is the <code>pos-v8</code> of this repository; the video builds the same sources in the IDE.</td>
-<td><b>A second repository, only for the firmware:</b> <a href="https://github.com/JRavenelco/hiwonder-brick">github.com/JRavenelco/hiwonder-brick</a>. Everything behind the firmware and the host library, in more detail than this page: Hiwonder's project and our extension, the C++17 host library, the bench tools, the dated bench logs (July to October 2026), the protocol and the recovery procedure. Its documentation is in Spanish.</td>
+<td><a href="https://github.com/JRavenelco/hiwonder-brick"><img src="other/additionalMedia/Others/repo_icon.png" width="30" alt="Open the firmware repository"></a> <b>A second repository, only for the firmware:</b> <a href="https://github.com/JRavenelco/hiwonder-brick">github.com/JRavenelco/hiwonder-brick</a>. Everything behind the firmware and the host library, in more detail than this page: Hiwonder's project and our extension, the C++17 host library, the bench tools, the dated bench logs (July to October 2026), the protocol and the recovery procedure. Its documentation is in Spanish.</td>
 </tr>
 </table>
 
@@ -2006,7 +2003,7 @@ To build the robot, follow these five steps:
 ### Assembly instructions <a id="assembly"></a>
 
 > [!TIP]
-> ## [DETAILED ASSEMBLY INSTRUCTIONS: CLICK HERE](other/Assembly_photos/Assembly_Process_EN.md)
+> ## <img src="other/additionalMedia/Others/click_icon.png" width="30" alt="Click to open"> [DETAILED ASSEMBLY INSTRUCTIONS: CLICK HERE](other/Assembly_photos/Assembly_Process_EN.md)
 >
 > <kbd>Other page</kbd> **Step-by-step assembly instructions: [`other/Assembly_photos/Assembly_Process_EN.md`](other/Assembly_photos/Assembly_Process_EN.md)**
 >
@@ -2014,7 +2011,7 @@ To build the robot, follow these five steps:
 
 <a href="other/Assembly_photos/Assembly_Process_EN.md"><img src="other/additionalMedia/Others/assembly_overview_v7.jpg" width="900" alt="Overview of the assembly instructions: the photo of each of the 37 steps, numbered, with the 11 phases listed below"></a>
 
-*Overview of the assembly instructions: the photo of every step. Click the picture to open the full instructions; the table below links each phase.*
+<img src="other/additionalMedia/Others/click_icon.png" width="20" alt="Click to open"> *Overview of the assembly instructions: the photo of every step. Click the picture to open the full instructions; the table below links each phase.*
 
 | Phase | Steps | What you do |
 |---|---|---|
@@ -2111,7 +2108,7 @@ Design v7 has 13 different printed parts, 15 pieces in total. Their STL files ar
 
 <table>
 <tr>
-<td align="center" width="120"><a href="firmware/hiwonder_pos-v8/README.md"><img src="other/additionalMedia/Components_v7/ST-LINK_V2.png" height="110" alt="ST-LINK V2 programmer with its four jumper wires"></a></td>
+<td align="center" width="120"><a href="firmware/hiwonder_pos-v8/README.md"><img src="other/additionalMedia/Previews/stlink_card.png" height="110" alt="ST-LINK V2 programmer with its four jumper wires"></a></td>
 <td><b>Tool, not part of the robot:</b> an ST-LINK/V2 programmer (<a href="https://es.aliexpress.com/item/1005004828761496.html">the one we use</a>) is needed once, to flash our firmware on the Hiwonder board (<a href="firmware/hiwonder_pos-v8/README.md">how to flash it</a>). It is not in the total above.</td>
 </tr>
 </table>
@@ -2131,8 +2128,8 @@ Design v7 has 13 different printed parts, 15 pieces in total. Their STL files ar
 
 <table>
 <tr>
-<td align="center" width="50%"><a href="https://www.youtube.com/shorts/fHsPBr_Bzps"><img src="https://img.youtube.com/vi/fHsPBr_Bzps/maxresdefault.jpg" alt="Open Challenge video" width="400"></a><br><b><a href="https://www.youtube.com/shorts/fHsPBr_Bzps">▶ Open Challenge</a></b></td>
-<td align="center" width="50%"><a href="https://www.youtube.com/shorts/g_2ZrS4TVyc"><img src="https://img.youtube.com/vi/g_2ZrS4TVyc/maxresdefault.jpg" alt="Obstacle Challenge video" width="400"></a><br><b><a href="https://www.youtube.com/shorts/g_2ZrS4TVyc">▶ Obstacle Challenge</a></b></td>
+<td align="center" width="50%"><a href="https://www.youtube.com/shorts/fHsPBr_Bzps"><img src="other/additionalMedia/Previews/video_open_challenge.jpg" alt="Open Challenge video" width="400"></a><br><b><a href="https://www.youtube.com/shorts/fHsPBr_Bzps">▶ Open Challenge</a></b></td>
+<td align="center" width="50%"><a href="https://www.youtube.com/shorts/g_2ZrS4TVyc"><img src="other/additionalMedia/Previews/video_obstacle_challenge.jpg" alt="Obstacle Challenge video" width="400"></a><br><b><a href="https://www.youtube.com/shorts/g_2ZrS4TVyc">▶ Obstacle Challenge</a></b></td>
 </tr>
 </table>
 
@@ -2140,8 +2137,8 @@ Design v7 has 13 different printed parts, 15 pieces in total. Their STL files ar
 
 <table>
 <tr>
-<td align="center" width="50%"><a href="https://www.youtube.com/watch?v=_KF8DmQ0PTM"><img src="https://img.youtube.com/vi/_KF8DmQ0PTM/hqdefault.jpg" alt="Open Challenge, official round of the 2026 Mexico National Final" width="400"></a><br><b><a href="https://www.youtube.com/watch?v=_KF8DmQ0PTM">▶ Open Challenge, official round</a></b></td>
-<td align="center" width="50%"><a href="https://www.youtube.com/watch?v=a_KmYEr5aDE"><img src="https://img.youtube.com/vi/a_KmYEr5aDE/hqdefault.jpg" alt="Obstacle Challenge, official round of the 2026 Mexico National Final" width="400"></a><br><b><a href="https://www.youtube.com/watch?v=a_KmYEr5aDE">▶ Obstacle Challenge, official round</a></b></td>
+<td align="center" width="50%"><a href="https://www.youtube.com/watch?v=_KF8DmQ0PTM"><img src="other/additionalMedia/Previews/video_national_open.jpg" alt="Open Challenge, official round of the 2026 Mexico National Final" width="400"></a><br><b><a href="https://www.youtube.com/watch?v=_KF8DmQ0PTM">▶ Open Challenge, official round</a></b></td>
+<td align="center" width="50%"><a href="https://www.youtube.com/watch?v=a_KmYEr5aDE"><img src="other/additionalMedia/Previews/video_national_obstacle.jpg" alt="Obstacle Challenge, official round of the 2026 Mexico National Final" width="400"></a><br><b><a href="https://www.youtube.com/watch?v=a_KmYEr5aDE">▶ Obstacle Challenge, official round</a></b></td>
 </tr>
 </table>
 
@@ -2149,18 +2146,20 @@ Design v7 has 13 different printed parts, 15 pieces in total. Their STL files ar
 
 <table>
 <tr>
-<td align="center" width="50%"><a href="https://www.youtube.com/watch?v=Mzc6JfptzTI"><img src="https://img.youtube.com/vi/Mzc6JfptzTI/maxresdefault.jpg" alt="Video: the extended firmware of the Hiwonder board, from scratch in STM32CubeIDE" width="400"></a><br><b><a href="https://www.youtube.com/watch?v=Mzc6JfptzTI">▶ The extended firmware, from scratch in STM32CubeIDE (9:52)</a></b></td>
-<td width="50%">How the firmware of the Hiwonder board is built and how it works (<a href="#board-firmware">§6.1</a>): 0:00 introduction · 0:39 an empty project · 2:08 the sources · 3:19 the settings · 5:04 build · 5:51 how it works · 8:31 flash and test.<br><br><b>Source, bench logs and everything else about the firmware:</b> <a href="https://github.com/JRavenelco/hiwonder-brick">github.com/JRavenelco/hiwonder-brick</a> (the firmware development repository).</td>
+<td align="center" width="50%"><a href="https://www.youtube.com/watch?v=Mzc6JfptzTI"><img src="other/additionalMedia/Previews/video_firmware.jpg" alt="Video: the extended firmware of the Hiwonder board, from scratch in STM32CubeIDE" width="400"></a><br><b><a href="https://www.youtube.com/watch?v=Mzc6JfptzTI">▶ The extended firmware, from scratch in STM32CubeIDE (9:52)</a></b></td>
+<td align="center" width="50%"><a href="https://github.com/JRavenelco/hiwonder-brick"><img src="other/additionalMedia/Previews/hiwonder_brick_card.png" alt="hiwonder-brick, the development repository of the board firmware" width="400"></a><br><a href="https://github.com/JRavenelco/hiwonder-brick"><img src="other/additionalMedia/Others/repo_icon.png" width="22" alt="Open the firmware repository"></a> <b><a href="https://github.com/JRavenelco/hiwonder-brick">The firmware repository: github.com/JRavenelco/hiwonder-brick</a></b></td>
 </tr>
 </table>
+
+*Left: how the firmware of the Hiwonder board is built and how it works ([§6.1](#board-firmware)): 0:00 introduction · 0:39 an empty project · 2:08 the sources · 3:19 the settings · 5:04 build · 5:51 how it works · 8:31 flash and test. Right: the repository with the source, the host library, the bench tools and the bench logs.*
 
 ---
 
 ### More YouTube Shorts showing various iterations of our project across seasons in this YT channel:
 
-**[@jesussantana2872](https://www.youtube.com/@jesussantana2872/shorts)**
+<img src="other/additionalMedia/Others/click_icon.png" width="20" alt="Click to open"> **[@jesussantana2872](https://www.youtube.com/@jesussantana2872/shorts)**
 
-<a href="https://www.youtube.com/@jesussantana2872/shorts"><img src="other/additionalMedia/Others/ytChannel.png" width="520" alt="Our YouTube channel"></a><br>
+<a href="https://www.youtube.com/@jesussantana2872/shorts"><img src="other/additionalMedia/Previews/yt_channel.png" width="520" alt="Our YouTube channel"></a><br>
 
 ---
 
