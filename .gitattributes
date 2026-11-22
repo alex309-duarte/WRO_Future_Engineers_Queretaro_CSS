@@ -1,2 +1,4 @@
 # Keep the firmware files byte-exact: the .hex checksums and the patch line endings must not change
 firmware/** -text
+# The proposed mission patch must keep the line endings of the file it applies to
+simulation/proposed/*.patch -text

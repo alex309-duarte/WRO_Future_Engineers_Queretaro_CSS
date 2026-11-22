@@ -1,0 +1,46 @@
+{
+ "name": "Layout C",
+ "source": "other/testing/obstacle_layout_C.png",
+ "parking": {
+  "section": "east",
+  "from_mm": 1000,
+  "length_mm": 358
+ },
+ "pillars": [
+  {
+   "color": "red",
+   "x_mm": 2000,
+   "y_mm": 600
+  },
+  {
+   "color": "red",
+   "x_mm": 2400,
+   "y_mm": 2000
+  },
+  {
+   "color": "red",
+   "x_mm": 1000,
+   "y_mm": 2400
+  },
+  {
+   "color": "green",
+   "x_mm": 1000,
+   "y_mm": 400
+  },
+  {
+   "color": "green",
+   "x_mm": 2400,
+   "y_mm": 1000
+  },
+  {
+   "color": "green",
+   "x_mm": 600,
+   "y_mm": 1500
+  },
+  {
+   "color": "green",
+   "x_mm": 2000,
+   "y_mm": 2600
+  }
+ ]
+}

@@ -13,9 +13,12 @@ This repository contains the engineering documentation for **CSS**'s autonomous 
 <tr>
 <td colspan="2" align="center"><a href="https://sebassesq.github.io/the-maker-3d/"><img src="other/additionalMedia/Others/vehicle_v7_exploded.gif" alt="Design v7 coming apart into its components and going back together; click to open the interactive 3D model" width="300"></a><br><a href="https://sebassesq.github.io/the-maker-3d/"><img src="other/additionalMedia/Others/click_icon.png" width="20" alt="Click to open"></a> <b><a href="https://sebassesq.github.io/the-maker-3d/">Open the interactive 3D model</a></b>: rotate it, zoom in and take the vehicle apart, in the browser (<a href="#viewer-3d">§4.1</a>)</td>
 </tr>
+<tr>
+<td colspan="2" align="center"><a href="https://www.youtube.com/watch?v=ZF4hCn6phOE"><img src="other/additionalMedia/Previews/video_digital_twin.jpg" alt="Video: the digital twin of The Maker solving the hardest cases of the Obstacle Challenge" width="400"></a><br><b><a href="https://www.youtube.com/watch?v=ZF4hCn6phOE">▶ Watch the digital twin</a></b>: the robot's own Obstacle Challenge program driving a simulated car (<a href="#digital-twin">§6.11</a>)</td>
+</tr>
 </table>
 
-**Quick links:** [Videos](#driving-videos) · [What changed since nationals](#what-changed) · [Assembly instructions](other/Assembly_photos/Assembly_Process_EN.md) · [Bill of Materials](#bom) · [3D-print files](#printed-parts) · [Interactive 3D model](#viewer-3d) · [Wiring diagram](#wiring-v7) · [Setup and run](#setup-instructions) · <a href="https://github.com/JRavenelco/hiwonder-brick"><img src="other/additionalMedia/Others/repo_icon.png" width="22" alt="Open the firmware repository"></a> [Firmware development repository](https://github.com/JRavenelco/hiwonder-brick) · [Firmware video](https://www.youtube.com/watch?v=Mzc6JfptzTI) · [Engineering Journal](Engineering_Journal_CSS_WRO2026_International.pdf) · [Releases](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS/releases)
+**Quick links:** [Videos](#driving-videos) · [What changed since nationals](#what-changed) · [Assembly instructions](other/Assembly_photos/Assembly_Process_EN.md) · [Bill of Materials](#bom) · [3D-print files](#printed-parts) · [Interactive 3D model](#viewer-3d) · [Digital twin](#digital-twin) · [Wiring diagram](#wiring-v7) · [Setup and run](#setup-instructions) · <a href="https://github.com/JRavenelco/hiwonder-brick"><img src="other/additionalMedia/Others/repo_icon.png" width="22" alt="Open the firmware repository"></a> [Firmware development repository](https://github.com/JRavenelco/hiwonder-brick) · [Firmware video](https://www.youtube.com/watch?v=Mzc6JfptzTI) · [Engineering Journal](Engineering_Journal_CSS_WRO2026_International.pdf) · [Releases](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS/releases)
 
 ---
 
@@ -30,9 +33,9 @@ The sections follow the five criteria of the WRO 2026 documentation rubric (Appe
 |---|---|
 | **1. Mobility and Mechanical Design** ([§4](#mobility)) | **Torque/speed reasoning:** [torque and speed calculation](#torque-speed)<br>**Design trade-offs:** decision cards for the [drive motor](#d2), the [steering servo](#d1) and the [differential](#d3)<br>**Why components were chosen:** [chassis](#chassis) (with an [interactive 3D model](#viewer-3d)), [steering](#steering), [drivetrain](#drivetrain)<br>**Testing or iterations affecting performance:** [what each test changed](#test-to-change), [iteration history v1–v7](#lessons) |
 | **2. Power and Sensor Architecture** ([§5](#power-sensors)) | **Power budget:** [power budget and peak current](#power-budget), [wiring diagram](#wiring-v7)<br>**Sensor trade-offs:** decision cards for the [LiDAR](#d5) and the [AI accelerator](#d6)<br>**Placement justified using field geometry:** [placement and field geometry](#placement)<br>**Calibration method:** [calibration](#calibration)<br>**Failure-point considerations:** [noise, interference and failure points](#noise)<br>**Iteration evidence:** [failure log](#failure-log) |
-| **3. Software Architecture and Obstacle Strategy** ([§6](#software)) | **State machine with rationale:** [Open Challenge states](#open-states), [Obstacle Challenge states](#obstacle-states)<br>**Algorithm justification (PID, CV, IMU):** [steering PD](#pd), [vision model](#vision), [LiDAR processing](#lidar), [heading estimation](#heading)<br>**Handling edge cases:** [avoidance, parking and edge cases](#edge-cases), [surprise rule: modified traffic sign](#surprise-rule)<br>**Testing/tuning process:** [testing and tuning workflow](#testing)<br>**Metrics used to validate performance:** [component tests](#component-tests), [run logs](#run-logs) |
-| **4. Systems Thinking and Engineering Decisions** ([§7](#systems)) | **Explicit constraints:** [constraints](#constraints), [rule compliance](#rule-compliance)<br>**Trade-offs:** [how the subsystems interact](#interactions)<br>**Iteration cycles:** [iteration history v1–v7](#lessons), [what changed from v6 to v7](#what-changed)<br>**Risk/failure analysis:** [risk and failure-mode register](#risks), [failure log](#failure-log), [known limitations and next steps](#limitations)<br>**"Why we chose X instead of Y":** the *Alternatives* row of every decision card ([D1](#d1), [D2](#d2), [D3](#d3), [D4](#d4), [D5](#d5), [D6](#d6), [D7](#d7), [D8](#d8), [D9](#d9)) |
-| **5. Reproducibility and GitHub Quality** ([§8](#reproducibility), [§9](#setup-instructions), [§10](#construction-guide)) | **Fully reproducible system:** [build this robot yourself](#build-it), [board firmware](#board-firmware), its [explainer video](https://www.youtube.com/watch?v=Mzc6JfptzTI) and its [development repository](https://github.com/JRavenelco/hiwonder-brick)<br>**Clear project structure:** [repository structure](#structure)<br>**Meaningful commit messages:** [commit history](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS/commits/main)<br>**Testing workflow documented:** [testing and tuning workflow](#testing), [competition-day checklist](#checklist)<br>**Versioning or release notes:** [versions and releases](#versions), [release notes](other/releases) |
+| **3. Software Architecture and Obstacle Strategy** ([§6](#software)) | **State machine with rationale:** [Open Challenge states](#open-states), [Obstacle Challenge states](#obstacle-states)<br>**Algorithm justification (PID, CV, IMU):** [steering PD](#pd), [vision model](#vision), [LiDAR processing](#lidar), [heading estimation](#heading)<br>**Handling edge cases:** [avoidance, parking and edge cases](#edge-cases), [surprise rule: modified traffic sign](#surprise-rule)<br>**Testing/tuning process:** [testing and tuning workflow](#testing), [digital twin of the Obstacle Challenge](#digital-twin)<br>**Metrics used to validate performance:** [component tests](#component-tests), [run logs](#run-logs) |
+| **4. Systems Thinking and Engineering Decisions** ([§7](#systems)) | **Explicit constraints:** [constraints](#constraints), [rule compliance](#rule-compliance)<br>**Trade-offs:** [how the subsystems interact](#interactions)<br>**Iteration cycles:** [iteration history v1–v7](#lessons), [what changed from v6 to v7](#what-changed)<br>**Risk/failure analysis:** [risk and failure-mode register](#risks), [failure log](#failure-log), [known limitations and next steps](#limitations), [what the digital twin found](#twin-findings)<br>**"Why we chose X instead of Y":** the *Alternatives* row of every decision card ([D1](#d1), [D2](#d2), [D3](#d3), [D4](#d4), [D5](#d5), [D6](#d6), [D7](#d7), [D8](#d8), [D9](#d9)) |
+| **5. Reproducibility and GitHub Quality** ([§8](#reproducibility), [§9](#setup-instructions), [§10](#construction-guide)) | **Fully reproducible system:** [build this robot yourself](#build-it), [board firmware](#board-firmware), its [explainer video](https://www.youtube.com/watch?v=Mzc6JfptzTI) and its [development repository](https://github.com/JRavenelco/hiwonder-brick)<br>**Clear project structure:** [repository structure](#structure)<br>**Meaningful commit messages:** [commit history](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS/commits/main)<br>**Testing workflow documented:** [testing and tuning workflow](#testing), [competition-day checklist](#checklist), the [digital twin](simulation) with instructions to run it<br>**Versioning or release notes:** [versions and releases](#versions), [release notes](other/releases) |
 
 ---
 
@@ -97,6 +100,7 @@ This documentation is written so that another team can build the same robot and 
 5. [Power and Sensor Architecture](#power-sensors)
 6. [Software Architecture and Obstacle Strategy](#software)
     - [Surprise rule: modified traffic sign](#surprise-rule)
+    - [Digital twin of the Obstacle Challenge](#digital-twin)
 7. [Systems Thinking and Engineering Decisions](#systems)
 8. [Reproducibility: repository, versions and testing](#reproducibility)
 9. [Setup and Execution Instructions](#setup-instructions)
@@ -282,7 +286,7 @@ The robot has gone through seven designs across two seasons (see [§7.4](#lesson
 | Repository release | Vehicle design | Event |
 |---|---|---|
 | [`v1.0.0`](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS/releases/tag/v1.0.0) | Design v6 | Mexico National Final, Tijuana (2nd place) |
-| [`v2.0.4`](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS/releases/tag/v2.0.4) | Design v7 | International Final, Puerto Rico |
+| [`v2.1.0`](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS/releases/tag/v2.1.0) | Design v7 | International Final, Puerto Rico |
 
 | Subsystem | Design v6: National Final (Sep 2026) | Design v7: International Final (Dec 2026) | Decision card |
 |---|---|---|---|
@@ -822,7 +826,7 @@ The control loop runs on the **Raspberry Pi 5**. The RPLidar S2L streams 360° s
 </table>
 
 
-The design v7 wiring is in [Figure 7](#wiring-v7) (§5.1) and the v7 software data flow in Figure 11 (§6.1).
+The design v7 wiring is in [Figure 7](#wiring-v7) (§5.1) and the v7 software data flow in Figure 9 (§6.1).
 
 <table>
 <tr>
@@ -903,7 +907,7 @@ However, since the WRO Future Engineers rules prohibit wireless communication du
 
 <img src="schemes/firmware/hiwonder_firmware_architecture.png" alt="Architecture of the extended pos-v8 firmware: host software on the Raspberry Pi 5, FreeRTOS tasks and the 100 Hz control loop on the STM32, and the board hardware" width="900">
 
-*Figure 10. Extended firmware `pos-v8`. The orange blocks are what we added to Hiwonder's firmware.*
+*Figure 8. Extended firmware `pos-v8`. The orange blocks are what we added to Hiwonder's firmware.*
 
 
 <table>
@@ -933,7 +937,7 @@ The Obstacle Challenge program is structured as cooperating threads: a Hailo pre
 
 <img src="other/additionalMedia/Others/wro_software_dataflow_diagram_v7.png" alt="Design v7 software data flow: RPLidar S2L, camera and IMU into the mission thread, then spike_compat and the Hiwonder board" width="800">
 
-*Figure 11. Design v7 software data flow (Obstacle Challenge), from sensor input through processing and decision-making to the Hiwonder board, which drives the motor and the steering servo.*
+*Figure 9. Design v7 software data flow (Obstacle Challenge), from sensor input through processing and decision-making to the Hiwonder board, which drives the motor and the steering servo.*
 
 ### 6.2 Open Challenge
 
@@ -969,7 +973,7 @@ flowchart TD
     S --> Z(["Run finished"])
 ```
 
-*Figure 12. Open Challenge program flow, traced directly from `Recorrido()` in [`src/ondevice/main.cpp`](src/ondevice/main.cpp).*
+*Figure 10. Open Challenge program flow, traced directly from `Recorrido()` in [`src/ondevice/main.cpp`](src/ondevice/main.cpp).*
 
 > [!NOTE]
 > <details>
@@ -1015,7 +1019,7 @@ stateDiagram-v2
     EmergencyStop --> [*]
 ```
 
-*Figure 13. Open Challenge high-level state machine. The Open Challenge has no parking: it ends with a stop in the starting section.*
+*Figure 11. Open Challenge high-level state machine. The Open Challenge has no parking: it ends with a stop in the starting section.*
 
 > **Emergency stop.** The Hiwonder board firmware has no command timeout (its IWDG watchdog only resets a hung firmware): if the program died with the motor running, the motor would keep its last speed. So, from the moment the LiDAR is opened, Ctrl+C, `kill` or a crash triggers `parada_emergencia` ("emergency stop"), which sends the board a COAST command for all four motors and the LiDAR its stop frames, then ends the process immediately, so no half-finished loop can send another speed. If the board or the LiDAR does not start (no scan within 5 s), `Recorrido()` returns 1 before anything moves; if only the board is missing and the window is on, the window keeps showing the LiDAR until Ctrl+C, which is useful to check the LiDAR without the board.
 
@@ -1096,7 +1100,7 @@ stateDiagram-v2
     Stopped --> [*]
 ```
 
-*Figure 14. Obstacle Challenge high-level state machine (navigation thread). `FinalParking` is described in [§6.8](#parking).*
+*Figure 12. Obstacle Challenge high-level state machine (navigation thread). `FinalParking` is described in [§6.8](#parking).*
 
 > The direction of the run is fixed for the whole attempt by the single
 > side-wall reading taken in `InitialScan`, and both branches feed the same
@@ -1132,7 +1136,7 @@ flowchart TD
     O --> P
 ```
 
-*Figure 15. One Obstacle Challenge corner cycle (clockwise run, distances measured by the LiDAR).*
+*Figure 13. One Obstacle Challenge corner cycle (clockwise run, distances measured by the LiDAR).*
 
 > [!NOTE]
 > <details>
@@ -1369,7 +1373,7 @@ After the 12th section the robot is back in the section that holds the parking l
 > | 4. Reverse S-turn into the lot | Reverse with the wheels right until the gyro has turned **50°**, re-zero, reverse with the wheels left for **105°**, reverse **400 hub degrees** (≈ 156 mm) at heading −105°, brake. | Reverse with the wheels left for **52°**, re-zero, reverse with the wheels right for **100°**, reverse **390 hub degrees** (≈ 152 mm) at heading 90°, brake. |
 > | 5. Straighten | Re-zero, reverse with the wheels right for **28°** and hold the motor, re-zero, short forward correction with the wheels left, centre the steering. | Mirror: reverse with the wheels left for **28°**, hold, short forward correction with the wheels right, centre the steering. |
 >
-> After step 5 the robot stays parked (state `FinalParking` → `Idle` in [Figure 14](#63-obstacle-challenge)) until the program is stopped.
+> After step 5 the robot stays parked (state `FinalParking` → `Idle` in [Figure 12](#63-obstacle-challenge)) until the program is stopped.
 >
 > </details>
 
@@ -1385,10 +1389,11 @@ After the 12th section the robot is back in the section that holds the parking l
    ./run_hiwonder_h8.sh --solo-percepcion            # with display
    ./run_hiwonder_h8.sh --solo-percepcion --no-display  # over SSH
    ```
-3. **Wheels lifted.** Yaw sign, steering side and distance checks ([§5.3](#calibration)).
-4. **Slow track runs.** `WRO_MAX_RPS=1.5 ./my_lidar_app`: same distances and angles, lower speed.
-5. **Competition speed**, with the emergency stop ready.
-6. **Record every run** in the tables below: one row per attempt, including the failed ones. In the national journal, the lack of logged runs was our biggest methodological gap.
+3. **Digital twin.** The Obstacle Challenge program, unchanged, drives a simulated car on a simulated field with a referee that records every lap and every sign ([§6.11](#digital-twin)). It shows a problem before the robot goes on the mat.
+4. **Wheels lifted.** Yaw sign, steering side and distance checks ([§5.3](#calibration)).
+5. **Slow track runs.** `WRO_MAX_RPS=1.5 ./my_lidar_app`: same distances and angles, lower speed.
+6. **Competition speed**, with the emergency stop ready.
+7. **Record every run** in the tables below: one row per attempt, including the failed ones. In the national journal, the lack of logged runs was our biggest methodological gap.
 
 **Status of the code and of these results (2026-11-21).** The tables below were measured on 2026-11-08 with the settings of release v2.0.0. Since then the LiDAR was remounted towards the back of the robot and rotated 90°, the front-wall distances of the Obstacle Challenge were raised by about 100 mm, the gyro correction uses several walls, and the Obstacle Challenge speeds in the code are lower while the new settings are tuned on the track ([§6.3](#63-obstacle-challenge)). New run logs will replace these when the tuning is finished.
 
@@ -1480,7 +1485,7 @@ The ten runs used five pillar layouts, A to E, each driven once in each directio
 
 <img src="other/testing/obstacle_layouts.png" alt="The five obstacle layouts A to E used in the test runs: positions of the red and green pillars and of the parking lot on the WRO playfield" width="900">
 
-*Figure 16. Obstacle layouts A to E of the test runs. Pillars are drawn a little larger than scale (80 mm instead of 50 mm) so they can be seen; the parking limits are to scale. Single drawings are in [`other/testing/`](other/testing).*
+*Figure 14. Obstacle layouts A to E of the test runs. Pillars are drawn a little larger than scale (80 mm instead of 50 mm) so they can be seen; the parking limits are to scale. Single drawings are in [`other/testing/`](other/testing).*
 
 > [!NOTE]
 > <details>
@@ -1554,7 +1559,7 @@ On 2026-11-09 WRO published an optional extra task for the Obstacle Challenge of
 
 <img src="other/additionalMedia/Others/surprise_rule_ratio.png" alt="A 50 mm sign has a detection box about as tall as it is wide, a standard 100 mm sign about twice as tall, and a 150 mm sign about three times as tall" width="800">
 
-*Figure 17. The height-to-base ratio of the detection box separates the modified signs (about 1 or about 3) from the standard sign (about 2).*
+*Figure 15. The height-to-base ratio of the detection box separates the modified signs (about 1 or about 3) from the standard sign (about 2).*
 
 | Height ÷ base of the box | The sign is | The robot passes it |
 |---|---|---|
@@ -1572,7 +1577,65 @@ On 2026-11-09 WRO published an optional extra task for the Obstacle Challenge of
 | **How it fits the code** | Only the colour decision changes: when the ratio says "modified", the mission receives the opposite colour and the existing avoidance manoeuvres of [§6.8](#edge-cases) are used as they are |
 | **Open point** | A 50 mm sign is lower than the scanning plane of the LiDAR (about 75 mm above the ground, [§5.2](#placement)), so the LiDAR does not see it. For that sign the distance and the angle have to come from the camera image |
 | **First result** | In the frame above the three heights are clearly separated, but the ratios (about 0.9, 1.4 and 1.7 to 2.0) are lower than the ideal 1, 2 and 3. The limits between the three classes will therefore be set from frames like this one, taken at different distances and angles, and not from the ideal values |
-| **Status** | The model detects the short and the tall signs in our first frames. The ratio check and the change of side are not implemented or tested yet. We are working on it until the day of the competition and will update this repository with the progress as soon as possible ([§7.6](#limitations)) |
+| **Status** | The model detects the short and the tall signs in our first frames. The height check and the change of side run as a prototype in the digital twin (below); they are not in the robot program yet and have not been tested on the robot. We are working on it until the day of the competition and will update this repository with the progress as soon as possible ([§7.6](#limitations)) |
+
+**Prototype in the digital twin ([§6.11](#digital-twin)).** The twin measures the **height** of the sign rather than the plain shape of the box: the bottom of the box gives the distance to the sign (camera height and tilt known), and with that distance the top of the box gives the real height, which is divided by the 50 mm base. In the twin this gives 0.99, 2.00 and 3.00 for the 50, 100 and 150 mm signs, with 446 of 450 frames voting correctly. A sign is decided after it wins 4 of the last 7 frames, and a modified sign is handed to the mission with the opposite colour, so the mission code does not change. In four runs (red replaced by green and green by red, 50 and 150 mm) the modified sign was passed on the side of its original colour 3 times out of 3 in each run. On the real camera, the lens height, tilt and angle of view must be measured and the limits set from real frames: this may also explain why the plain box ratios in the first real frames (0.9, 1.4 and 1.7 to 2.0) are lower than 1, 2 and 3. The prototype lives in the twin only ([`simulation/bridge/surprise_rule.cpp`](simulation/bridge/surprise_rule.cpp)); it is not in the robot program yet.
+
+<img src="other/additionalMedia/Others/twin_surprise_measure.png" alt="How the digital twin measures the height of a sign: distance from the bottom of the detection box and the camera geometry, height from the top of the box, ratio to the 50 mm base, and the result over 450 frames" width="800">
+
+*Figure 16. How the twin measures a sign's height from its detection box and the camera geometry, the ratio for each sign height, and the result over 450 frames.*
+
+<img src="other/additionalMedia/Others/twin_surprise_rule.gif" alt="In the digital twin a red sign is replaced by a 150 mm green one; the program's camera labels it MODIFIED, pass as RED, and the car passes it on the right" width="800">
+
+*In the twin: a red sign replaced by a 150 mm green one. The program's camera labels it "MODIFIED -> pass as RED" and the car passes it on the right.*
+
+
+### 6.11 Digital twin of the Obstacle Challenge <a id="digital-twin"></a>
+
+We built a digital twin of the Obstacle Challenge in CoppeliaSim. The robot's mission program is compiled **without changes** and drives a simulated "The Maker"; only the hardware underneath it is replaced. The field, the signs and the parking lot follow the rules, the car comes from our CAD model, and the LiDAR and the camera sit where they are on the robot. A referee inside the scene records the laps, the side on which each sign is passed, every sign touched and every wall contact. Everything is in [`simulation/`](simulation), with instructions to run it.
+
+<img src="other/additionalMedia/Others/twin_architecture.png" alt="The digital twin: the robot's mission program, unchanged, talks through a thin bridge to a simulated car, field and referee" width="800">
+
+*Figure 17. The digital twin: the robot's mission program, unchanged, talks through a thin bridge to a simulated car, field and referee.*
+
+| Part | In the twin |
+|---|---|
+| Mission logic, LiDAR wall fitting, heading control | The repository's code, compiled as it is |
+| Hiwonder board (motor, servo, IMU, button, LED) | Emulated in the scene |
+| RPLidar S2L | Computed in its scanning plane, 10 turns per second, 5 mm noise |
+| Camera and detector | Simulated camera at the lens position; a colour detector fills the same output the Hailo model gives |
+| Referee | Laps, passing side of every sign, signs touched, wall contacts, time |
+
+<a id="twin-findings"></a>**What the twin found, case 1: a single sign right after a corner.** When the last sign of a section is passed on the inner side and the corner is empty, the robot ends the corner turn about 1150 mm into the next section, only about 300 mm before a sign in the middle position. The avoidance manoeuvre for that sign turns and drives a calculated distance, and from there it has no room: in Layout A, clockwise, the red sign of the parking section is hit on lap 2.
+
+<img src="other/additionalMedia/Others/twin_middle_sign_before_after.png" alt="Top view of the parking section on lap 2: on the left the mission as in the repository hits the sign; on the right, with the proposed change, the robot reverses, changes lane and passes" width="800">
+
+*Figure 18. Parking section, lap 2, top view. Left: the mission as in the repository hits the sign. Right: with the proposed change the robot reverses, changes lane and passes.*
+
+**The proposed change** ([`simulation/proposed/`](simulation/proposed)): reverse until the LiDAR is 600 mm from the rear wall, read the colour again with the whole sign in view, turn 45 degrees and drive the diagonal **until the LiDAR ray perpendicular to the outer wall reads the lane**, steer back and pass. Because the move ends on a measurement, wheel slip and the width of the turn do not change where it ends. If the first readings are not plausible the old manoeuvre runs, and one switch (`MIDDLE_SIGN_MAKE_ROOM 0`) restores the old behaviour.
+
+<img src="other/additionalMedia/Others/twin_middle_sign_fix.gif" alt="In the digital twin the robot reverses, changes lane on the LiDAR and passes the red sign of the parking section on lap 2; chase camera with stopwatch on the left, top view with the path on the right" width="800">
+
+*The same moment with the change: reverse, lane change on the LiDAR, pass. The stopwatch is the robot's time.*
+
+**What the twin found, case 2: decisions on old camera images.** The two frame queues of the camera pipeline hold up to 60 frames each. When the computer fell slightly behind the camera rate (in the twin, while the program was saving its video) the queues filled and the mission decided on images more than a second old: on lap 3 it read a sign it had already passed as the sign of the next corner. On the robot, nothing should slow the pipeline during a run. The proposed change also holds the robot still for 200 ms before the colour of a corner sign is read.
+
+**Results (twin only, not robot results):**
+
+| Layout A, clockwise | Mission as in the repository | Mission with the proposed change |
+|---|---|---|
+| Plain layout | Lap 1 clean; lap 2 the red sign of the parking section is hit | 3 laps, 15 of 15 signs on the correct side, none touched, 1:54.6 |
+| One sign replaced (surprise rule, 4 runs) | not run | 4 of 4 runs: 3 laps, the modified sign passed on the side of its original colour 3 of 3 times, no sign touched |
+
+**Not solved yet.** Layouts B to E and Layout A counter-clockwise are **not yet solved in the twin by either version**, and the final parking does not complete in the twin. We do not know yet whether the twin (its turning radius and the start out of the parking lot are not calibrated against the robot) or the mission is at fault. The change is therefore a proposal: it is not applied to [`src/`](src) and goes to the robot only after it passes on the mat. The detailed results and the list of things to check on the robot are in [`simulation/proposed/README.md`](simulation/proposed/README.md).
+
+> [!NOTE]
+> <details>
+> <summary><kbd>Click to open</kbd> <b>Why CoppeliaSim</b></summary>
+>
+> CoppeliaSim is one free-for-education tool with a scene editor, cameras, distance sensors, scripts inside the scene and a remote interface that the robot program (in Linux) talks to. MuJoCo is the better choice when contact physics and thousands of parallel runs for learning are the hard part; our runs are decided by what the sensors see and what the code decides, so the twin moves the car with a bicycle model from the CAD and puts the effort into the sensors, timing and referee. CoppeliaSim can use MuJoCo as its physics engine, which keeps the door open to training a learning agent in simulation for 2027. The twin runs in 10 ms steps, at about 0.9 of real time with the 3D view off (CoppeliaSim Edu 4.10 on Windows; the robot program built in WSL Ubuntu 24.04).
+>
+> </details>
 
 ---
 
@@ -1760,7 +1823,7 @@ Every failure that changed the design or is still open, with its cause and the r
 
 | Limitation today | Effect | Next step |
 |---|---|---|
-| The surprise rule (modified traffic sign, published 2026-11-09) is not handled yet | Without it the robot cannot score the 15 additional points of the Obstacle Challenge | Detect the modified sign from the height-to-base ratio of its detection box and pass it on the opposite side ([§6.10](#surprise-rule)). We are working on it until the competition and will update this repository with the progress |
+| The surprise rule (modified traffic sign, published 2026-11-09) is not handled yet | Without it the robot cannot score the 15 additional points of the Obstacle Challenge | Detect the modified sign from the height-to-base ratio of its detection box and pass it on the opposite side ([§6.10](#surprise-rule)). We are working on it until the competition and will update this repository with the progress. A prototype runs in the digital twin ([§6.11](#digital-twin)) |
 | All failures in the run logs are on lap 3 (F9 to F11); parking completed in 7 of 10 runs | The last lap and the parking are the least reliable parts of a run | Work on the corner re-squaring on lap 3, the pillar approach of layout E and the final parking approach ([§6.9](#testing)) |
 | The missions do not check that the LiDAR is still delivering scans during a run | If the LiDAR stopped mid-run, the robot would continue on old data | Use the scan counter (`Oradar_S2L_Get_Scan_Seq`) in the missions, as the camera + LiDAR demo mode already does ([§7.3](#risks)) |
 | The board firmware has no command timeout | `kill -9` or a frozen Pi is only covered by the power switch | A command timeout in the firmware ([D9](#d9)) |
@@ -1771,6 +1834,7 @@ Every failure that changed the design or is still open, with its cause and the r
 | Vision fails in strong shadows and in near darkness | Wrong or missed pillar colour (4 of 100 on the track) | Perception-only check at the venue before each round ([checklist](#checklist)) |
 | Worst-case current (motor and servo both stalled) is above the cells' continuous rating | Supply sag, calculated to stay above the board's 7 V minimum | Accepted; the steering clamp avoids the servo stall ([§7.3](#risks)) |
 | The driving videos do not show the current robot yet | Some parts in the videos look different from the robot described here | New videos to be added |
+| The digital twin is not calibrated against the robot (turning radius, start out of the parking lot) | Layouts B to E, Layout A counter-clockwise and the final parking are not solved in the twin yet, by either version of the mission | Measure the robot's turning circle and the start out of the lot; test the proposed change on the mat before it goes into `src/` ([§6.11](#digital-twin)) |
 
 ---
 
@@ -1787,7 +1851,7 @@ timeline
     August : v0.2.0, new chassis : Design v6, final national geometry
     September : v0.3.0, full documentation : Mexico National Final, 2nd place
     October : v1.0.0, the national version : Hiwonder board, RPLidar S2L and new vision model on the robot
-    November : v2.0.0, design v7 documented : v2.0.4, current version
+    November : v2.0.0, design v7 documented : v2.1.0, current version
     December : International Final, Puerto Rico
 ```
 
@@ -1801,7 +1865,8 @@ timeline
 | [`v2.0.1`](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS/releases/tag/v2.0.1) | 2026-11-16 | Updated assembly instructions with photos of the v7 build (37 steps), servo corrected to HX-12H, battery layout change, 15 print files, hardware kits in the BOM |
 | [`v2.0.2`](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS/releases/tag/v2.0.2) | 2026-11-21 | README reorganised for a faster review (videos first, rubric map, folded detail), surprise rule plan, new photos of the vehicle |
 | [`v2.0.3`](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS/releases/tag/v2.0.3) | 2026-11-21 | Obstacle Challenge code updated (gyro correction from the median of the walls, start wait, new distances, heading log), print files updated to the current CAD (13 print files), CAD views, first frames with modified signs |
-| [`v2.0.4`](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS/releases/tag/v2.0.4) | 2026-11-22 | **International Final version, current** (design v7): interactive 3D model of the vehicle (rotate, zoom, exploded view), SolidWorks assembly of the current design (`Assem1.SLDASM`), link to the development repository of the board firmware |
+| [`v2.0.4`](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS/releases/tag/v2.0.4) | 2026-11-22 | Interactive 3D model of the vehicle (rotate, zoom, exploded view), SolidWorks assembly of the current design (`Assem1.SLDASM`), link to the development repository of the board firmware |
+| [`v2.1.0`](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS/releases/tag/v2.1.0) | 2026-11-22 | **International Final version, current** (design v7): digital twin of the Obstacle Challenge in CoppeliaSim (the robot's program, unchanged, against a simulated car), with its findings, a proposed mission change tested only in the twin, and a surprise-rule prototype ([§6.11](#digital-twin)) |
 
 > [!NOTE]
 > <details>
@@ -1827,6 +1892,7 @@ timeline
 | [`firmware/`](firmware) | Firmware of the Hiwonder board: ours in [`hiwonder_pos-v8/`](firmware/hiwonder_pos-v8), Hiwonder's original in [`hiwonder_original/`](firmware/hiwonder_original). Its development repository, with the bench logs, is [hiwonder-brick](https://github.com/JRavenelco/hiwonder-brick) |
 | [`models/`](models/cad) | SolidWorks CAD of every design, the [interactive 3D model](models/cad/viewer) of design v7, STL files to print ([`Stl/v7/`](models/cad/Stl/v7)) and printer presets |
 | [`schemes/`](schemes) | Wiring diagrams and the firmware architecture diagram |
+| [`simulation/`](simulation) | Digital twin of the Obstacle Challenge in CoppeliaSim: the bridge that runs the robot's program against a simulated car, the scene, tools, and proposed changes to the mission ([§6.11](#digital-twin)) |
 | [`other/`](other) | [Assembly instructions](other/Assembly_photos/Assembly_Process_EN.md) with photos, [full setup instructions](other/docs/Setup_and_Execution.md), the [design v6 page](other/docs/Design_v6_National.md), datasheets, dataset and training results, test log, release notes, WRO rules |
 | [`v-photos/`](v-photos), [`t-photos/`](t-photos) | Vehicle photos (six views of each design and the design history) and team photos |
 | [`video/`](video/video.md) | Links to the driving videos |
@@ -1882,6 +1948,11 @@ The complete folder tree, with a comment on every folder:
 │       ├── pcb/                          # KiCad expansion-board design study (not on the robot)
 │       ├── wiringSchematics_v7.png       # Wiring diagram, design v7
 │       └── wiringSchematics.jpeg         # Wiring diagram, design v6
+├── simulation/                           # Digital twin of the Obstacle Challenge (CoppeliaSim)
+│   ├── bridge/                           # Simulated board, LiDAR, camera and detector for the robot program
+│   ├── scene/                            # Scene builder, car script, layouts A to E
+│   ├── tools/                            # Scripts to build, run, replay and summarise runs
+│   └── proposed/                         # Proposed mission change, tested only in the twin
 ├── src/                                  # Main C++ autonomous driving software
 │   ├── config/                           # System YAML parameters and config files (Hailo)
 │   ├── cpp/                              # Core driving, perception, and control logic
@@ -2038,7 +2109,7 @@ Design v7 has 13 different printed parts, 15 pieces in total. Their STL files ar
 
 <img src="models/cad/Stl/v7/printed_parts_v7.png" alt="The 13 printed parts of design v7 drawn at the same scale, with their file names and sizes" width="900">
 
-*Figure 18. The 13 printed parts of design v7, all drawn at the same scale (sizes are the bounding box of each file, in mm). Two parts are printed twice.*
+*Figure 19. The 13 printed parts of design v7, all drawn at the same scale (sizes are the bounding box of each file, in mm). Two parts are printed twice.*
 
 > [!NOTE]
 > <details>
@@ -2156,6 +2227,18 @@ Design v7 has 13 different printed parts, 15 pieces in total. Their STL files ar
 
 *Left: how the firmware of the Hiwonder board is built and how it works ([§6.1](#board-firmware)): 0:00 introduction · 0:39 an empty project · 2:08 the sources · 3:19 the settings · 5:04 build · 5:51 how it works · 8:31 flash and test. Right: the repository with the source, the host library, the bench tools and the bench logs.*
 
+
+### Digital twin: the hardest cases, with the stopwatch
+
+<table>
+<tr>
+<td align="center" width="50%"><a href="https://www.youtube.com/watch?v=ZF4hCn6phOE"><img src="other/additionalMedia/Previews/video_digital_twin.jpg" alt="Video: the digital twin of The Maker solving the hardest cases of the Obstacle Challenge" width="400"></a><br><b><a href="https://www.youtube.com/watch?v=ZF4hCn6phOE">▶ Digital twin of the Obstacle Challenge (14:16)</a></b></td>
+<td align="center" width="50%"><img src="other/additionalMedia/Others/twin_middle_sign_fix.gif" alt="The simulated robot reverses, changes lane on the LiDAR and passes a red sign" width="400"><br><a href="simulation"><img src="other/additionalMedia/Others/click_icon.png" width="20" alt="Click to open"></a> <b><a href="simulation">The twin's code and instructions: simulation/</a></b></td>
+</tr>
+</table>
+
+*0:00 introduction · 1:28 case 1: a sign right after the corner · 2:10 the change to the mission code · 5:08 found by the twin: old camera images · 5:47 the surprise rule · 11:46 why this simulator · 13:10 limits and next steps ([§6.11](#digital-twin)).*
+
 ---
 
 ### More YouTube Shorts showing various iterations of our project across seasons in this YT channel:
@@ -2259,4 +2342,4 @@ The MIT License covers the team's own work. Third-party code keeps its authors' 
 
 ---
 
-> *Document maintained by CSS | Last updated: November 2026 | Latest release: v2.0.4*
+> *Document maintained by CSS | Last updated: November 2026 | Latest release: v2.1.0*

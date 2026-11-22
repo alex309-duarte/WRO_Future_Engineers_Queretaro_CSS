@@ -1,0 +1,6 @@
+# produced by the runs, not part of the twin
+logs/
+scene/results/
+scene/*.ttt
+scene/twin_params.txt
+build*/

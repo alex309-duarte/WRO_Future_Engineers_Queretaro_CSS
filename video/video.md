@@ -17,6 +17,13 @@ The extended firmware of the Hiwonder ROS Robot Controller, from scratch in STM3
 
 <a href="https://github.com/JRavenelco/hiwonder-brick"><img src="../other/additionalMedia/Others/repo_icon.png" width="22" alt="Open the firmware repository"></a> Source, bench logs and everything else about the firmware: **[github.com/JRavenelco/hiwonder-brick](https://github.com/JRavenelco/hiwonder-brick)**, the firmware development repository.
 
+## Digital twin of the Obstacle Challenge
+*(Click on preview to visit YouTube Video)*
+
+[![The digital twin of The Maker solving the hardest cases of the Obstacle Challenge](../other/additionalMedia/Previews/video_digital_twin.jpg)](https://www.youtube.com/watch?v=ZF4hCn6phOE)
+
+The robot's own mission program drives a simulated car in CoppeliaSim (about 14 minutes): a sign right after the corner and the change that solves it, decisions on old camera images, the surprise rule, why this simulator, and the limits of the twin.
+
 ## 2026 Mexico National Final: official rounds
 
 ### Open Challenge, official round

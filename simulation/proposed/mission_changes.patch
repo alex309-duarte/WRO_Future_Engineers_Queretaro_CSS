@@ -1,0 +1,299 @@
+diff --git a/src/cpp/object_detection_hiwonder_h10/object_detection.cpp b/src/cpp/object_detection_hiwonder_h10/object_detection.cpp
+index 530205c..5069c2d 100644
+--- a/src/cpp/object_detection_hiwonder_h10/object_detection.cpp
++++ b/src/cpp/object_detection_hiwonder_h10/object_detection.cpp
+@@ -2459,6 +2459,16 @@ Color_traffic_light esquivar_cubos_2( Color_traffic_light past_cube, bool parkin
+     }
+ }
+ 
++// Colour of the sign in the corner: it used to be read from the newest camera
++// frame at the moment the robot reaches the reading point, still moving. When
++// the section the robot leaves has a sign on its last position, that sign is
++// beside the camera by then, but the newest frame was taken about 0.1 s
++// earlier and can still show it at the edge of the image, larger than the
++// sign in the corner: the corner is then read with the colour of the sign
++// just passed. Holding the robot CORNER_COLOUR_SETTLE_MS before the read
++// makes the frame come from the reading point. 0 = previous behaviour.
++#define CORNER_COLOUR_SETTLE_MS 200
++
+ // Clockwise run: drives to 1050 mm from the front wall, checks the camera for a pillar in
+ // the corner area and takes the right-hand corner turn (until |yaw| >= 86 deg).
+ // The colour seen sets how close to the front wall the robot gets before turning
+@@ -2473,6 +2483,9 @@ Color_traffic_light Corner_Case(Color_traffic_light past_cube, bool *middle_cube
+     bool is_corner_cube = true;
+     printf("Case_corner\n");
+     Oradar_S2L_Advance_Until_Distance(SPEED_CORNER_CASE_CLOCKWISE_FORWARD, 0, WALL_OFFSET_INIT_CORNER_CASE_CLOCKWISE, Hold);
++#if CORNER_COLOUR_SETTLE_MS > 0
++    usleep(CORNER_COLOUR_SETTLE_MS * 1000);
++#endif
+     Color_traffic_light cube = traffic_lights.light_color;
+ 
+ 
+@@ -2564,6 +2577,233 @@ Color_traffic_light esquivar_cubos_middle(bool parking){
+     return cube;
+ }
+ 
++// ---------------------------------------------------------------------------
++// Middle sign after a corner: make room, then change lane on the LiDAR.
++//
++// Why: when the last sign of the previous section was passed on the inner side
++// and there is no sign in the corner, the robot comes out of the corner turn
++// about 1150 mm into the new section and near the middle of the lane. A middle
++// sign (1500 mm) is then only about 300 mm ahead of the bumper. The lane change
++// of esquivar_cubos_middle (turn about 65 deg, advance hypotenuse - 450, turn
++// back) needs more room than that: with the sign on the inner row (always the
++// case in the parking section) the robot touches it.
++//
++// What: (1) reverse along the section until the lidar is MIDDLE_REAR_START_MM
++// from the rear wall (3000 - front wall: the camera mast hides the wall
++// behind from the lidar); (2) read the colour again, now with the whole
++// sign in view; (3) turn MIDDLE_LANE_TURN_DEG towards the target lane and
++// drive that diagonal until the lidar ray that is perpendicular to the outer
++// wall says the lane is reached, instead of driving a computed distance;
++// (4) steer back to heading 0; (5) drive along the lane to the point where
++// the previous manoeuvre ended (MIDDLE_END_REAR_MM), passing the sign.
++// Lanes (lidar to the outer wall): on the outer side the one of
++// calculte_angle_section_start_*_chr, 185 mm (400 mm in the parking section);
++// on the inner side MIDDLE_LANE_INNER_MM. That function aims at 815 mm, but
++// the manoeuvre it feeds ends near 750 mm, and the window is narrow: below
++// about 720 mm the robot touches a sign on the inner row, and from about
++// 785 mm the corner that follows touches a sign on the outer row of the next
++// section (both seen in the simulation).
++// Nothing moves if the robot is already in the lane. If the first readings
++// are not plausible (the robot is not where this case expects it) the
++// previous manoeuvre runs instead.
++// MIDDLE_SIGN_MAKE_ROOM 0 restores the previous behaviour everywhere.
++#define MIDDLE_SIGN_MAKE_ROOM 1
++#define MIDDLE_REAR_START_MM 600   // lidar to rear wall where the lane change starts, mm
++#define MIDDLE_REAR_MAX_MM 1400    // further than this from the rear wall: not this case
++#define MIDDLE_REVERSE_MAX_MM 800  // longest reverse, mm
++#define MIDDLE_LANE_INNER_MM 775   // inner lane, lidar to the outer wall, mm
++#define MIDDLE_LANE_TURN_DEG 45    // heading of the diagonal, deg
++#define MIDDLE_LANE_LEAD_MM 65     // lateral distance still gained while steering back to 0, mm
++#define MIDDLE_LANE_SLOW_MM 60     // last part of the diagonal driven slowly, mm of lateral distance
++#define MIDDLE_LANE_SMALL_MM 220   // lane closer than this: flatter diagonal
++#define MIDDLE_LANE_SMALL_TURN_DEG 25
++#define MIDDLE_LANE_SMALL_LEAD_MM 20
++#define MIDDLE_LANE_MAX_MM 800     // longest diagonal, mm
++#define MIDDLE_LANE_CLOSE_MM 60    // already this close to the lane: no lane change
++#define MIDDLE_END_REAR_MM 1700    // lidar to rear wall where the manoeuvre ends, mm
++
++// Median of the 5 lidar rays around `indice` (deg; buffer: right = 0,
++// back = 90, left = 180, front = 270), mm; 0 if none has a return.
++static float Lidar_Mediana_5(int indice){
++    float lidar[360];
++    Oradar_S2L_Get_Buffer(&lidar[0]);
++    float v[5];
++    int n = 0;
++    for(int k = -2; k <= 2; k++){
++        const float d = lidar[(((indice + k) % 360) + 360) % 360];
++        if(d > 0.0f) v[n++] = d;
++    }
++    if(n == 0) return 0.0f;
++    std::sort(v, v + n);
++    return v[n / 2];
++}
++
++// Distance (mm) from the lidar to the outer wall, read with the ray that is
++// perpendicular to that wall at the current heading (gyro yaw, 0 = parallel to
++// the section, positive = turned left), so it is the lateral position whatever
++// the heading.
++static float Distancia_Lateral_Pared_Exterior(direction outer_side){
++    const int yaw = (int)std::lround(Spike_Get_Gyro());
++    return Lidar_Mediana_5(((outer_side == left) ? 180 : 0) + yaw);
++}
++
++// Distance (mm) from the lidar to the wall behind, as in
++// calculte_angle_section_start_*_chr: 3000 - fitted front wall. 0 if the
++// front wall is not found.
++static float Distancia_Pared_Trasera(void){
++    const float front_mm = Distance_To_Wall(front);
++    return (front_mm > 0) ? (3000 - front_mm) : 0.0f;
++}
++
++// Lane for a sign of that colour, lidar to the outer wall, mm. The colour that
++// is passed on the outer side keeps to the outer wall, the other one to the
++// inner wall.
++static float Carril_Cubo_Medio(direction outer_side, Color_traffic_light cube, bool parking){
++    const bool pasa_por_fuera = (outer_side == left) ? (cube == light_green) : (cube == light_red);
++    return pasa_por_fuera ? (parking ? 400.0f : 185.0f) : (float)MIDDLE_LANE_INNER_MM;
++}
++
++// outer_side: left in a clockwise run, right in a counter-clockwise run.
++// Returns the colour of the sign that was passed (as esquivar_cubos_middle).
++static Color_traffic_light Esquivar_Cubo_Medio_Con_Espacio(direction outer_side, bool parking){
++    const Color_traffic_light cube_0 = traffic_lights.light_color;   // as esquivar_cubos_middle reads it
++    const bool cube_0_ok = (cube_0 == light_green) || (cube_0 == light_red);
++
++    // Where the robot is: the rear distance from two lidar turns (they have to
++    // agree) and the lateral position.
++    float rear_mm = 0;
++    while((rear_mm == 0) && (terminating_main == 0)){
++        rear_mm = Distancia_Pared_Trasera();
++    }
++    usleep(120000);
++    const float rear_2 = Distancia_Pared_Trasera();
++    if(terminating_main != 0) return cube_0;
++    const float lateral_0 = Distancia_Lateral_Pared_Exterior(outer_side);
++    if((rear_mm > MIDDLE_REAR_MAX_MM) || (rear_2 <= 0) || (std::fabs(rear_2 - rear_mm) > 100)
++       || (lateral_0 < 100) || (lateral_0 > 900)){
++        printf("middle sign: rear %.0f / %.0f mm, lateral %.0f mm, not the expected start: previous manoeuvre\n",
++               rear_mm, rear_2, lateral_0);
++        return (outer_side == left) ? esquivar_cubos_middle(parking)
++                                    : esquivar_cubos_middle_counterclockwise(parking);
++    }
++    if(cube_0_ok && (std::fabs(lateral_0 - Carril_Cubo_Medio(outer_side, cube_0, parking)) <= MIDDLE_LANE_CLOSE_MM)){
++        printf("middle sign: already in the lane (lateral %.0f mm)\n", lateral_0);
++        return cube_0;
++    }
++
++    // 1. Room: reverse until the lidar is MIDDLE_REAR_START_MM from the rear
++    // wall, and never further than the distance measured before moving.
++    if(rear_mm > MIDDLE_REAR_START_MM + 30){
++        const float retroceso = std::min(rear_mm - (float)MIDDLE_REAR_START_MM, (float)MIDDLE_REVERSE_MAX_MM);
++        printf("middle sign: lidar %.0f mm from the rear wall, reversing up to %.0f mm to make room\n",
++               rear_mm, retroceso);
++        Spike_Center_Vehicle_Short();
++        spike_compat::Advance_For_Degrees_Until(
++            -25, (int)std::lround(retroceso / kMmPorGradoSpike), 0,
++            [&]() {
++                const float d = Distancia_Pared_Trasera();
++                return (terminating_main != 0) || ((d > 0.0f) && (d <= MIDDLE_REAR_START_MM));
++            });
++        Spike_Hold_Motors();
++    }
++    if(terminating_main != 0) return cube_0;
++
++    // 2. Colour, with the sign further away and whole in the image. If it is
++    // not seen now, the colour read before reversing stands.
++    usleep(500000);
++    Color_traffic_light cube = Esperar_Color_De_Cubo(1500);
++    if((cube != light_green) && (cube != light_red)){
++        cube = cube_0;
++    }
++    if((cube != light_green) && (cube != light_red)){
++        printf("middle sign: no sign seen, staying in the lane\n");
++        return cube;
++    }
++
++    // 3. Lane change.
++    const float carril = Carril_Cubo_Medio(outer_side, cube, parking);
++    float lateral = Distancia_Lateral_Pared_Exterior(outer_side);
++    if(lateral <= 0) lateral = lateral_0;   // straight reverse: same lateral position
++    printf("middle sign: %s, lateral %.0f mm from the outer wall, lane %.0f mm\n",
++           cube == light_red ? "red" : "green", lateral, carril);
++    if(std::fabs(lateral - carril) <= MIDDLE_LANE_CLOSE_MM){
++        return cube;   // already in the lane
++    }
++
++    // Towards the inner wall = away from the outer side.
++    const bool hacia_dentro = (carril > lateral);
++    const direction giro = hacia_dentro ? (direction)(-outer_side) : outer_side;
++    // A lane that is close needs a flatter diagonal, or the two turns alone
++    // already carry the robot past it.
++    const bool corto = (std::fabs(lateral - carril) < MIDDLE_LANE_SMALL_MM);
++    const int grados = corto ? MIDDLE_LANE_SMALL_TURN_DEG : MIDDLE_LANE_TURN_DEG;
++    const float adelanto = corto ? MIDDLE_LANE_SMALL_LEAD_MM : MIDDLE_LANE_LEAD_MM;
++    const int rumbo = -grados * giro;   // right turn = negative heading
++    Spike_Turn_For_Degrees(giro, 23, grados, 40, true);
++    Spike_Center_Vehicle_Short();
++
++    // Drive the diagonal until the perpendicular ray reaches the lane (less the
++    // distance the turn back still adds). The diagonal is never longer than
++    // what the lateral position read after the turn asks for, so without lidar
++    // confirmation it ends by distance in about the same place.
++    // A reading that jumps more than 120 mm from the last accepted one is
++    // skipped: the ray can cross a parking limit, which stands 200 mm out of
++    // the wall. After 300 ms of skipped readings the new value is taken, so
++    // the check cannot stay locked on an old distance.
++    const float lateral_1 = Distancia_Lateral_Pared_Exterior(outer_side);
++    float ultimo = (lateral_1 > 0) ? lateral_1 : lateral;
++    Clock::time_point ultimo_t = Clock::now();
++    const float seno = std::sin(grados * 3.14159265f / 180.0f);
++    // Two stages: at speed until MIDDLE_LANE_SLOW_MM before the stop point,
++    // then slowly. The lidar gives one reading every 100 ms; at speed the
++    // robot moves 20 mm sideways between two of them.
++    const struct { int speed; float margin; } etapas[2] = {{30, (float)MIDDLE_LANE_SLOW_MM}, {15, 0.0f}};
++    bool confirmado = true;
++    for(const auto &etapa : etapas){
++        const float falta = (hacia_dentro ? (carril - ultimo) : (ultimo - carril)) - adelanto - etapa.margin;
++        if((falta <= 5.0f) || (terminating_main != 0)) continue;
++        const float tope = std::min(falta / seno + 40.0f, (float)MIDDLE_LANE_MAX_MM);
++        const float margen = etapa.margin;
++        confirmado = spike_compat::Advance_For_Degrees_Until(
++            etapa.speed, (int)std::lround(tope / kMmPorGradoSpike), rumbo,
++            [&]() {
++                if(terminating_main != 0) return true;
++                const float d = Distancia_Lateral_Pared_Exterior(outer_side);
++                if(d <= 0.0f) return false;
++                const Clock::time_point ahora = Clock::now();
++                const bool salto = (std::fabs(d - ultimo) > 120.0f);
++                if(salto && (ahora - ultimo_t < std::chrono::milliseconds(300))) return false;
++                ultimo = d;
++                ultimo_t = ahora;
++                return hacia_dentro ? (d >= carril - adelanto - margen)
++                                    : (d <= carril + adelanto + margen);
++            });
++    }
++    if(!confirmado){
++        printf("middle sign: lane not confirmed by the lidar, diagonal ended by distance\n");
++    }
++
++    // 4. Back to the section heading.
++    Spike_Small_Turn((direction)(-giro), 23, 0, 40);
++    Spike_Center_Vehicle_Short();
++    printf("middle sign: lane change done, lateral %.0f mm\n", Distancia_Lateral_Pared_Exterior(outer_side));
++
++    // 5. Along the lane to where the previous manoeuvre left the robot, so
++    // the corner case that follows starts from the same place and at the
++    // same speed as before (it reads the next colour while it drives).
++    const float rear_now = Distancia_Pared_Trasera();
++    if((rear_now > 0) && (rear_now < MIDDLE_END_REAR_MM - 30)){
++        spike_compat::Advance_For_Degrees_Until(
++            30, (int)std::lround((MIDDLE_END_REAR_MM - rear_now + 50) / kMmPorGradoSpike), 0,
++            [&]() {
++                const float d = Distancia_Pared_Trasera();
++                return (terminating_main != 0) || (d >= MIDDLE_END_REAR_MM);
++            });
++    }
++    Spike_Coast_Motors();
++    return cube;
++}
++
+ // Clockwise run: handles one straight section after a corner.
+ // First re-zeroes the gyro on the left (outer) wall: Slope(left) is close to +-90 deg when
+ // the robot is parallel to it, so +-90 is removed to get the misalignment, and heading 0
+@@ -2591,7 +2831,11 @@ Color_traffic_light Desicion(Color_traffic_light past_cube, bool middle_cube, bo
+     if(past_cube == none){
+         if (middle_cube == true){
+             printf("avoiding the middle cube\n");
++#if MIDDLE_SIGN_MAKE_ROOM
++            cubo_temp = Esquivar_Cubo_Medio_Con_Espacio(left, parking);
++#else
+             cubo_temp = esquivar_cubos_middle(parking);
++#endif
+             //printf("middle cube done\n");
+         }
+         else{
+@@ -2913,6 +3157,9 @@ Color_traffic_light Corner_Case_counterclockwise(Color_traffic_light past_cube,
+     bool is_corner_cube = true;
+     printf("Case_corner (ccw)\n");
+     Oradar_S2L_Advance_Until_Distance(30, 0, 1100, Hold);
++#if CORNER_COLOUR_SETTLE_MS > 0
++    usleep(CORNER_COLOUR_SETTLE_MS * 1000);
++#endif
+     Color_traffic_light cube = traffic_lights.light_color;
+ 
+     if((cube == light_red) && (past_cube == light_green)){
+@@ -3020,7 +3267,11 @@ Color_traffic_light Desicion_counterclockwise(Color_traffic_light past_cube, boo
+     if(past_cube == none){
+         if (middle_cube == true){
+             printf("avoiding the middle cube\n");
++#if MIDDLE_SIGN_MAKE_ROOM
++            cubo_temp = Esquivar_Cubo_Medio_Con_Espacio(right, parking);
++#else
+             cubo_temp = esquivar_cubos_middle_counterclockwise(parking);
++#endif
+         }
+         else{
+             printf("avoiding 2 cubes in the section\n");
