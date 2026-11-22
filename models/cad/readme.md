@@ -35,7 +35,7 @@ For competition environments, quick maintenance is crucial. The mechanical desig
 
 ## Contents
 
-* **`v7_assembly/`**: 3D CAD assembly of design v7, the vehicle for the WRO 2026 International Final (Hiwonder ROS Robot Controller, RPLidar S2L, 3S 18650 battery pack).
+* **`v7_assembly/`**: 3D CAD assembly of design v7, the vehicle for the WRO 2026 International Final (Hiwonder ROS Robot Controller, RPLidar S2L, 3S 18650 battery pack). Open `Assem1.SLDASM`, the top-level assembly; the other files are its parts and sub-assemblies. Updated on 2026-11-21 with the lowered battery and controller board.
 * **`v6_assembly/`**: 3D CAD assembly of design v6, the vehicle that placed 2nd at the Mexico National Final.
 * **`Iterations/`**: Contains previous design iterations, early prototypes, and testing models used throughout the development process.
 * **`Stl/`**: The `.STL` files of the 3D-printed parts. Design v7 parts are in [`Stl/v7/`](Stl/v7); the files directly in `Stl/` are design v6. The parts table and the printer and material are in [`Stl/README.md`](Stl/README.md).
