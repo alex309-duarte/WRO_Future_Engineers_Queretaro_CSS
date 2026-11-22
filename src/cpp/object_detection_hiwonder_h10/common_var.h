@@ -8,6 +8,17 @@
 #include <pthread.h>
 #include <signal.h>
 
+// Mounting of the lidar: the lidar's OWN angle (its 0 is the mark on the
+// lidar, increasing clockwise seen from above) that points to the FRONT of the
+// robot. CMakeLists.txt reads it from here and passes it as RPLIDAR_FRONT_DEG
+// to ondevice/Oradar_S2L.cpp, which stores every scan already rotated into
+// the robot's frame; that is why LidarSide (below) and the buffer indices do
+// not change.
+// 90 = the current mounting of the robot (checked on 2026-11-16: with 0, right
+// and left read 163 and 223 mm and no driving direction was chosen). Same
+// value as ondevice/common_var.h (Open Challenge): it is the same robot.
+#define Lidar_Angle_Orientation_fixed_to_robot   90
+
 // Set to 1 by the Ctrl+C handler and read by every thread to finish
 // (sig_atomic_t: safe to write from a signal handler).
 inline volatile sig_atomic_t terminating_main = 0;

@@ -18,5 +18,8 @@ void Lidar_Display_Loop(volatile int *terminado);
 // Enables the display of the board gyro yaw. Call only after
 // Spike_Hiwonder_Init() succeeds: before that, the board may not exist yet.
 void Lidar_Display_Enable_Gyro(void);
+// No board (Spike_Hiwonder_Init() failed): the window says so where the yaw
+// would be shown.
+void Lidar_Display_Board_Missing(void);
 
 #endif // LIDAR_DISPLAY_H

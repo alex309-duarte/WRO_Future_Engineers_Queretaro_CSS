@@ -13,6 +13,7 @@
 #include "lidar_display.h"
 #include "parada_emergencia.h"
 #include <cstring>
+#include <csignal>
 
 void signal_handler(int signum);
 
@@ -60,6 +61,25 @@ static void Uso(const char *programa){
            "  --no-display:  no window\n", programa);
 }
 
+// true while the lidar window is open (main() draws it).
+static bool ventana_lidar = false;
+// Set by signal_handler: Ctrl+C before the emergency stop takes over the
+// signals (or when it could not open the lidar port).
+static volatile sig_atomic_t ctrl_c_recibido = 0;
+
+// Without the board nothing moves, but with the window open the lidar stays
+// on screen until Ctrl+C: useful to check the lidar and the wall detection
+// with the board disconnected. The emergency stop already holds the lidar
+// port: Ctrl+C stops the lidar and ends the process.
+static void Solo_Lidar_Hasta_Ctrl_C(void){
+    Lidar_Display_Board_Missing();
+    printf("No Hiwonder board: nothing moves. The window keeps showing the lidar; "
+           "Ctrl+C to exit.\n");
+    while(ctrl_c_recibido == 0){
+        pause();
+    }
+}
+
 // The complete Open Challenge run ("recorrido"). With the window it runs in
 // its own thread (Qt requires the window to live in the main thread); without
 // it, in main(). Returns 0 at the end of the run, 1 if the board or the lidar
@@ -100,6 +120,9 @@ static int Recorrido(void){
     // Hiwonder board instead of the SPIKE hub, no relay: opens the board,
     // centres the steering and calibrates the gyro with the robot still.
     if(Spike_Hiwonder_Init() != 0){
+        if(ventana_lidar){
+            Solo_Lidar_Hasta_Ctrl_C();
+        }
         Rasp_Gpio_Clean();
         Oradar_S2L_Set_Terminating();
         pthread_join(writer, NULL);
@@ -160,9 +183,9 @@ static int Recorrido(void){
 
     
     // If one side wall is farther than 800 mm the robot starts with room on
-    // that side ("outside" case: faster moves and a longer straight after the
-    // first turn); otherwise both walls are close ("inside" case: all moves
-    // at 30 % speed).
+    // that side ("outside" case: a longer straight after the first turn);
+    // otherwise both walls are close ("inside" case). Both cases drive at
+    // 50 to 60 % speed.
     //
     // Pattern for each corner, in both cases:
     //   1. Advance_Until_*_Gap: drive at heading 0 until the inner wall ends.
@@ -187,20 +210,19 @@ static int Recorrido(void){
 
         if(sentido == right){
             // Clockwise run: inner wall on the right, outer wall on the left.
-            Spike_Turn_For_Degrees(der, 50, 80);
+            Spike_Turn_For_Degrees(der, 60, 80);
             Spike_Center_Vehicle_Short();
-            Spike_Advance_For_Degrees(40, 1350, -90);
+            Spike_Advance_For_Degrees(50, 1350, -90);
             angulo_correccion = Oradar_S2L_Wall_Slope(LEFT);
             Spike_Reset_Gyro(angulo_correccion);
             usleep(200000);
             // Remaining 11 corners.
             while (v < 11){
-            Oradar_S2L_Advance_Until_Right_Gap(50, 0);
-            Spike_Turn_For_Degrees(der, 40, 80);
+            Oradar_S2L_Advance_Until_Right_Gap(60, 0);
+            Spike_Turn_For_Degrees(der, 50, 80);
             Spike_Center_Vehicle_Short();
-            Spike_Advance_For_Degrees(50, 600, -90);
+            Spike_Advance_For_Degrees(60, 600, -90);
             angulo_correccion = Oradar_S2L_Wall_Slope(LEFT);
-            usleep(50);
             Spike_Reset_Gyro(angulo_correccion);
             v = v + 1;
             }
@@ -209,16 +231,16 @@ static int Recorrido(void){
         else if (sentido == left)
         {
             // Counter-clockwise run: inner wall on the left, outer wall on the right.
-            Spike_Turn_For_Degrees(izq, 40, 80);
+            Spike_Turn_For_Degrees(izq, 50, 80);
             Spike_Center_Vehicle_Short();
-            Spike_Advance_For_Degrees(50, 1350, 90);
+            Spike_Advance_For_Degrees(60, 1350, 90);
             angulo_correccion = Oradar_S2L_Wall_Slope(RIGHT);
             Spike_Reset_Gyro(angulo_correccion);
             while (v < 11){
-            Oradar_S2L_Advance_Until_Left_Gap(50, 0);
-            Spike_Turn_For_Degrees(izq, 40, 70);
+            Oradar_S2L_Advance_Until_Left_Gap(60, 0);
+            Spike_Turn_For_Degrees(izq, 50, 70);
             Spike_Center_Vehicle_Short();
-            Spike_Advance_For_Degrees(50, 600, 90);
+            Spike_Advance_For_Degrees(60, 600, 90);
             angulo_correccion = Oradar_S2L_Wall_Slope(RIGHT);
             Spike_Reset_Gyro(angulo_correccion);
             v = v + 1;
@@ -231,51 +253,47 @@ static int Recorrido(void){
 
         printf("inner start case\n");
 
-        sentido = Oradar_S2L_Advance_And_Detect_Side(30, 0);
+        sentido = Oradar_S2L_Advance_And_Detect_Side(50, 0);
         printf("direction: %d\n", sentido);
 
         if(sentido == right){
-            Spike_Turn_For_Degrees(der, 30, 70);
+            Spike_Turn_For_Degrees(der, 50, 70);
             Spike_Center_Vehicle_Short();
-            Spike_Advance_For_Degrees(30, 600, -90);
+            Spike_Advance_For_Degrees(60, 600, -90);
             angulo_correccion = Oradar_S2L_Wall_Slope(LEFT);
             Spike_Reset_Gyro(angulo_correccion);
-            usleep(200000);
             while (v < 11){
-            Oradar_S2L_Advance_Until_Right_Gap(30, 0);
-            Spike_Turn_For_Degrees(der, 30, 70);
+            Oradar_S2L_Advance_Until_Right_Gap(60, 0);
+            Spike_Turn_For_Degrees(der, 50, 70);
             Spike_Center_Vehicle_Short();
-            Spike_Advance_For_Degrees(30, 600, -90);
+            Spike_Advance_For_Degrees(60, 600, -90);
             angulo_correccion = Oradar_S2L_Wall_Slope(LEFT);
             Spike_Reset_Gyro(angulo_correccion);
-            usleep(200000);
             v = v + 1;
             }
 
         }
         else if (sentido == left)
         {
-            Spike_Turn_For_Degrees(izq, 30, 70);
+            Spike_Turn_For_Degrees(izq, 50, 70);
             Spike_Center_Vehicle_Short();
-            Spike_Advance_For_Degrees(30, 600, 90);
+            Spike_Advance_For_Degrees(60, 600, 90);
             angulo_correccion = Oradar_S2L_Wall_Slope(RIGHT);
             Spike_Reset_Gyro(angulo_correccion);
-            usleep(200000);
             while (v < 11){
-            Oradar_S2L_Advance_Until_Left_Gap(30, 0);
-            Spike_Turn_For_Degrees(izq, 30, 70);
+            Oradar_S2L_Advance_Until_Left_Gap(60, 0);
+            Spike_Turn_For_Degrees(izq, 50, 70);
             Spike_Center_Vehicle_Short();
-            Spike_Advance_For_Degrees(30, 600, 90);
+            Spike_Advance_For_Degrees(60, 600, 90);
             angulo_correccion = Oradar_S2L_Wall_Slope(RIGHT);
             Spike_Reset_Gyro(angulo_correccion);
-            usleep(200000);
             v = v + 1;
             }
         }
     } 
     // Back in the starting section after 12 corners: stop with the front wall
     // at 1500 mm, i.e. in the middle of the 3000 mm side.
-    Oradar_S2L_Advance_Until_Distance(30, 0, 1500);
+    Oradar_S2L_Advance_Until_Distance(50, 0, 1500);
 
     // Previous ending (disabled): chose the stop distance from the start
     // position (distances measured before the first corner).
@@ -391,8 +409,10 @@ int main(int argc, char **argv){
     // The window only reads the lidar and the gyro: the run is the same with
     // or without it. It closes when the run ends.
     pthread_t recorrido;
+    ventana_lidar = true;
     if(pthread_create(&recorrido, NULL, Recorrido_Thread, NULL) != 0){
         printf("Warning: could not create the run thread; continuing without the window.\n");
+        ventana_lidar = false;
         return Recorrido();
     }
     Lidar_Display_Loop(&recorrido_terminado);
@@ -403,6 +423,7 @@ int main(int argc, char **argv){
 // SIGINT handler used until the emergency stop is installed: tells the lidar
 // thread and loops to finish, and restores the default action for a second Ctrl+C.
 void signal_handler(int signum){
+    ctrl_c_recibido = 1;
     printf("\nCtrl+C detected\n");
     Oradar_S2L_Set_Terminating();
     signal(SIGINT, SIG_DFL);

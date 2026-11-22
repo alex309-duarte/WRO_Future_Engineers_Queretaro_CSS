@@ -19,6 +19,7 @@
 // one this program uses, not the Obstacle Challenge one.
 
 static volatile int display_gyro_enabled = 0;  // set by Lidar_Display_Enable_Gyro()
+static volatile int display_board_missing = 0; // set by Lidar_Display_Board_Missing()
 
 // Recursively splits a segment at its point of maximum deviation from the
 // line joining its end points (Iterative End-Point Fit): separates two walls
@@ -365,6 +366,8 @@ static void draw_scan(cv::Mat &lidar_canvas, unsigned long scan_seq) {
         } catch (const std::exception &) {
             snprintf(gyro_text, sizeof(gyro_text), "gyro: no board");
         }
+    } else if (display_board_missing) {
+        snprintf(gyro_text, sizeof(gyro_text), "gyro: no board (lidar only)");
     } else {
         snprintf(gyro_text, sizeof(gyro_text), "gyro: waiting for board");
     }
@@ -421,4 +424,8 @@ void Lidar_Display_Loop(volatile int *terminado) {
 
 void Lidar_Display_Enable_Gyro(void) {
     display_gyro_enabled = 1;
+}
+
+void Lidar_Display_Board_Missing(void) {
+    display_board_missing = 1;
 }

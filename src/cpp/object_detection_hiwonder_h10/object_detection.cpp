@@ -23,7 +23,7 @@
 #include "reto2_config.h"
 #include "rasp_gpio.h"
 #include "Oradar_S2L.h"
-#include "common_var.h"
+#include "../../ondevice/parada_emergencia.h"
 
 #include <cstdlib>
 #include <string>
@@ -34,6 +34,23 @@
 #include <algorithm>
 #include <stdexcept>
 #include <unistd.h>
+
+// Tuning of the corner manoeuvre of the clockwise run (Corner_Case).
+// Steering amount of the 86 deg corner turn (tire_turn units, see reto2_config.h).
+#define TIRE_TURN 35
+
+// Speeds (%): driving towards the front wall, and the corner turn itself.
+#define SPEED_CORNER_CASE_CLOCKWISE_FORWARD 50
+#define SPEED_CORNER_CASE_CLOCKWISE_ROUND 40
+
+// Distances to the front wall (mm) at which the robot stops in the corner:
+// first stop, where the pillar colour is read (also used when a red pillar
+// follows a red one); no pillar in the corner; green pillar after a red one
+// in a normal section and in the parking section.
+#define WALL_OFFSET_INIT_CORNER_CASE_CLOCKWISE 1050
+#define WALL_OFFSET_CENTER_WALL_CLOCKWISE 770
+#define WALL_OFFSET_GREEN_CUBE_CLOCKWISE_NORMAL_SECTION 600
+#define WALL_OFFSET_GREEN_CUBE_CLOCKWISE_PARKING_SECTION 750
 
 // Most relevant pillar detection of the latest camera frame, written by
 // postprocess_callback (post-process thread) and read by the mission thread.
@@ -63,6 +80,84 @@ static bool g_main_actions_started = false;
 // Hiwonder: WRO_SOLO_PERCEPCION=1 starts camera, Hailo and lidar without opening
 // the board or creating the mission (to test perception without moving anything).
 static bool g_solo_percepcion = false;
+
+// ------------------------------------------------------------------------
+// Hiwonder: heading log ("rumbo"), to analyse the gyro correction against the
+// walls. One CSV per run (the environment variable WRO_RUMBO_LOG overrides
+// the path). Rows:
+//   scan : every new lidar scan (~10 Hz): gyro yaw and, for each side, the
+//          perpendicular distance and the angle of the wall (as in the window)
+//   reset: every Spike_Reset_Gyro: source line, yaw just before, new value
+static FILE *g_rumbo_log = nullptr;
+static pthread_mutex_t g_rumbo_log_mutex = PTHREAD_MUTEX_INITIALIZER;
+static const auto g_rumbo_t0 = std::chrono::steady_clock::now();
+
+// Seconds since the program started (time column of the log).
+static double Rumbo_Log_T(void){
+    return std::chrono::duration<double>(std::chrono::steady_clock::now() - g_rumbo_t0).count();
+}
+
+// Returns the log file, creating it on the first call; nullptr if it could
+// not be created (the run continues without a log).
+static FILE *Rumbo_Log(void){
+    static bool intentado = false;
+    if(!intentado){
+        intentado = true;
+        std::string ruta;
+        if(const char *env = std::getenv("WRO_RUMBO_LOG")){
+            ruta = env;
+        } else {
+            char nombre[64];
+            const std::time_t ahora = std::time(nullptr);
+            std::strftime(nombre, sizeof(nombre), "rumbo_log_%Y%m%d_%H%M%S.csv", std::localtime(&ahora));
+            ruta = std::string("/home/maker/") + nombre;
+        }
+        g_rumbo_log = std::fopen(ruta.c_str(), "w");
+        if(g_rumbo_log){
+            std::fprintf(g_rumbo_log, "t_s,type,yaw_deg,front_mm,front_deg,right_mm,right_deg,"
+                                      "left_mm,left_deg,behind_mm,behind_deg,line,new_deg\n");
+            std::printf("Heading log: %s\n", ruta.c_str());
+        } else {
+            std::printf("Warning: could not create the heading log %s\n", ruta.c_str());
+        }
+    }
+    return g_rumbo_log;
+}
+
+// true when the board is attached, so its gyroscope can be read.
+static bool Rumbo_Hay_Gyro(void){
+    return !g_solo_percepcion && spike_compat::Spike_Is_Attached();
+}
+
+// Angle of a wall relative to the direction it should run in (side walls at
+// 90 deg, front and back walls at 0), in (-90, 90]: the same value the mission
+// passes to Spike_Reset_Gyro.
+static float Inclinacion_Pared_Deg(direction side, float orientation_deg){
+    const float esperado = (side == left || side == right) ? 90.0f : 0.0f;
+    float d = std::fmod(orientation_deg - esperado, 180.0f);
+    if(d > 90.0f) d -= 180.0f;
+    if(d <= -90.0f) d += 180.0f;
+    return d;
+}
+
+// Spike_Reset_Gyro plus a "reset" row in the heading log and a console line.
+static void Reset_Gyro_Registrado(float nuevo_deg, int linea){
+    float antes = NAN;
+    if(Rumbo_Hay_Gyro()){
+        try { antes = Spike_Get_Gyro(); } catch (...) {}
+    }
+    Spike_Reset_Gyro(nuevo_deg);
+    pthread_mutex_lock(&g_rumbo_log_mutex);
+    if(FILE *f = Rumbo_Log()){
+        std::fprintf(f, "%.3f,reset,%.2f,,,,,,,,,%d,%.2f\n", Rumbo_Log_T(), antes, linea, nuevo_deg);
+        std::fflush(f);
+    }
+    pthread_mutex_unlock(&g_rumbo_log_mutex);
+    std::printf("gyro reset (line %d): yaw before %.2f -> %.2f\n", linea, antes, nuevo_deg);
+}
+// From here on, every call the mission makes to Spike_Reset_Gyro is logged.
+#define Spike_Reset_Gyro(grados) Reset_Gyro_Registrado(static_cast<float>(grados), __LINE__)
+// ------------------------------------------------------------------------
 
 
 // segment_id -> persistent color slot for the most recently detected walls, refreshed
@@ -130,6 +225,66 @@ struct WallSelection {
     std::vector<int> used_angles; // lidar angles (0-359) backing chosen_indices
 };
 static WallSelection Select_Wall(const direction side);
+
+// Hiwonder: waits until the robot is still before the walls are measured.
+// Log of 2026-11-16 (rumbo_log_20261116_194826.csv): Desicion sometimes
+// started with the robot still rotating at ~40 deg/s after the corner turn;
+// the walls of that scan were out of date and the correction added ~7 deg of
+// error. So, before measuring: robot still (yaw stable for 300 ms, 1.5 s at
+// most) and two lidar scans taken with the robot already still.
+// donde: name of the caller, for the console message.
+static void Esperar_Robot_Quieto(const char *donde){
+    if (!Rumbo_Hay_Gyro()) return;
+    const auto inicio = std::chrono::steady_clock::now();
+    float previo = NAN;
+    int quieto_ms = 0;
+    for (int t = 0; t < 1500 && quieto_ms < 300 && terminating_main == 0; t += 50) {
+        float yaw = NAN;
+        try { yaw = Spike_Get_Gyro(); } catch (...) { return; }
+        quieto_ms = (!std::isnan(previo) && std::fabs(yaw - previo) < 0.15f) ? quieto_ms + 50 : 0;
+        previo = yaw;
+        usleep(50000);
+    }
+    const unsigned long seq = Oradar_S2L_Get_Scan_Seq();
+    for (int t = 0; t < 500 && Oradar_S2L_Get_Scan_Seq() < seq + 2 && terminating_main == 0; t += 10) {
+        usleep(10000);
+    }
+    std::printf("%s: waited %.0f ms for the robot to be still%s\n", donde,
+                std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - inicio).count(),
+                quieto_ms >= 300 ? "" : " (it did not settle: measuring anyway)");
+}
+
+// Hiwonder: tilt of the robot used to correct the gyroscope, taken as the
+// median of the walls in view (front, right, left, behind) instead of a
+// single wall. Log of 2026-11-16 (rumbo_log_20261116_194238.csv): with the
+// lidar mounted at the back, the robot itself hides part of the left wall,
+// and the angle of that wall came out up to 8 deg away from the other three
+// (+5.65 against -3.3/-2.0); every correction put that error into the gyro.
+// With fewer than 2 walls it returns "propia" (the single-wall value the
+// mission computed before). donde: name of the caller, for the console.
+static float Inclinacion_Por_Consenso(const char *donde, float propia){
+    static const direction lados[4] = {front, right, left, behind};
+    static const char *nombres[4] = {"front", "right", "left", "behind"};
+    Esperar_Robot_Quieto(donde);
+    std::vector<float> vals;
+    std::printf("%s: tilt per wall:", donde);
+    for (int i = 0; i < 4; i++) {
+        WallSelection sel = Select_Wall(lados[i]);
+        if (!sel.found) { std::printf(" %s -", nombres[i]); continue; }
+        const float t = Inclinacion_Pared_Deg(lados[i], Fit_Line_Orientation(sel.pts, sel.chosen_indices));
+        vals.push_back(t);
+        std::printf(" %s %.2f", nombres[i], t);
+    }
+    if (vals.size() < 2) {
+        std::printf(" -> fewer than 2 walls, using %.2f\n", propia);
+        return propia;
+    }
+    std::sort(vals.begin(), vals.end());
+    const size_t n = vals.size();
+    const float mediana = (n % 2) ? vals[n / 2] : 0.5f * (vals[n / 2 - 1] + vals[n / 2]);
+    std::printf(" -> median %.2f (single-wall value: %.2f)\n", mediana, propia);
+    return mediana;
+}
 
 // Returns the index of the largest value in arr[0..n-1] (first one on ties), or -1
 // if n <= 0. Used to pick the detection box with the largest area.
@@ -616,8 +771,13 @@ void postprocess_callback(
 
         bool highlight_mask[360] = {false};
         cv::Scalar highlight_color_by_angle[360];
+        // For the heading log: distance and angle per side (NAN = no wall)
+        float log_dist[4] = {NAN, NAN, NAN, NAN};
+        float log_deg[4] = {NAN, NAN, NAN, NAN};
+        int log_i = -1;
 
         for (const auto &sh : sides_to_highlight) {
+            ++log_i;
             WallSelection sel = Select_Wall(sh.side);
             if (!sel.found) continue;
 
@@ -641,9 +801,31 @@ void postprocess_callback(
 
             cv::Point text_pos = origin + cv::Point((int)(centroid.x * lidar_scale) + 10,
                                                       (int)(centroid.y * lidar_scale) - 10);
-            char dist_text[48];
-            snprintf(dist_text, sizeof(dist_text), "%s %.0fmm", sh.label, distance_mm);
+            // Hiwonder: also show the angle of the wall, as the Open Challenge window does
+            const float tilt_deg = Inclinacion_Pared_Deg(sh.side, orientation_deg);
+            log_dist[log_i] = distance_mm;
+            log_deg[log_i] = tilt_deg;
+            char dist_text[64];
+            snprintf(dist_text, sizeof(dist_text), "%s %.0fmm %.1fdeg", sh.label, distance_mm, tilt_deg);
             cv::putText(lidar_canvas, dist_text, text_pos, cv::FONT_HERSHEY_SIMPLEX, 0.5, sh.color, 2);
+            // Summary in the corner, readable even when the label falls outside the canvas
+            cv::putText(lidar_canvas, dist_text, cv::Point(10, 25 + 22 * log_i),
+                        cv::FONT_HERSHEY_SIMPLEX, 0.6, sh.color, 2);
+        }
+
+        {
+            float yaw = NAN;
+            if (Rumbo_Hay_Gyro()) {
+                try { yaw = Spike_Get_Gyro(); } catch (...) {}
+            }
+            pthread_mutex_lock(&g_rumbo_log_mutex);
+            if (FILE *f = Rumbo_Log()) {
+                std::fprintf(f, "%.3f,scan,%.2f,%.0f,%.2f,%.0f,%.2f,%.0f,%.2f,%.0f,%.2f,,\n", Rumbo_Log_T(), yaw,
+                             log_dist[0], log_deg[0], log_dist[1], log_deg[1],
+                             log_dist[2], log_deg[2], log_dist[3], log_deg[3]);
+                std::fflush(f);
+            }
+            pthread_mutex_unlock(&g_rumbo_log_mutex);
         }
 
         for (size_t i = 0; i < points_mm.size(); i++) {
@@ -667,6 +849,27 @@ void postprocess_callback(
                     cv::circle(lidar_canvas, p, 0.5, color, -1);
                 }
             }
+        }
+
+        // At the bottom, the yaw of the board: the one the turns and the heading
+        // PD use (as in the Open Challenge window, ondevice/lidar_display.cpp).
+        {
+            char gyro_text[48];
+            if (!g_solo_percepcion && spike_compat::Spike_Is_Attached()) {
+                try {
+                    snprintf(gyro_text, sizeof(gyro_text), "gyro: %.1f deg", Spike_Get_Gyro());
+                } catch (const std::exception &) {
+                    snprintf(gyro_text, sizeof(gyro_text), "gyro: no board");
+                }
+            } else {
+                snprintf(gyro_text, sizeof(gyro_text), "gyro: no board (perception only)");
+            }
+            int baseline = 0;
+            const cv::Size gyro_size = cv::getTextSize(gyro_text, cv::FONT_HERSHEY_SIMPLEX, 1.0, 2, &baseline);
+            const cv::Point gyro_pos((canvas_size - gyro_size.width) / 2, canvas_size - 40);
+            cv::rectangle(lidar_canvas, gyro_pos + cv::Point(-8, -gyro_size.height - 8),
+                          gyro_pos + cv::Point(gyro_size.width + 8, baseline + 4), cv::Scalar(255, 255, 255), -1);
+            cv::putText(lidar_canvas, gyro_text, gyro_pos, cv::FONT_HERSHEY_SIMPLEX, 1.0, cv::Scalar(0, 0, 0), 2);
         }
 
         if (!g_no_display) {
@@ -767,6 +970,21 @@ int main(int argc, char** argv)
     }
 
     Oradar_S2L_Init_Lidar();
+    // With the board, Ctrl+C is taken by the emergency stop (ondevice), which
+    // ends the process without going through Apagar_Todo(): without this the
+    // lidar motor kept spinning. In perception-only mode there is no board and
+    // Ctrl+C is still the orderly shutdown of signal_handler.
+    if(!g_solo_percepcion){
+        unsigned char parada_lidar[16];
+        const int largo = Oradar_S2L_Stop_Frames(parada_lidar, sizeof(parada_lidar));
+        if(largo > 0){
+            try{
+                Parada_Emergencia_Agregar_Puerto(Oradar_S2L_Port(), parada_lidar, largo);
+            } catch(const std::exception &e){
+                printf("Warning: Ctrl+C will not stop the lidar (%s)\n", e.what());
+            }
+        }
+    }
     pthread_create(&writer, NULL, Oradar_S2L_Lidar_Writer_Thread, NULL);
 
     if(Rasp_Gpio_Init() != 0){
@@ -782,11 +1000,28 @@ int main(int argc, char** argv)
     // Open Challenge plus the Obstacle Challenge scale factors (Spike_Reto2_Init).
     if(!g_solo_percepcion){
         if(Spike_Reto2_Init() != 0){
-            Rasp_Gpio_Clean();
-            Oradar_S2L_Set_Terminating();
-            pthread_join(writer, NULL);
-            Oradar_S2L_Close();
-            return HAILO_INTERNAL_FAILURE;
+            // Without the board there is no mission, but with the window the
+            // camera, the detections and the lidar can still be seen (as the
+            // Open Challenge program does). With --no-display there would be
+            // nothing to see: exit as before.
+            bool sin_ventana = false;
+            for(int i = 1; i < argc; ++i){
+                if(std::string(argv[i]) == "--no-display") sin_ventana = true;
+            }
+            if(sin_ventana){
+                Rasp_Gpio_Clean();
+                Oradar_S2L_Set_Terminating();
+                pthread_join(writer, NULL);
+                Oradar_S2L_Close();
+                return HAILO_INTERNAL_FAILURE;
+            }
+            std::cout << "No Hiwonder board: PERCEPTION ONLY (camera, Hailo and lidar), "
+                         "nothing moves. Ctrl+C to exit.\n";
+            g_solo_percepcion = true;
+            // Orderly shutdown with Ctrl+C (closes the video and the lidar)
+            // instead of the emergency stop, which has no board to stop.
+            signal(SIGINT, signal_handler);
+            signal(SIGTERM, signal_handler);
         }
     }
     else{
@@ -1038,7 +1273,7 @@ static void *Obstacle_Challenge_Impl(void *arg){
                     (traffic_lights.light_color == light_red ? "red" : "green") : "uncertain",
                     traffic_lights.middle_point_x, preferred == left ? "left" : "right");
                 // Sidestep: turn 70 deg away, advance 280 mm, turn back to heading 0.
-                Spike_Turn_For_Degrees(preferred, 25, 70, 40, true);
+                Spike_Turn_For_Degrees(preferred, 9, 70, 40, true);
                 Spike_Reset_Gyro(0);
                 Spike_Center_Vehicle_Short();
 
@@ -1048,12 +1283,12 @@ static void *Obstacle_Challenge_Impl(void *arg){
                     stopped_early = true;
                     break;
                 }
-                Spike_Advance_For_distance(25, 280, 0);
-                Spike_Turn_For_Degrees(preferred == left ? right : left, 25, 70, 40, true);
+                Spike_Advance_For_distance(9, 280, 0);
+                Spike_Turn_For_Degrees(preferred == left ? right : left, 9, 70, 40, true);
                 Spike_Reset_Gyro(0);
                 Spike_Center_Vehicle_Short();
             } else {
-                Spike_Follow_Reference(25, 0, 0);
+                Spike_Follow_Reference(9, 0, 0);
             }
             usleep(50000);
         }
@@ -1068,10 +1303,18 @@ static void *Obstacle_Challenge_Impl(void *arg){
     Spike_Reset_Gyro(0);
     Spike_Center_Vehicle_Short();
 
-    Oradar_S2L_Get_Buffer(&lidar_shared_buffer[0]);
-    distancia_frente = lidar_shared_buffer[270]; // front = index 270 in the buffer (90 is behind)
-    distancia_derecha = lidar_shared_buffer[0];     // right = index 0
-    distancia_izquierda = lidar_shared_buffer[180]; // left = index 180
+    // Hiwonder: wait up to 2 s for one side to open (> 600 mm). With the lidar
+    // mounted at the back, the hand that presses the button is in its scanning
+    // plane and one side read ~110 mm right after the button: the robot chose
+    // no driving direction.
+    for(int t = 0; t < 2000 && terminating_main == 0; t += 20){
+        Oradar_S2L_Get_Buffer(&lidar_shared_buffer[0]);
+        distancia_frente = lidar_shared_buffer[270]; // front = index 270 in the buffer (90 is behind)
+        distancia_derecha = lidar_shared_buffer[0];     // right = index 0
+        distancia_izquierda = lidar_shared_buffer[180]; // left = index 180
+        if((distancia_derecha > 600) || (distancia_izquierda > 600)) break;
+        usleep(20000);
+    }
 
 
     // Earlier test sequences, kept disabled.
@@ -1114,23 +1357,40 @@ static void *Obstacle_Challenge_Impl(void *arg){
         printf("Clockwise\n");
         // Leave the parking lot, then 3 laps x 4 sections; the 4th section of each
         // lap (parking = true) is the one with the parking lot.
+        // In laps 1 and 2 the robot pauses 1 s (usleep) after every stage.
         cubo_temp = estacionamiento_clockwise();
+        usleep(1000000);
         cubo_temp = Corner_Case(cubo_temp, &is_middle_case);
+        usleep(1000000);
         cubo_temp = Desicion(cubo_temp, is_middle_case);
+        usleep(1000000);
         cubo_temp = Corner_Case(cubo_temp, &is_middle_case);
+        usleep(1000000);
         cubo_temp = Desicion(cubo_temp, is_middle_case);
+        usleep(1000000);
         cubo_temp = Corner_Case(cubo_temp, &is_middle_case);
+        usleep(1000000);
         cubo_temp = Desicion(cubo_temp, is_middle_case);
+        usleep(1000000);
         cubo_temp = Corner_Case(cubo_temp, &is_middle_case,true);
+        usleep(1000000);
         cubo_temp = Desicion(cubo_temp, is_middle_case,true);
+        usleep(1000000);
         printf("lap 1 finished");
         cubo_temp = Corner_Case(cubo_temp, &is_middle_case);
+        usleep(1000000);
         cubo_temp = Desicion(cubo_temp, is_middle_case);
+        usleep(1000000);
         cubo_temp = Corner_Case(cubo_temp, &is_middle_case);
+        usleep(1000000);
         cubo_temp = Desicion(cubo_temp, is_middle_case);
+        usleep(1000000);
         cubo_temp = Corner_Case(cubo_temp, &is_middle_case);
+        usleep(1000000);
         cubo_temp = Desicion(cubo_temp, is_middle_case);
+        usleep(1000000);
         cubo_temp = Corner_Case(cubo_temp, &is_middle_case,true);
+        usleep(1000000);
         printf("lap 2 finished");
         cubo_temp = Desicion(cubo_temp, is_middle_case,true);
         cubo_temp = Corner_Case(cubo_temp, &is_middle_case);
@@ -1143,66 +1403,67 @@ static void *Obstacle_Challenge_Impl(void *arg){
         cubo_temp = Desicion(cubo_temp, is_middle_case,true);
         // Final parking (clockwise). First reposition according to the last pillar
         // passed so the robot ends up beside the parking lot.
-        if(cubo_temp == light_red){ /* red: go to 950 mm from the front wall, turn left 90 deg, advance to 260 mm, turn back right */ 
-            Oradar_S2L_Advance_Until_Distance(50, 0, 950, Hold);
-            Spike_Turn_For_Degrees(left, 60,90,45, true);
+        if(cubo_temp == light_red){ /* red: go to 1050 mm from the front wall, turn left 90 deg, advance to 360 mm, turn back right */ 
+            Oradar_S2L_Advance_Until_Distance(19, 0, 1050, Hold);
+            Spike_Turn_For_Degrees(left, 23,90,45, true);
             Spike_Center_Vehicle();
-            Oradar_S2L_Advance_Until_Distance(45, 90, 260, Hold);
+            Oradar_S2L_Advance_Until_Distance(17, 90, 360, Hold);
             Spike_Reset_Gyro(0);
             usleep(100000);
-            Spike_Turn_For_Degrees(right, 50, 90, 45, true);
+            Spike_Turn_For_Degrees(right, 19, 90, 45, true);
             Spike_Center_Vehicle();
         }else if(cubo_temp == light_green){/* green: turn 10 deg left, creep at heading 10 until index 190 (left, 10 deg forward) reads <= 180 mm */
-            Spike_Turn_For_Degrees(left, 60,10,45, true);
+            Spike_Turn_For_Degrees(left, 23,10,45, true);
             Spike_Center_Vehicle();
             float lidar_buffer[360];
             Oradar_S2L_Get_Buffer(&lidar_buffer[0]);
             float distance_to_left = lidar_buffer[190];
             while(distance_to_left > 180){
-                Spike_Forward(45, 10);
+                Spike_Forward(17, 10);
                 Oradar_S2L_Get_Buffer(&lidar_buffer[0]);
                 distance_to_left = lidar_buffer[190];
                 usleep(1000);
             }
             Spike_Reset_Gyro(0);
             usleep(100000);
-            Spike_Turn_For_Degrees(right, 50,4,30, true);
+            Spike_Turn_For_Degrees(right, 19,4,30, true);
             Spike_Center_Vehicle_Short();
         }
-        // Square up on the front wall, approach it to 150 mm, then reverse 2250 hub
+        // Square up on the walls in view, approach the front wall to 250 mm, then reverse 2250 hub
         // degrees along the lot and back into it with a left/right reverse S-turn.
         float slope_final = Slope(front);
         printf("===============------------==================== reset angle before %f\n", slope_final);
+        slope_final = Inclinacion_Por_Consenso("parking", Inclinacion_Pared_Deg(front, slope_final));
         Spike_Reset_Gyro(slope_final);
         usleep(100000);
         float distance_to_left = 1000;
         distance_to_left = Distance_To_Wall(left);
         if(cubo_temp == light_red)
-            Oradar_S2L_Advance_Until_Distance(45, (slope_final + 2), 150, Hold);
+            Oradar_S2L_Advance_Until_Distance(17, (slope_final + 2), 250, Hold);
         else{
-            Oradar_S2L_Advance_Until_Distance(45, (slope_final), 150, Hold);
+            Oradar_S2L_Advance_Until_Distance(17, (slope_final), 250, Hold);
         }
         Spike_Reset_Gyro(0);
         usleep(100000);
-        Spike_Advance_For_Degrees(-50,2250,slope_final);
-        Spike_Turn_For_Degrees(right, -50,50,45, true);
+        Spike_Advance_For_Degrees(-19,2250,slope_final);
+        Spike_Turn_For_Degrees(right, -19,50,45, true);
         Spike_Center_Vehicle();
         Spike_Reset_Gyro(0);
         usleep(100000);
-        Spike_Turn_For_Degrees(left, -50, 105, 45, true);
+        Spike_Turn_For_Degrees(left, -19, 105, 45, true);
         Spike_Center_Vehicle();
         usleep(200000);
         // Reverse into the lot at the -105 deg heading, then straighten the wheels
         // with a short reverse right turn and a small forward left correction.
-        Spike_Advance_For_Degrees(-50,400,-105);
+        Spike_Advance_For_Degrees(-19,400,-105);
         Spike_Break_Motors();
         Spike_Reset_Gyro(0);
         usleep(100000); 
-        Spike_Turn_For_Degrees(right, -50,28,45, true);
+        Spike_Turn_For_Degrees(right, -19,28,45, true);
         Spike_Hold_Motors();
         Spike_Reset_Gyro(0);
         usleep(100000);
-        Spike_Turn_For_Degrees(left, 40, -15, 45, true);
+        Spike_Turn_For_Degrees(left, 15, -15, 45, true);
         Spike_Center_Vehicle();
 
     }
@@ -1215,7 +1476,7 @@ static void *Obstacle_Challenge_Impl(void *arg){
         cubo_temp1 = estacionamiento_counterclockwise();
         cubo_temp = Corner_Case_counterclockwise(cubo_temp1, &is_middle_case);
         if(cubo_temp1 == light_red){
-            Spike_Advance_For_Degrees(-80,200,90);
+            Spike_Advance_For_Degrees(-30,200,90);
             Spike_Break_Motors();
         }
         cubo_temp = Desicion_counterclockwise(cubo_temp, is_middle_case);
@@ -1248,13 +1509,13 @@ static void *Obstacle_Challenge_Impl(void *arg){
         // Final parking (counterclockwise). A green last pillar needs the same
         // repositioning as red in the clockwise branch, mirrored.
         if(cubo_temp == light_green){
-            Oradar_S2L_Advance_Until_Distance(50, 0, 950, Hold);
-            Spike_Turn_For_Degrees(right, 60,90,45, true);
+            Oradar_S2L_Advance_Until_Distance(19, 0, 1050, Hold);
+            Spike_Turn_For_Degrees(right, 23,90,45, true);
             Spike_Center_Vehicle();
-            Oradar_S2L_Advance_Until_Distance(45, -90, 260, Hold);
+            Oradar_S2L_Advance_Until_Distance(17, -90, 360, Hold);
             Spike_Reset_Gyro(0);
             usleep(100000);
-            Spike_Turn_For_Degrees(left, 50, 90, 45, true);
+            Spike_Turn_For_Degrees(left, 19, 90, 45, true);
             Spike_Center_Vehicle();
         }
         
@@ -1273,39 +1534,45 @@ static void *Obstacle_Challenge_Impl(void *arg){
         }*/
         usleep(100000);
         // Creep forward at heading -10 deg until the right-side reading
-        // lidar_shared_buffer[0] is <= 160 mm, approach the front wall to 200 mm,
+        // lidar_shared_buffer[0] is <= 160 mm, approach the front wall to 300 mm,
         // then reverse 740 hub degrees and back into the lot with a reverse S-turn.
         float distance_to_right = 1000;
         distance_to_right = lidar_shared_buffer[0];;
         while(distance_to_right > 160){
-            Spike_Forward(45, -10);
+            Spike_Forward(17, -10);
             distance_to_right = lidar_shared_buffer[0];;
             usleep(1000);
         }
-        Oradar_S2L_Advance_Until_Distance(50, 0, 200, Hold);
+        Oradar_S2L_Advance_Until_Distance(19, 0, 300, Hold);
         Spike_Reset_Gyro(0);
         usleep(100000);
-        Spike_Advance_For_Degrees(-50,740,0);
-        Spike_Turn_For_Degrees(left, -50,52,45, true);
+        Spike_Advance_For_Degrees(-19,740,0);
+        Spike_Turn_For_Degrees(left, -19,52,45, true);
         Spike_Center_Vehicle();
         Spike_Reset_Gyro(0);
         usleep(100000);
-        Spike_Turn_For_Degrees(right, -50, 100, 45, true);
+        Spike_Turn_For_Degrees(right, -19, 100, 45, true);
         Spike_Center_Vehicle();
         usleep(200000);
-        Spike_Advance_For_Degrees(-50,390,90);
+        Spike_Advance_For_Degrees(-19,390,90);
         Spike_Break_Motors();
         Spike_Reset_Gyro(0);
         usleep(100000); 
-        Spike_Turn_For_Degrees(left, -50,28,45, true);
+        Spike_Turn_For_Degrees(left, -19,28,45, true);
         Spike_Hold_Motors();
         Spike_Reset_Gyro(0);
         usleep(100000);
-        Spike_Turn_For_Degrees(right, 40, -15, 45, true);
+        Spike_Turn_For_Degrees(right, 15, -15, 45, true);
         Spike_Center_Vehicle();
 
         
 
+    }
+    else{
+        // Hiwonder: without this the mission ended without moving and without a message.
+        printf("No driving direction chosen: right %.0f mm and left %.0f mm, neither > 600. "
+               "Not moving (check Lidar_Angle_Orientation_fixed_to_robot in common_var.h).\n",
+               distancia_derecha, distancia_izquierda);
     }
 
     }
@@ -1832,7 +2099,7 @@ void Follow_Wall(const direction side){
         float pendiente = Slope(side);
         //printf("Slope: %f\n", pendiente);
 
-        Spike_Follow_Reference(60, 0 ,pendiente);
+        Spike_Follow_Reference(23, 0 ,pendiente);
     }
 }
 
@@ -2007,7 +2274,7 @@ void avoid_cube_start_section(Color_traffic_light traffic_light_color, Cube_numb
         direction_to_turn = right;
     }
     
-    Spike_Turn_For_Degrees(direction_to_turn, 60, 90 - angle_to_wall, 30);
+    Spike_Turn_For_Degrees(direction_to_turn, 23, 90 - angle_to_wall, 30);
 
     float distanceToWall = 10000;
     float distanceToWallfront = 10000;
@@ -2019,17 +2286,17 @@ void avoid_cube_start_section(Color_traffic_light traffic_light_color, Cube_numb
         distanceToWallfront = Distance_To_Wall(front);
         if(direction_to_turn == left)
         {
-            Spike_Follow_Reference(60,0,90 - angle_to_wall);
+            Spike_Follow_Reference(23,0,90 - angle_to_wall);
         }
         else
         {
-            Spike_Follow_Reference(60,90 - angle_to_wall,0);
+            Spike_Follow_Reference(23,90 - angle_to_wall,0);
         }
         usleep(1000);
     }
     Spike_Coast_Motors();
     /* direction times -1 to reverse the turn direction when turning back after avoiding the cube */
-    Spike_Small_Turn((direction_to_turn * (-1)),60,0,90 - angle_to_wall);
+    Spike_Small_Turn((direction_to_turn * (-1)),23,0,90 - angle_to_wall);
     Spike_Coast_Motors();
 }
 
@@ -2063,16 +2330,16 @@ Color_traffic_light esquivar_cubos_1(bool parking){
     if(angle_to_wall > 70.0){ /* limit the angle in case of an emergency */
         angle_to_wall = 70.0;
     }
-    Spike_Turn_For_Degrees(direction_to_turn, 60, abs(angle_to_wall) + 5, 40);
+    Spike_Turn_For_Degrees(direction_to_turn, 23, abs(angle_to_wall) + 5, 40);
     Spike_Center_Vehicle_Short();
     if((parking == false) || (cube == light_red)){
-        Spike_Advance_For_distance(80, (int)hypotenuse - 400, ((abs(angle_to_wall) + 5) *direction_to_turn*-1));
+        Spike_Advance_For_distance(30, (int)hypotenuse - 400, ((abs(angle_to_wall) + 5) *direction_to_turn*-1));
     }
     else{
         printf("green case in the parking section\n");
-        Spike_Advance_For_distance(80, (int)hypotenuse - 200 , (angle_to_wall*direction_to_turn*-1));
+        Spike_Advance_For_distance(30, (int)hypotenuse - 200 , (angle_to_wall*direction_to_turn*-1));
     }
-    Spike_Small_Turn((direction_to_turn * -1), 60, 0, 40);
+    Spike_Small_Turn((direction_to_turn * -1), 23, 0, 40);
     Spike_Center_Vehicle_Short();
     
     return cube;
@@ -2083,10 +2350,10 @@ Color_traffic_light esquivar_cubos_1(bool parking){
 // A second pillar counts as present only when the camera reports a red/green pillar (not
 // a parking marker) whose normalised image x-position is below 0.5 (after a red pillar)
 // or 0.90 (after a green one). Same colour as before -> the robot is already on the right
-// side and drives straight to 1000 mm from the front wall (green in the parking section:
-// to 1500 mm, then a short S-shift to the left). Different colour -> crosses the lane with
+// side and drives straight to 1100 mm from the front wall (green in the parking section:
+// to 1600 mm, then a short S-shift to the left). Different colour -> crosses the lane with
 // a computed turn and Advance_For_distance_Especial, then steers back to heading 0.
-// No second pillar -> drives straight to 1000 mm from the front wall.
+// No second pillar -> drives straight to 1100 mm from the front wall.
 //   return : colour of the second pillar if present, otherwise past_cube.
 Color_traffic_light esquivar_cubos_2( Color_traffic_light past_cube, bool parking){
     float angle_to_wall = 0;
@@ -2104,7 +2371,7 @@ Color_traffic_light esquivar_cubos_2( Color_traffic_light past_cube, bool parkin
         if((middle_point_x < 0.5) && (cube != none) && ( cube != light_xparking)){
             is_cube_present = true;
             if( past_cube == cube ){
-                Oradar_S2L_Advance_Until_Distance(80, 0, 1000, Hold);
+                Oradar_S2L_Advance_Until_Distance(30, 0, 1100, Hold);
                 printf("2 red cubes in a row\n");
             }else{
                 printf("red cube followed by green\n");
@@ -2119,17 +2386,17 @@ Color_traffic_light esquivar_cubos_2( Color_traffic_light past_cube, bool parkin
                 if(angle_to_wall > 70.0){ /* limit the angle in case of an emergency */
                     angle_to_wall = 70.0;
                 }
-                Spike_Turn_For_Degrees(direction_to_turn, 60,abs( angle_to_wall) -5 , 40);
+                Spike_Turn_For_Degrees(direction_to_turn, 23,abs( angle_to_wall) -5 , 40);
                 Spike_Center_Vehicle_Short();
-                Advance_For_distance_Especial(80, (int)hypotenuse - 250, ((abs(angle_to_wall) - 5)*direction_to_turn*-1));
-                Spike_Small_Turn((direction_to_turn * -1), 60, 0, 35);
+                Advance_For_distance_Especial(30, (int)hypotenuse - 50, ((abs(angle_to_wall) - 5)*direction_to_turn*-1));
+                Spike_Small_Turn((direction_to_turn * -1), 23, 0, 35);
                 Spike_Center_Vehicle_Short();
                 Spike_Coast_Motors();
             }
             
         }
         else{
-            Oradar_S2L_Advance_Until_Distance(80, 0, 1000, Hold);
+            Oradar_S2L_Advance_Until_Distance(30, 0, 1100, Hold);
             printf("no second cube\n");
         }
     }
@@ -2139,12 +2406,12 @@ Color_traffic_light esquivar_cubos_2( Color_traffic_light past_cube, bool parkin
             is_cube_present = true;
             if( past_cube == cube ){
                 if(parking == false){
-                    Oradar_S2L_Advance_Until_Distance(80, 0, 1000, Hold);
+                    Oradar_S2L_Advance_Until_Distance(30, 0, 1100, Hold);
                 }
                 else{
-                    Oradar_S2L_Advance_Until_Distance(80, 0, 1500, Hold);
-                    Spike_Turn_For_Degrees(left, 60, 30, 40);
-                    Spike_Small_Turn(right, 60, 0, 40);
+                    Oradar_S2L_Advance_Until_Distance(30, 0, 1600, Hold);
+                    Spike_Turn_For_Degrees(left, 23, 30, 40);
+                    Spike_Small_Turn(right, 23, 0, 40);
                     Spike_Center_Vehicle_Short();
                 }
                 printf("2 green cubes in a row\n");
@@ -2164,22 +2431,22 @@ Color_traffic_light esquivar_cubos_2( Color_traffic_light past_cube, bool parkin
                 }
                 //printf("yaw before the right turn: %f\n", Spike_Get_Gyro());
                 //usleep(10000000);
-                Spike_Turn_For_Degrees(direction_to_turn, 60, abs(angle_to_wall) - 5, 40);
+                Spike_Turn_For_Degrees(direction_to_turn, 23, abs(angle_to_wall) - 5, 40);
                 Spike_Center_Vehicle_Short();
                 if((parking == false)){// the parking flag matters here mainly for the red pillar in the parking section
-                    Advance_For_distance_Especial(80, (int)hypotenuse - 250, (angle_to_wall*direction_to_turn*-1));
+                    Advance_For_distance_Especial(30, (int)hypotenuse - 50, (angle_to_wall*direction_to_turn*-1));
                 }
                 else{
                     printf("second red cube in the parking section\n");
-                    Advance_For_distance_Especial(80, (int)hypotenuse - 260, ((abs(angle_to_wall) - 5)*direction_to_turn*-1));
+                    Advance_For_distance_Especial(30, (int)hypotenuse - 60, ((abs(angle_to_wall) - 5)*direction_to_turn*-1));
                 }
-                Spike_Small_Turn((direction_to_turn * -1), 60, 0, 35);
+                Spike_Small_Turn((direction_to_turn * -1), 23, 0, 35);
                 Spike_Center_Vehicle_Short();
                 Spike_Coast_Motors();
             }
         }
         else{
-            Oradar_S2L_Advance_Until_Distance(80, 0, 1000, Hold);
+            Oradar_S2L_Advance_Until_Distance(30, 0, 1100, Hold);
             //printf("no second cube\n");
         }
     }
@@ -2192,41 +2459,45 @@ Color_traffic_light esquivar_cubos_2( Color_traffic_light past_cube, bool parkin
     }
 }
 
-// Clockwise run: drives to 1000 mm from the front wall, checks the camera for a pillar in
+// Clockwise run: drives to 1050 mm from the front wall, checks the camera for a pillar in
 // the corner area and takes the right-hand corner turn (until |yaw| >= 86 deg).
-// The colour seen sets how close to the front wall the robot gets before turning:
-//   green after a red pillar -> 400 mm (600 mm when entering the parking section),
-//   red after a red pillar   -> 990 mm (turn almost immediately),
-//   anything else            -> 650 mm; no corner pillar, and *middle_cube is set to
+// The colour seen sets how close to the front wall the robot gets before turning
+// (the speeds and distances are the constants defined at the top of this file):
+//   green after a red pillar -> 600 mm (750 mm when entering the parking section),
+//   red after a red pillar   -> 1050 mm (turn immediately),
+//   anything else            -> 770 mm; no corner pillar, and *middle_cube is set to
 //                               false after a green pillar, true otherwise.
 //   middle_cube [out] : whether the next section is handled as a single middle pillar.
 //   return            : colour of the corner pillar, or none when there is none.
 Color_traffic_light Corner_Case(Color_traffic_light past_cube, bool *middle_cube, bool parking){
     bool is_corner_cube = true;
     printf("Case_corner\n");
-    Oradar_S2L_Advance_Until_Distance(80, 0, 1000, Hold);
+    Oradar_S2L_Advance_Until_Distance(SPEED_CORNER_CASE_CLOCKWISE_FORWARD, 0, WALL_OFFSET_INIT_CORNER_CASE_CLOCKWISE, Hold);
     Color_traffic_light cube = traffic_lights.light_color;
 
-    if((cube == light_green) && (past_cube == light_red)){
+
+    if((cube == light_green) && (past_cube == light_red))
+    {
         printf("green in the corner\n");
         if(parking == false){
             printf("normal section\n");
-            Oradar_S2L_Advance_Until_Distance(80, 0, 400, Hold); 
+            Oradar_S2L_Advance_Until_Distance(SPEED_CORNER_CASE_CLOCKWISE_FORWARD, 0, WALL_OFFSET_GREEN_CUBE_CLOCKWISE_NORMAL_SECTION, Hold); 
         }
         else{
             printf("entering the parking section\n");
-            Oradar_S2L_Advance_Until_Distance(80, 0, 600, Hold);
+            Oradar_S2L_Advance_Until_Distance(SPEED_CORNER_CASE_CLOCKWISE_FORWARD, 0, WALL_OFFSET_GREEN_CUBE_CLOCKWISE_PARKING_SECTION, Hold);
         }
-
     }
-    else if((cube == light_red) && (past_cube == light_red)){
+    else if((cube == light_red) && (past_cube == light_red))
+    {
         printf("red in the corner\n");
-        Oradar_S2L_Advance_Until_Distance(80, 0, 990, Hold);
+        Oradar_S2L_Advance_Until_Distance(SPEED_CORNER_CASE_CLOCKWISE_FORWARD, 0, WALL_OFFSET_INIT_CORNER_CASE_CLOCKWISE, Hold);
     }
+    
     else{
         printf("nothing in the corner\n");
         is_corner_cube = false;
-        Oradar_S2L_Advance_Until_Distance(80, 0, 650, Hold);
+        Oradar_S2L_Advance_Until_Distance(SPEED_CORNER_CASE_CLOCKWISE_FORWARD, 0, WALL_OFFSET_CENTER_WALL_CLOCKWISE, Hold);
         if(past_cube == light_green){
             *middle_cube = false;
         }
@@ -2235,7 +2506,7 @@ Color_traffic_light Corner_Case(Color_traffic_light past_cube, bool *middle_cube
         }
     }
 
-    Spike_Turn_For_Degrees(right, 60, 86, 40,true);
+    Spike_Turn_For_Degrees(right, SPEED_CORNER_CASE_CLOCKWISE_ROUND, 86, TIRE_TURN,true);
     Spike_Center_Vehicle_Short();
     Spike_Coast_Motors();
 
@@ -2274,19 +2545,19 @@ Color_traffic_light esquivar_cubos_middle(bool parking){
     if(angle_to_wall > 70.0){ /* limit the angle in case of an emergency */
         angle_to_wall = 70.0;
     }
-    Spike_Turn_For_Degrees(direction_to_turn, 60, abs(angle_to_wall) + 3, 40, true);
+    Spike_Turn_For_Degrees(direction_to_turn, 23, abs(angle_to_wall) + 3, 40, true);
     printf("===============Turn finish position================\n");
     //usleep(2000000);
     Spike_Center_Vehicle_Short();
     if(cube == light_red)
     {
-        Spike_Advance_For_distance(80, (int)hypotenuse - 450, ((abs(angle_to_wall) + 3 )*direction_to_turn*-1));
+        Spike_Advance_For_distance(30, (int)hypotenuse - 450, ((abs(angle_to_wall) + 3 )*direction_to_turn*-1));
     }
     else
     {
-        Spike_Advance_For_distance(80, (int)hypotenuse - 350, ((abs(angle_to_wall) + 3 )*direction_to_turn*-1));
+        Spike_Advance_For_distance(30, (int)hypotenuse - 350, ((abs(angle_to_wall) + 3 )*direction_to_turn*-1));
     }
-    Spike_Small_Turn((direction_to_turn * -1), 60, 0, 40);
+    Spike_Small_Turn((direction_to_turn * -1), 23, 0, 40);
     Spike_Center_Vehicle_Short();
     Spike_Coast_Motors();
 
@@ -2313,6 +2584,7 @@ Color_traffic_light Desicion(Color_traffic_light past_cube, bool middle_cube, bo
     }else{
         slope = slope + 90;
     }
+    slope = Inclinacion_Por_Consenso("Desicion", slope);
     Spike_Reset_Gyro(slope);
     printf("reset angle %f\n", slope);
     usleep(300000);
@@ -2343,35 +2615,35 @@ Color_traffic_light Desicion(Color_traffic_light past_cube, bool middle_cube, bo
 // Clockwise run: leaves the parking lot at the start of the Obstacle Challenge and passes
 // the first pillar. Reverses while steering left to 16 deg, then drives forward turning
 // right to 45 deg and waits up to 3 s for the camera to report a pillar.
-//   red   -> turn right to 90 deg, drive at heading -90 to 480 mm from the wall ahead,
-//            steer back to 0 and drive to 1050 mm from the front wall.
+//   red   -> turn right to 90 deg, drive at heading -90 to 580 mm from the wall ahead,
+//            steer back to 0 and drive to 1150 mm from the front wall.
 //   green -> steer back left in two steps, a small S-shift to the left, then drive to
-//            1100 mm from the front wall.
+//            1200 mm from the front wall.
 //   return : colour seen (none if no pillar was seen within 3 s).
 Color_traffic_light estacionamiento_clockwise(void){
-    Spike_Turn_For_Degrees(left, -40, 16, 45, true);
+    Spike_Turn_For_Degrees(left, -15, 16, 45, true);
     Spike_Center_Vehicle();
-    Spike_Turn_For_Degrees(right, 60, 45, 40, true);
+    Spike_Turn_For_Degrees(right, 20, 45, 40, true);
     usleep(300000);
 
     Color_traffic_light cube = Esperar_Color_De_Cubo(3000); // Hiwonder: the v6 wait never returned if no pillar was visible
 
     if(cube == light_red){
-        Spike_Turn_For_Degrees(right, 60, 90, 40);
+        Spike_Turn_For_Degrees(right, 23, 90, 40);
         Spike_Center_Vehicle_Short();
-        Oradar_S2L_Advance_Until_Distance(80, -90, 480, Hold);
-        Spike_Small_Turn(left, 60, 0, 40);
+        Oradar_S2L_Advance_Until_Distance(30, -90, 580, Hold);
+        Spike_Small_Turn(left, 23, 0, 40);
         Spike_Center_Vehicle_Short();
-        Oradar_S2L_Advance_Until_Distance(80, 0, 1050, Hold);
+        Oradar_S2L_Advance_Until_Distance(30, 0, 1150, Hold);
 
     }
     else if(cube == light_green){
-        Spike_Small_Turn(left, 60, 30, 15, true);
-        Spike_Small_Turn(left, 60, 0, 40);
-        Spike_Turn_For_Degrees(left, 60, 15, 40);
-        Spike_Small_Turn(right, 60, 0, 40);
+        Spike_Small_Turn(left, 23, 30, 15, true);
+        Spike_Small_Turn(left, 23, 0, 40);
+        Spike_Turn_For_Degrees(left, 23, 15, 40);
+        Spike_Small_Turn(right, 23, 0, 40);
         Spike_Center_Vehicle_Short();
-        Oradar_S2L_Advance_Until_Distance(80, 0, 1100, Hold);
+        Oradar_S2L_Advance_Until_Distance(30, 0, 1200, Hold);
     }
 
     return cube;
@@ -2503,17 +2775,17 @@ Color_traffic_light esquivar_cubos_1_counterclockwise(bool parking){
     if(angle_to_wall > 70.0){ /* limit the angle in case of an emergency */
         angle_to_wall = 70.0;
     }
-    Spike_Turn_For_Degrees(direction_to_turn, 60, abs(angle_to_wall) + 5, 40);
+    Spike_Turn_For_Degrees(direction_to_turn, 23, abs(angle_to_wall) + 5, 40);
     usleep(100000);
     Spike_Center_Vehicle_Short();
     if((parking == false) || (cube == light_green)){
-        Spike_Advance_For_distance(80, (int)hypotenuse - (400*(angle_to_wall/45)), ((abs(angle_to_wall)) *direction_to_turn*-1));
+        Spike_Advance_For_distance(30, (int)hypotenuse - (400*(angle_to_wall/45)), ((abs(angle_to_wall)) *direction_to_turn*-1));
     }
     else{
         printf("green case in the parking section\n");
-        Spike_Advance_For_distance(80, (int)hypotenuse - (200*(angle_to_wall/45)) , (angle_to_wall*direction_to_turn*-1));
+        Spike_Advance_For_distance(30, (int)hypotenuse - (200*(angle_to_wall/45)) , (angle_to_wall*direction_to_turn*-1));
     }
-    Spike_Small_Turn((direction_to_turn * -1), 60, 0, 40);
+    Spike_Small_Turn((direction_to_turn * -1), 23, 0, 40);
     Spike_Center_Vehicle_Short();
 
     return cube;
@@ -2538,13 +2810,13 @@ Color_traffic_light esquivar_cubos_2_counterclockwise( Color_traffic_light past_
             is_cube_present = true;
             if( past_cube == cube ){
                 if(parking == false){
-                    Oradar_S2L_Advance_Until_Distance(80, 0, 1000, Hold);
+                    Oradar_S2L_Advance_Until_Distance(30, 0, 1100, Hold);
                 }
                 else{
                     printf("                  vehicle special turn \n");
-                    Oradar_S2L_Advance_Until_Distance(80, 0, 1175, Hold);
-                    Spike_Turn_For_Degrees(right, 60, 30, 40);
-                    Spike_Small_Turn(left, 60, 0, 40);
+                    Oradar_S2L_Advance_Until_Distance(30, 0, 1275, Hold);
+                    Spike_Turn_For_Degrees(right, 23, 30, 40);
+                    Spike_Small_Turn(left, 23, 0, 40);
                     Spike_Center_Vehicle_Short();
                     
                 }
@@ -2562,23 +2834,23 @@ Color_traffic_light esquivar_cubos_2_counterclockwise( Color_traffic_light past_
                 if(angle_to_wall > 70.0){ /* limit the angle in case of an emergency */
                     angle_to_wall = 70.0;
                 }
-                Spike_Turn_For_Degrees(direction_to_turn, 60,abs( angle_to_wall)  , 40);
+                Spike_Turn_For_Degrees(direction_to_turn, 23,abs( angle_to_wall)  , 40);
                 Spike_Center_Vehicle_Short();
                 if((parking == false)){
-                    Advance_For_distance_Especial(80, (int)hypotenuse - (250*(angle_to_wall/45)), (angle_to_wall*direction_to_turn*-1));
+                    Advance_For_distance_Especial(30, (int)hypotenuse - (50*(angle_to_wall/45)) - 100, (angle_to_wall*direction_to_turn*-1));
                 }
                 else{
                     printf("second red cube in the parking section\n");
-                    Advance_For_distance_Especial(80, (int)hypotenuse - (280*(angle_to_wall/45)), ((abs(angle_to_wall) - 5)*direction_to_turn*-1));
+                    Advance_For_distance_Especial(30, (int)hypotenuse - (80*(angle_to_wall/45)) - 100, ((abs(angle_to_wall) - 5)*direction_to_turn*-1));
                 }
-                Spike_Small_Turn((direction_to_turn * -1), 60, 0, 35);
+                Spike_Small_Turn((direction_to_turn * -1), 23, 0, 35);
                 Spike_Center_Vehicle_Short();
                 Spike_Coast_Motors();
             }
 
         }
         else{
-            Oradar_S2L_Advance_Until_Distance(80, 0, 1000, Hold);
+            Oradar_S2L_Advance_Until_Distance(30, 0, 1100, Hold);
             printf("no second cube\n");
         }
     }
@@ -2587,7 +2859,7 @@ Color_traffic_light esquivar_cubos_2_counterclockwise( Color_traffic_light past_
         if((middle_point_x > 0.5) && ( cube != none) && ( cube != light_xparking)){
             is_cube_present = true;
             if( past_cube == cube ){
-                Oradar_S2L_Advance_Until_Distance(80, 0, 1000, Hold);
+                Oradar_S2L_Advance_Until_Distance(30, 0, 1100, Hold);
                 printf("2 green cubes in a row\n");
             }else{
                 printf("green cube followed by red\n");
@@ -2602,23 +2874,23 @@ Color_traffic_light esquivar_cubos_2_counterclockwise( Color_traffic_light past_
                 if(angle_to_wall > 70.0){ /* limit the angle in case of an emergency */
                     angle_to_wall = 70.0;
                 }   
-                Spike_Turn_For_Degrees(direction_to_turn, 60, abs(angle_to_wall) , 40);
+                Spike_Turn_For_Degrees(direction_to_turn, 23, abs(angle_to_wall) , 40);
                 Spike_Center_Vehicle_Short();
-                Advance_For_distance_Especial(80, (int)hypotenuse - (270*(angle_to_wall/45)), (angle_to_wall*direction_to_turn*-1));
-                Spike_Small_Turn((direction_to_turn * -1), 60, 0, 35);
+                Advance_For_distance_Especial(30, (int)hypotenuse - (70*(angle_to_wall/45)) - 100, (angle_to_wall*direction_to_turn*-1));
+                Spike_Small_Turn((direction_to_turn * -1), 23, 0, 35);
                 Spike_Center_Vehicle_Short();
                 Spike_Coast_Motors();
                 if (parking == true){
                     //usleep(10000000);
-                    Spike_Advance_For_Degrees(50,200,0);
-                    Spike_Turn_For_Degrees(right, 60, 30, 40);
-                    Spike_Small_Turn(left, 60, 0, 40);
+                    Spike_Advance_For_Degrees(19,200,0);
+                    Spike_Turn_For_Degrees(right, 23, 30, 40);
+                    Spike_Small_Turn(left, 23, 0, 40);
                     Spike_Center_Vehicle_Short();
                 }
             }
         }
         else{
-            Oradar_S2L_Advance_Until_Distance(80, 0, 1000, Hold);
+            Oradar_S2L_Advance_Until_Distance(30, 0, 1100, Hold);
         }
     }
 
@@ -2631,36 +2903,38 @@ Color_traffic_light esquivar_cubos_2_counterclockwise( Color_traffic_light past_
 }
 
 // Counter-clockwise counterpart of Corner_Case: the corner turn is taken to the left
-// instead of the right, and the colours are swapped: red after a green pillar -> stop at
-// 400 mm (600 mm entering the parking section), green after a green pillar -> 990 mm,
-// otherwise 650 mm with *middle_cube = false after a red pillar, true otherwise.
-// The distance thresholds are the same as in the clockwise version.
+// instead of the right, and the colours are swapped. First stop at 1100 mm from the
+// front wall; then red after a green pillar -> stop at 500 mm (700 mm entering the
+// parking section), green after a green pillar -> 1090 mm, otherwise 750 mm with
+// *middle_cube = false after a red pillar, true otherwise.
+// These distances are written here as numbers; the clockwise version uses the
+// constants defined at the top of this file.
 Color_traffic_light Corner_Case_counterclockwise(Color_traffic_light past_cube, bool *middle_cube, bool parking){
     bool is_corner_cube = true;
     printf("Case_corner (ccw)\n");
-    Oradar_S2L_Advance_Until_Distance(80, 0, 1000, Hold);
+    Oradar_S2L_Advance_Until_Distance(30, 0, 1100, Hold);
     Color_traffic_light cube = traffic_lights.light_color;
 
     if((cube == light_red) && (past_cube == light_green)){
         printf("red in the corner counterclockwise\n");
         if(parking == false){
             printf("normal section\n");
-            Oradar_S2L_Advance_Until_Distance(80, 0, 400, Hold);
+            Oradar_S2L_Advance_Until_Distance(30, 0, 500, Hold);
         }
         else{
             printf("entering the parking section\n");
-            Oradar_S2L_Advance_Until_Distance(80, 0, 600, Hold);
+            Oradar_S2L_Advance_Until_Distance(30, 0, 700, Hold);
         }
 
     }
     else if((cube == light_green) && (past_cube == light_green)){
         printf("green in the corner ccw\n");
-        Oradar_S2L_Advance_Until_Distance(80, 0, 990, Hold);
+        Oradar_S2L_Advance_Until_Distance(30, 0, 1090, Hold);
     }
     else{
         printf("nothing in the corner\n");
         is_corner_cube = false;
-        Oradar_S2L_Advance_Until_Distance(80, 0, 650, Hold);
+        Oradar_S2L_Advance_Until_Distance(30, 0, 750, Hold);
         if(past_cube == light_red){
             *middle_cube = false;
         }
@@ -2669,7 +2943,7 @@ Color_traffic_light Corner_Case_counterclockwise(Color_traffic_light past_cube, 
         }
     }
 
-    Spike_Turn_For_Degrees(left, 60, 86, 40,true);
+    Spike_Turn_For_Degrees(left, 23, 86, 40,true);
     Spike_Center_Vehicle_Short();
     Spike_Coast_Motors();
 
@@ -2707,18 +2981,18 @@ Color_traffic_light esquivar_cubos_middle_counterclockwise(bool parking){
     if(angle_to_wall > 70.0){ /* limit the angle in case of an emergency */
         angle_to_wall = 70.0;
     }
-    Spike_Turn_For_Degrees(direction_to_turn, 60, abs(angle_to_wall) + 5, 40, true);
+    Spike_Turn_For_Degrees(direction_to_turn, 23, abs(angle_to_wall) + 5, 40, true);
     printf("===============Turn finish position (ccw)================\n");
     Spike_Center_Vehicle_Short();
     if(cube == light_green)
     {
-        Spike_Advance_For_distance(80, (int)hypotenuse - (450*(angle_to_wall/45)), ((abs(angle_to_wall) + 3 )*direction_to_turn*-1));
+        Spike_Advance_For_distance(30, (int)hypotenuse - (450*(angle_to_wall/45)), ((abs(angle_to_wall) + 3 )*direction_to_turn*-1));
     }
     else
     {
-        Spike_Advance_For_distance(80, (int)hypotenuse - (350*(angle_to_wall/45)), ((abs(angle_to_wall) + 3 )*direction_to_turn*-1));
+        Spike_Advance_For_distance(30, (int)hypotenuse - (350*(angle_to_wall/45)), ((abs(angle_to_wall) + 3 )*direction_to_turn*-1));
     }
-    Spike_Small_Turn((direction_to_turn * -1), 60, 0, 40);
+    Spike_Small_Turn((direction_to_turn * -1), 23, 0, 40);
     Spike_Center_Vehicle_Short();
     Spike_Coast_Motors();
 
@@ -2739,6 +3013,7 @@ Color_traffic_light Desicion_counterclockwise(Color_traffic_light past_cube, boo
     }else{
         slope = slope + 90;
     }
+    slope = Inclinacion_Por_Consenso("Desicion_counterclockwise", slope);
     Spike_Reset_Gyro(slope);
     printf("reset angle %f\n", slope);
     usleep(200000);
@@ -2771,23 +3046,23 @@ Color_traffic_light Desicion_counterclockwise(Color_traffic_light past_cube, boo
 // derived from the LiDAR. The first two moves mirror the clockwise version
 // (left <-> right); the colour branches are their own hand-tuned sequences:
 //   red   -> steer right back to 35 deg and then to 0 deg.
-//   green -> turn left to 120 deg, steer right back to 0, drive to 800 mm from the
+//   green -> turn left to 120 deg, steer right back to 0, drive to 900 mm from the
 //            front wall, then reverse 600 hub degrees.
 //   none  -> same moves as the red branch.
 // The colour that triggers each branch follows the fixed rule (green passed on the
 // left, red on the right).
 //   return : colour seen (none if no pillar was seen within 3 s).
 Color_traffic_light estacionamiento_counterclockwise(void){
-    Spike_Turn_For_Degrees(right, -40, 16, 45, true);
+    Spike_Turn_For_Degrees(right, -15, 16, 45, true);
     Spike_Center_Vehicle();
-    Spike_Turn_For_Degrees(left, 45, 45, 40, true);
+    Spike_Turn_For_Degrees(left, 20, 45, 40, true);
     //(usleep(1500000);
 
     Color_traffic_light cube = Esperar_Color_De_Cubo(3000); // Hiwonder: the v6 wait never returned if no pillar was visible
     if(cube == light_red){
         printf("saw red\n");
-        Spike_Small_Turn(right, 60, 35, 15,true);
-        Spike_Small_Turn(right, 60, 0, 40, true);
+        Spike_Small_Turn(right, 23, 35, 15,true);
+        Spike_Small_Turn(right, 23, 0, 40, true);
         Spike_Center_Vehicle_Short();
         //Spike_Advance_For_Degrees(-80, 200, 90);
         //Spike_Break_Motors();
@@ -2799,16 +3074,16 @@ Color_traffic_light estacionamiento_counterclockwise(void){
     else if(cube == light_green){
         printf("saw green\n");
 
-        Spike_Turn_For_Degrees(left, 60, 120, 45);
-        Spike_Small_Turn(right, 60, 0, 45, true);
+        Spike_Turn_For_Degrees(left, 23, 120, 45);
+        Spike_Small_Turn(right, 23, 0, 45, true);
         Spike_Center_Vehicle();
-        Oradar_S2L_Advance_Until_Distance(80, 0, 800, Hold);
-        Spike_Advance_For_Degrees(-80, 600, 0);
+        Oradar_S2L_Advance_Until_Distance(30, 0, 900, Hold);
+        Spike_Advance_For_Degrees(-30, 600, 0);
 
     }else{
         printf("saw nothing, positioning as for red\n");
-        Spike_Small_Turn(right, 60, 35, 15,true);
-        Spike_Small_Turn(right, 60, 0, 40, true);
+        Spike_Small_Turn(right, 23, 35, 15,true);
+        Spike_Small_Turn(right, 23, 0, 40, true);
         Spike_Center_Vehicle_Short();
         //usleep(5000000);
     }

@@ -30,6 +30,11 @@ void Oradar_S2L_Set_Terminating(void);
 void Oradar_S2L_Get_Buffer(float *buffer);
 // Number of full scans received so far (0 = no data yet).
 unsigned long Oradar_S2L_Get_Scan_Seq(void);
+// For the emergency stop (defined in ondevice/Oradar_S2L.cpp): serial port of
+// the lidar, and the frames that stop its motor. Oradar_S2L_Stop_Frames
+// returns the number of bytes written to buf (0 if there are none).
+const char *Oradar_S2L_Port(void);
+int Oradar_S2L_Stop_Frames(unsigned char *buf, int max);
 float Oradar_S2L_Radians_To_Degrees(float radians);
 float Oradar_S2L_Degrees_To_Radians(float degrees);
 

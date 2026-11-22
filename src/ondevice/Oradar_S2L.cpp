@@ -54,10 +54,16 @@ using namespace sl;
 // RPLidar S2L: 1 Mbaud. Its angle grows clockwise from the front mark of the
 // lidar. RPLIDAR_FRONT_DEG is the lidar angle that points to the front of the
 // robot, and RPLIDAR_CLOCKWISE=0 reverses the direction (lidar mounted upside
-// down). The previous S2L driver of this program used 0=front, 90=right,
-// 270=left: FRONT_DEG 0 and clockwise.
+// down). The default FRONT_DEG is Lidar_Angle_Orientation_fixed_to_robot in
+// common_var.h (the current mounting of the robot); -DRPLIDAR_FRONT_DEG=...
+// overrides it. Without either it is 0, as in the previous S2L driver of this
+// program (0=front, 90=right, 270=left, clockwise).
 #ifndef RPLIDAR_FRONT_DEG
+#ifdef Lidar_Angle_Orientation_fixed_to_robot
+#define RPLIDAR_FRONT_DEG Lidar_Angle_Orientation_fixed_to_robot  // common_var.h
+#else
 #define RPLIDAR_FRONT_DEG 0
+#endif
 #endif
 #ifndef RPLIDAR_CLOCKWISE
 #define RPLIDAR_CLOCKWISE 1
@@ -334,8 +340,6 @@ void Oradar_S2L_Advance_Until_Left_Gap(int speed, int reference){
         left_distance = oradar_shared_buffer[RP_TO_ORADAR_IDX(LEFT)];
         Spike_Forward(speed,reference);
         usleep(2000);
-        printf("left distance: %f\n", left_distance);
-        //printf("front distance : %f\n", front_distance);
     }
 
 }

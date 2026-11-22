@@ -199,10 +199,23 @@ if(WRO_LIDAR STREQUAL "RPLIDAR_S2L")
             "${RPLIDAR_LIB} does not exist. Clone https://github.com/Slamtec/rplidar_sdk "
             "into ${RPLIDAR_SDK_DIR} and build it with make, or pass -DRPLIDAR_SDK_DIR=...")
     endif()
-    # Mounting of the S2L on the robot: LiDAR angle (deg) that faces the
-    # front, and rotation sense. Same values the Open Challenge ran with on
-    # the track (src/ondevice/Makefile without LIDAR_FLAGS).
-    set(RPLIDAR_FRONT_DEG 0 CACHE STRING "RPLidar angle that points to the front of the robot")
+    # Mounting of the S2L on the robot: lidar angle (deg) that faces the front,
+    # read from Lidar_Angle_Orientation_fixed_to_robot in common_var.h (the
+    # only place to change if the lidar is rotated, as in the Open Challenge).
+    # It used to be a cache variable fixed at 0: it is removed from the cache
+    # so that an old build folder does not keep using it. Editing common_var.h
+    # re-runs the configuration by itself.
+    set(_COMMON_VAR_H "${CMAKE_CURRENT_SOURCE_DIR}/common_var.h")
+    set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${_COMMON_VAR_H}")
+    file(STRINGS "${_COMMON_VAR_H}" _montaje
+         REGEX "^#define[ \t]+Lidar_Angle_Orientation_fixed_to_robot[ \t]+[0-9]+")
+    string(REGEX MATCH "[0-9]+$" _montaje "${_montaje}")
+    if(_montaje STREQUAL "")
+        message(FATAL_ERROR "Missing #define Lidar_Angle_Orientation_fixed_to_robot in ${_COMMON_VAR_H}")
+    endif()
+    unset(RPLIDAR_FRONT_DEG CACHE)
+    set(RPLIDAR_FRONT_DEG ${_montaje})
+    message(STATUS "RPLidar: front of the robot = lidar angle ${RPLIDAR_FRONT_DEG} (common_var.h)")
     set(RPLIDAR_CLOCKWISE 1 CACHE STRING "1 if the RPLidar angle increases clockwise seen from above")
     set(LIDAR_INCLUDE_DIRS "${RPLIDAR_SDK_DIR}/sdk/include" "${RPLIDAR_SDK_DIR}/sdk/src")
     set(LIDAR_LIBS "${RPLIDAR_LIB}")
