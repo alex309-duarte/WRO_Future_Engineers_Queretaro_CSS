@@ -93,7 +93,7 @@ See [`src/SERVICES_README.md`](../../src/SERVICES_README.md) to start either v7 
 
 Only needed if retraining the vision model rather than using the one already checked into `src/HailoModels/`.
 
-**Design v7 model** (`src/HailoModels/wro_h8_yolov8n_v4.hef`, decision card [D6](../../README.md#d6)):
+**Design v7 model** (`src/HailoModels/wro_h8_yolov8n_v4.hef`, decision card [D8](../../README.md#d8)):
 
 1. **Dataset.** Download [`wro-dataset-completo` v1](https://universe.roboflow.com/roboteam-x6iuc/wro-dataset-completo) from Roboflow Universe in **YOLOv8** format. Classes: `greenbox`, `redbox`, `xparking`. The export is already resized to 640×640 (stretch) and the training split already carries the 3× augmentation listed in D6.
 2. **Train** YOLOv8n with Ultralytics **8.4.115** ([training documentation](https://docs.ultralytics.com/modes/train/)) at image size **640** (training run `h10_yolov8n_640_v4`), starting from `yolov8n.pt`.
