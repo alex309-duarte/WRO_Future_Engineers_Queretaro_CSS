@@ -332,11 +332,11 @@ The v7 chassis is a modification of the v6 design, modeled in SolidWorks. It was
 #### Interactive 3D model: open it and take the vehicle apart <a id="viewer-3d"></a>
 
 > [!TIP]
-> ## <img src="other/additionalMedia/Others/click_icon.png" width="30" alt="Click to open"> [INTERACTIVE 3D MODEL: CLICK HERE TO OPEN IT](https://alex309-duarte.github.io/WRO_Future_Engineers_Queretaro_CSS/models/cad/viewer/)
+> ## <img src="other/additionalMedia/Others/click_icon.png" width="30" alt="Click to open"> [INTERACTIVE 3D MODEL: CLICK HERE TO OPEN IT](https://sebassesq.github.io/the-maker-3d/)
 >
 > This is not a picture. The whole SolidWorks assembly of the vehicle opens **in your browser, with nothing to install**, and you can move it yourself: **rotate** it, **zoom** in, **take the vehicle apart** and put it back, and **see the name of every part**.
 
-<a href="https://alex309-duarte.github.io/WRO_Future_Engineers_Queretaro_CSS/models/cad/viewer/"><img src="other/additionalMedia/Others/vehicle_v7_exploded.gif" alt="Design v7 coming apart into its components and going back together; click to open the interactive 3D model" width="560"></a>
+<a href="https://sebassesq.github.io/the-maker-3d/"><img src="other/additionalMedia/Others/vehicle_v7_exploded.gif" alt="Design v7 coming apart into its components and going back together; click to open the interactive 3D model" width="560"></a>
 
 <img src="other/additionalMedia/Others/click_icon.png" width="20" alt="Click to open"> *Click the animation to open the model.* What you can do in it:
 

@@ -1,8 +1,8 @@
 # Vehicle v7 — interactive 3D exploded view
 
-**Open it:** <https://alex309-duarte.github.io/WRO_Future_Engineers_Queretaro_CSS/models/cad/viewer/>
+**Open it:** <https://sebassesq.github.io/the-maker-3d/>
 
-[![Vehicle v7 exploded view](../../../other/additionalMedia/Others/vehicle_v7_exploded.gif)](https://alex309-duarte.github.io/WRO_Future_Engineers_Queretaro_CSS/models/cad/viewer/)
+[![Vehicle v7 exploded view](../../../other/additionalMedia/Others/vehicle_v7_exploded.gif)](https://sebassesq.github.io/the-maker-3d/)
 
 The page loads the full SolidWorks assembly of the vehicle (27 components, 177 parts, original colours) in the browser. Nothing to install.
 
@@ -50,7 +50,9 @@ Colours are the SolidWorks appearance colours. Parts without an appearance show 
 
 ## How it is published
 
-The page is served by GitHub Pages. The workflow [`.github/workflows/viewer-pages.yml`](../../../.github/workflows/viewer-pages.yml) publishes **only this folder** (`index.html` and the `.glb` model) every time one of its files changes on `main`; the rest of the repository is not published, because it is larger than the 1 GB a Pages site may have. It needs one setting in the repository, made once: **Settings → Pages → Source: GitHub Actions**. The workflow can also be started by hand: **Actions → Publish the 3D viewer → Run workflow**.
+The page is served by GitHub Pages from a small repository of its own, [`sebassesq/the-maker-3d`](https://github.com/sebassesq/the-maker-3d), which holds a copy of the two files the page needs: `index.html` and `vehicle_v7.glb`. This repository is not published as a whole, because it is larger than the 1 GB a Pages site may have. **After a change to the model or the page, copy those two files from this folder to that repository and push.**
+
+The workflow [`.github/workflows/viewer-pages.yml`](../../../.github/workflows/viewer-pages.yml) can also publish this folder from this repository, once the owner sets **Settings → Pages → Source: GitHub Actions** here; until then it publishes nothing.
 
 ## Viewing it locally
 
