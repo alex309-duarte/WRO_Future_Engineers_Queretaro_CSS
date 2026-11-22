@@ -2179,6 +2179,7 @@ Design v7 has 13 different printed parts, 15 pieces in total. Their STL files ar
 - [2026 Repository (WRO_Future_Engineers_Queretaro_CSS)](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS)
 - [2025 Repository (WRO_2025_SSbots)](https://github.com/JRavenelco/WRO_2025_SSbots)
 - [Firmware development repository (hiwonder-brick)](https://github.com/JRavenelco/hiwonder-brick): source, host library, bench tools and bench logs of the Hiwonder board firmware
+- [Interactive 3D model repository (the-maker-3d)](https://github.com/sebassesq/the-maker-3d): publishes the [interactive 3D model](https://sebassesq.github.io/the-maker-3d/) of design v7 ([§4.1](#viewer-3d))
 
 ### Datasheets and documentation: design v7
 > [!NOTE]
