@@ -8,6 +8,13 @@
 
 [![Obstacle Challenge](https://img.youtube.com/vi/g_2ZrS4TVyc/maxresdefault.jpg)](https://www.youtube.com/shorts/g_2ZrS4TVyc)
 
+## Board firmware explained
+*(Click on preview to visit YouTube Video)*
+
+[![The extended firmware of the Hiwonder board, from scratch in STM32CubeIDE](https://img.youtube.com/vi/Mzc6JfptzTI/maxresdefault.jpg)](https://www.youtube.com/watch?v=Mzc6JfptzTI)
+
+The extended firmware of the Hiwonder ROS Robot Controller, from scratch in STM32CubeIDE (9:52): creating the project, the sources, the settings, the build, how the firmware works (5:51) and flashing and testing it (8:31).
+
 ## 2026 Mexico National Final: official rounds
 
 ### Open Challenge, official round

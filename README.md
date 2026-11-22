@@ -12,7 +12,7 @@ This repository contains the engineering documentation for **CSS**'s autonomous 
 </tr>
 </table>
 
-**Quick links:** [Videos](#driving-videos) · [What changed since nationals](#what-changed) · [Assembly instructions](other/Assembly_photos/Assembly_Process_EN.md) · [Bill of Materials](#bom) · [3D-print files](#printed-parts) · [Interactive 3D model](#viewer-3d) · [Wiring diagram](#wiring-v7) · [Setup and run](#setup-instructions) · [Firmware development repository](https://github.com/JRavenelco/hiwonder-brick) · [Engineering Journal](Engineering_Journal_CSS_WRO2026_International.pdf) · [Releases](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS/releases)
+**Quick links:** [Videos](#driving-videos) · [What changed since nationals](#what-changed) · [Assembly instructions](other/Assembly_photos/Assembly_Process_EN.md) · [Bill of Materials](#bom) · [3D-print files](#printed-parts) · [Interactive 3D model](#viewer-3d) · [Wiring diagram](#wiring-v7) · [Setup and run](#setup-instructions) · [Firmware development repository](https://github.com/JRavenelco/hiwonder-brick) · [Firmware video](https://www.youtube.com/watch?v=Mzc6JfptzTI) · [Engineering Journal](Engineering_Journal_CSS_WRO2026_International.pdf) · [Releases](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS/releases)
 
 ---
 
@@ -29,7 +29,7 @@ The sections follow the five criteria of the WRO 2026 documentation rubric (Appe
 | **2. Power and Sensor Architecture** ([§5](#power-sensors)) | **Power budget:** [power budget and peak current](#power-budget), [wiring diagram](#wiring-v7)<br>**Sensor trade-offs:** decision cards for the [LiDAR](#d4) and the [AI accelerator](#d5)<br>**Placement justified using field geometry:** [placement and field geometry](#placement)<br>**Calibration method:** [calibration](#calibration)<br>**Failure-point considerations:** [noise, interference and failure points](#noise)<br>**Iteration evidence:** [failure log](#failure-log) |
 | **3. Software Architecture and Obstacle Strategy** ([§6](#software)) | **State machine with rationale:** [Open Challenge states](#open-states), [Obstacle Challenge states](#obstacle-states)<br>**Algorithm justification (PID, CV, IMU):** [steering PD](#pd), [vision model](#vision), [LiDAR processing](#lidar), [heading estimation](#heading)<br>**Handling edge cases:** [avoidance, parking and edge cases](#edge-cases), [surprise rule: modified traffic sign](#surprise-rule)<br>**Testing/tuning process:** [testing and tuning workflow](#testing)<br>**Metrics used to validate performance:** [component tests](#component-tests), [run logs](#run-logs) |
 | **4. Systems Thinking and Engineering Decisions** ([§7](#systems)) | **Explicit constraints:** [constraints](#constraints), [rule compliance](#rule-compliance)<br>**Trade-offs:** [how the subsystems interact](#interactions)<br>**Iteration cycles:** [iteration history v1–v7](#lessons), [what changed from v6 to v7](#what-changed)<br>**Risk/failure analysis:** [risk and failure-mode register](#risks), [failure log](#failure-log), [known limitations and next steps](#limitations)<br>**"Why we chose X instead of Y":** the *Alternatives* row of every decision card ([D1](#d1), [D2](#d2), [D3](#d3), [D4](#d4), [D5](#d5), [D6](#d6), [D8](#d8), [D9](#d9), [D10](#d10)) |
-| **5. Reproducibility and GitHub Quality** ([§8](#reproducibility), [§9](#setup-instructions), [§10](#construction-guide)) | **Fully reproducible system:** [build this robot yourself](#build-it), [board firmware](#board-firmware) and its [development repository](https://github.com/JRavenelco/hiwonder-brick)<br>**Clear project structure:** [repository structure](#structure)<br>**Meaningful commit messages:** [commit history](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS/commits/main)<br>**Testing workflow documented:** [testing and tuning workflow](#testing), [competition-day checklist](#checklist)<br>**Versioning or release notes:** [versions and releases](#versions), [release notes](other/releases) |
+| **5. Reproducibility and GitHub Quality** ([§8](#reproducibility), [§9](#setup-instructions), [§10](#construction-guide)) | **Fully reproducible system:** [build this robot yourself](#build-it), [board firmware](#board-firmware), its [explainer video](https://www.youtube.com/watch?v=Mzc6JfptzTI) and its [development repository](https://github.com/JRavenelco/hiwonder-brick)<br>**Clear project structure:** [repository structure](#structure)<br>**Meaningful commit messages:** [commit history](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS/commits/main)<br>**Testing workflow documented:** [testing and tuning workflow](#testing), [competition-day checklist](#checklist)<br>**Versioning or release notes:** [versions and releases](#versions), [release notes](other/releases) |
 
 ---
 
@@ -886,6 +886,10 @@ However, since the WRO Future Engineers rules prohibit wireless communication du
 
 
 <table>
+<tr>
+<td align="center" width="220"><a href="https://www.youtube.com/watch?v=Mzc6JfptzTI"><img src="https://img.youtube.com/vi/Mzc6JfptzTI/maxresdefault.jpg" height="120" alt="Video: the extended firmware of the Hiwonder board, from scratch in STM32CubeIDE"></a></td>
+<td><kbd>Video</kbd> <b><a href="https://www.youtube.com/watch?v=Mzc6JfptzTI">▶ The extended firmware explained, from scratch in STM32CubeIDE</a></b> (9:52)<br>We create the project from zero, add the sources and the settings, build it, explain <a href="https://www.youtube.com/watch?v=Mzc6JfptzTI&t=351s">how the firmware works</a> (from 5:51) and <a href="https://www.youtube.com/watch?v=Mzc6JfptzTI&t=511s">flash and test it</a> on the board (from 8:31). The image on the robot is the <code>pos-v8</code> of this repository; the video builds the same sources in the IDE.</td>
+</tr>
 <tr>
 <td align="center" width="120"><a href="firmware/hiwonder_pos-v8/README.md"><img src="other/additionalMedia/Previews/firmware_page.png" height="120" alt="The firmware page"></a></td>
 <td><kbd>Other page</kbd> <b><a href="firmware/hiwonder_pos-v8/README.md">Firmware page</a></b><br>What we added to Hiwonder's firmware, the <code>MOTOR_EXT</code> commands, the versions, and how to flash and build it.</td>
@@ -2094,6 +2098,15 @@ Design v7 has 13 different printed parts, 15 pieces in total. Their STL files ar
 <tr>
 <td align="center" width="50%"><a href="https://www.youtube.com/watch?v=_KF8DmQ0PTM"><img src="https://img.youtube.com/vi/_KF8DmQ0PTM/hqdefault.jpg" alt="Open Challenge, official round of the 2026 Mexico National Final" width="400"></a><br><b><a href="https://www.youtube.com/watch?v=_KF8DmQ0PTM">▶ Open Challenge, official round</a></b></td>
 <td align="center" width="50%"><a href="https://www.youtube.com/watch?v=a_KmYEr5aDE"><img src="https://img.youtube.com/vi/a_KmYEr5aDE/hqdefault.jpg" alt="Obstacle Challenge, official round of the 2026 Mexico National Final" width="400"></a><br><b><a href="https://www.youtube.com/watch?v=a_KmYEr5aDE">▶ Obstacle Challenge, official round</a></b></td>
+</tr>
+</table>
+
+### Board firmware explained
+
+<table>
+<tr>
+<td align="center" width="50%"><a href="https://www.youtube.com/watch?v=Mzc6JfptzTI"><img src="https://img.youtube.com/vi/Mzc6JfptzTI/maxresdefault.jpg" alt="Video: the extended firmware of the Hiwonder board, from scratch in STM32CubeIDE" width="400"></a><br><b><a href="https://www.youtube.com/watch?v=Mzc6JfptzTI">▶ The extended firmware, from scratch in STM32CubeIDE (9:52)</a></b></td>
+<td width="50%">How the firmware of the Hiwonder board is built and how it works ([§6.1](#board-firmware)): 0:00 introduction · 0:39 an empty project · 2:08 the sources · 3:19 the settings · 5:04 build · 5:51 how it works · 8:31 flash and test.</td>
 </tr>
 </table>
 
