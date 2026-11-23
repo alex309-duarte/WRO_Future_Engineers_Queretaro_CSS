@@ -1,3 +1,10 @@
+## Overview: our project and how to navigate this repository
+*(Click on preview to visit YouTube Video)*
+
+[![Overview video: The Maker, design v7, our robot and how to find your way around this repository](../other/additionalMedia/Previews/video_overview.jpg)](https://www.youtube.com/@jesussantana2872)
+
+An introduction to our project and to The Maker, and a guided tour of the repository: what is in each part, how to navigate it, and where each rubric item is answered.
+
 ## Open Challenge
 *(Click on preview to visit YouTube Video)*
 
@@ -6,7 +13,7 @@
 ## Obstacle Challenge
 *(Click on preview to visit YouTube Video)*
 
-[![Obstacle Challenge](../other/additionalMedia/Previews/video_obstacle_challenge.jpg)](https://www.youtube.com/shorts/g_2ZrS4TVyc)
+[![Obstacle Challenge](../other/additionalMedia/Previews/video_obstacle_challenge.jpg)](https://www.youtube.com/watch?v=mQtrA2Nts34)
 
 Design v7 on our practice field (22 November 2026): the external view with the robot's camera (and the detections of its model) and its LiDAR scan, synchronised, with a stopwatch and a lap counter. Laps of 26.4, 24.6 and 25.4 s, parking in 20.6 s, 1:36.97 in total.
 

@@ -7,8 +7,11 @@ This repository contains the engineering documentation for **CSS**'s autonomous 
 
 <table>
 <tr>
+<td colspan="2" align="center"><a href="https://www.youtube.com/@jesussantana2872"><img src="other/additionalMedia/Previews/video_overview.jpg" alt="Overview video: The Maker, design v7, our robot and how to find your way around this repository" width="560"></a><br><b><a href="https://www.youtube.com/@jesussantana2872">▶ Start here: the overview video</a></b><br>An introduction to our project and to The Maker, and a guided tour of this repository: what is in each part, how to navigate it, and where each rubric item is answered.</td>
+</tr>
+<tr>
 <td align="center" width="50%"><a href="https://www.youtube.com/shorts/fHsPBr_Bzps"><img src="other/additionalMedia/Previews/video_open_challenge.jpg" alt="Open Challenge video" width="400"></a><br><b><a href="https://www.youtube.com/shorts/fHsPBr_Bzps">▶ Watch the Open Challenge</a></b></td>
-<td align="center" width="50%"><a href="https://www.youtube.com/shorts/g_2ZrS4TVyc"><img src="other/additionalMedia/Previews/video_obstacle_challenge.jpg" alt="Obstacle Challenge video: external view with the robot's camera and LiDAR views, synchronised, with stopwatch and lap counter" width="400"></a><br><b><a href="https://www.youtube.com/shorts/g_2ZrS4TVyc">▶ Watch the Obstacle Challenge</a></b></td>
+<td align="center" width="50%"><a href="https://www.youtube.com/watch?v=mQtrA2Nts34"><img src="other/additionalMedia/Previews/video_obstacle_challenge.jpg" alt="Obstacle Challenge video: external view with the robot's camera and LiDAR views, synchronised, with stopwatch and lap counter" width="400"></a><br><b><a href="https://www.youtube.com/watch?v=mQtrA2Nts34">▶ Watch the Obstacle Challenge</a></b></td>
 </tr>
 <tr>
 <td colspan="2" align="center"><a href="https://sebassesq.github.io/the-maker-3d/"><img src="other/additionalMedia/Others/vehicle_v7_exploded.gif" alt="Design v7 coming apart into its components and going back together; click to open the interactive 3D model" width="300"></a><br><a href="https://sebassesq.github.io/the-maker-3d/"><img src="other/additionalMedia/Others/click_icon.png" width="20" alt="Click to open"></a> <b><a href="https://sebassesq.github.io/the-maker-3d/">Open the interactive 3D model</a></b>: rotate it, zoom in and take the vehicle apart, in the browser (<a href="#viewer-3d">§4.1</a>)</td>
@@ -18,7 +21,7 @@ This repository contains the engineering documentation for **CSS**'s autonomous 
 </tr>
 </table>
 
-**Quick links:** [Videos](#driving-videos) · [What changed since nationals](#what-changed) · [Assembly instructions](other/Assembly_photos/Assembly_Process_EN.md) · [Bill of Materials](#bom) · [3D-print files](#printed-parts) · [Interactive 3D model](#viewer-3d) · [Digital twin](#digital-twin) · [Wiring diagram](#wiring-v7) · [Setup and run](#setup-instructions) · <a href="https://github.com/JRavenelco/hiwonder-brick"><img src="other/additionalMedia/Others/repo_icon.png" width="22" alt="Open the firmware repository"></a> [Firmware development repository](https://github.com/JRavenelco/hiwonder-brick) · [Firmware video](https://www.youtube.com/watch?v=Mzc6JfptzTI) · [Engineering Journal](Engineering_Journal_CSS_WRO2026_International.pdf) · [Releases](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS/releases)
+**Quick links:** [Overview video](https://www.youtube.com/@jesussantana2872) · [Videos](#driving-videos) · [What changed since nationals](#what-changed) · [Assembly instructions](other/Assembly_photos/Assembly_Process_EN.md) · [Bill of Materials](#bom) · [3D-print files](#printed-parts) · [Interactive 3D model](#viewer-3d) · [Digital twin](#digital-twin) · [Wiring diagram](#wiring-v7) · [Setup and run](#setup-instructions) · <a href="https://github.com/JRavenelco/hiwonder-brick"><img src="other/additionalMedia/Others/repo_icon.png" width="22" alt="Open the firmware repository"></a> [Firmware development repository](https://github.com/JRavenelco/hiwonder-brick) · [Firmware video](https://www.youtube.com/watch?v=Mzc6JfptzTI) · [Engineering Journal](Engineering_Journal_CSS_WRO2026_International.pdf) · [Releases](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS/releases)
 
 ---
 
@@ -2491,10 +2494,16 @@ Design v7 has 13 different printed parts, 15 pieces in total. Their STL files ar
 
 *Click a preview to watch the video on YouTube.*
 
+### Overview: our project and how to navigate this repository
+
+<a href="https://www.youtube.com/@jesussantana2872"><img src="other/additionalMedia/Previews/video_overview.jpg" alt="Overview video: The Maker, design v7, our robot and how to find your way around this repository" width="400"></a><br><b><a href="https://www.youtube.com/@jesussantana2872">▶ Overview video</a></b>: The Maker and how it works, then a tour of this repository following the five criteria of the rubric.
+
+### Open and Obstacle Challenge
+
 <table>
 <tr>
 <td align="center" width="50%"><a href="https://www.youtube.com/shorts/fHsPBr_Bzps"><img src="other/additionalMedia/Previews/video_open_challenge.jpg" alt="Open Challenge video" width="400"></a><br><b><a href="https://www.youtube.com/shorts/fHsPBr_Bzps">▶ Open Challenge</a></b></td>
-<td align="center" width="50%"><a href="https://www.youtube.com/shorts/g_2ZrS4TVyc"><img src="other/additionalMedia/Previews/video_obstacle_challenge.jpg" alt="Obstacle Challenge video: external view with the robot's camera and LiDAR views, synchronised, with stopwatch and lap counter" width="400"></a><br><b><a href="https://www.youtube.com/shorts/g_2ZrS4TVyc">▶ Obstacle Challenge</a></b></td>
+<td align="center" width="50%"><a href="https://www.youtube.com/watch?v=mQtrA2Nts34"><img src="other/additionalMedia/Previews/video_obstacle_challenge.jpg" alt="Obstacle Challenge video: external view with the robot's camera and LiDAR views, synchronised, with stopwatch and lap counter" width="400"></a><br><b><a href="https://www.youtube.com/watch?v=mQtrA2Nts34">▶ Obstacle Challenge (1:41)</a></b></td>
 </tr>
 </table>
 
