@@ -2252,7 +2252,6 @@ The complete folder tree, with a comment on every folder:
 ├── v-photos/                             # Required 6-view vehicle photos (design v7: *_v7.JPG, design v6: no suffix)
 │   └── Robot_More_Photos/                # High-resolution gallery & field testing shots
 ├── video/                                # Open and Obstacle Challenges YouTube video links
-├── .github/workflows/                    # Publishes the interactive 3D model with GitHub Pages
 ├── .gitattributes                        # Keeps the firmware files byte-exact
 ├── .gitignore                            # .gitignore
 ├── .gitmodules                           # Git submodule: Slamtec rplidar_sdk in src/ondevice/rplidar_sdk

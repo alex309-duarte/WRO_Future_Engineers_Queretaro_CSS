@@ -52,8 +52,6 @@ Colours are the SolidWorks appearance colours. Parts without an appearance show 
 
 The page is served by GitHub Pages from a small repository of its own, [`sebassesq/the-maker-3d`](https://github.com/sebassesq/the-maker-3d), which holds a copy of the two files the page needs: `index.html` and `vehicle_v7.glb`. This repository is not published as a whole, because it is larger than the 1 GB a Pages site may have. **After a change to the model or the page, copy those two files from this folder to that repository and push.**
 
-The workflow [`.github/workflows/viewer-pages.yml`](../../../.github/workflows/viewer-pages.yml) can also publish this folder from this repository, once the owner sets **Settings → Pages → Source: GitHub Actions** here; until then it publishes nothing.
-
 ## Viewing it locally
 
 Browsers do not load the model from `file://`. From this folder run `python -m http.server 8000` and open <http://localhost:8000>.
