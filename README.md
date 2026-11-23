@@ -290,7 +290,7 @@ The robot has gone through seven designs across two seasons (see [§7.4](#lesson
 | Repository release | Vehicle design | Event |
 |---|---|---|
 | [`v1.0.0`](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS/releases/tag/v1.0.0) | Design v6 | Mexico National Final, Tijuana (2nd place) |
-| [`v2.1.0`](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS/releases/tag/v2.1.0) | Design v7 | International Final, Puerto Rico |
+| [`v2.2.0`](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS/releases/tag/v2.2.0) | Design v7 | International Final, Puerto Rico |
 
 | Subsystem | Design v6: National Final (Sep 2026) | Design v7: International Final (Dec 2026) | Decision card |
 |---|---|---|---|
@@ -2635,4 +2635,4 @@ The MIT License covers the team's own work. Third-party code keeps its authors' 
 
 ---
 
-> *Document maintained by CSS | Last updated: November 2026 | Latest release: v2.1.0*
+> *Document maintained by CSS | Last updated: November 2026 | Latest release: v2.2.0*
