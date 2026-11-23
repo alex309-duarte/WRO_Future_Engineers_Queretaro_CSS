@@ -154,6 +154,7 @@ set(SOURCES
 )
 list(APPEND SOURCES
     "${CMAKE_CURRENT_SOURCE_DIR}/toolbox.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/grabador.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/../common/hailo_infer.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/../common/resources_manager.cpp"
 )

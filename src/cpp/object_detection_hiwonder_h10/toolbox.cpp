@@ -8,6 +8,7 @@
 
 #include "toolbox.hpp"
 #include "common_var.h"
+#include "grabador.hpp"
 #include "hailo_infer.hpp"
 #include "resources_manager.hpp"
 #include <chrono>
@@ -597,8 +598,12 @@ void print_net_banner(const std::string &detection_model_name,
     std::cout << BOLDMAGENTA << "-I-----------------------------------------------\n" << std::endl << RESET;
 }
 
+// Hiwonder: MJPG in .avi instead of mp4v in .mp4. An .mp4 is unreadable unless it is
+// closed properly, and with the board connected Ctrl+C is the emergency stop, which
+// ends the process with _exit() before the writer is released. An .avi keeps
+// every frame already written.
 void init_video_writer(const std::string &output_path, cv::VideoWriter &video, double framerate, int org_width, int org_height) {
-    video.open(output_path, cv::VideoWriter::fourcc('m', 'p', '4', 'v'), framerate, cv::Size(org_width, org_height));
+    video.open(output_path, cv::VideoWriter::fourcc('M', 'J', 'P', 'G'), framerate, cv::Size(org_width, org_height));
     if (!video.isOpened()) {
         throw std::runtime_error("Error when writing video");
     }
@@ -924,7 +929,8 @@ hailo_status run_post_process(
     PostprocessCallback postprocess_callback)
 {
     size_t i = 0;
-    cv::VideoWriter video;
+    cv::VideoWriter video; // stays closed: recording goes through grabador_camara
+    Grabador grabador_camara;
     InferenceResult output_item;
 
     const bool is_stream      = (input_type.is_video || input_type.is_camera);
@@ -961,8 +967,8 @@ hailo_status run_post_process(
     if (save_stream_output && is_stream) {
         std::string video_path =
             output_dir.empty()
-                ? "processed_video.mp4"
-                : (output_dir + "/processed_video.mp4");
+                ? "processed_video.avi"
+                : (output_dir + "/processed_video.avi");
 
         int base_w = static_cast<int>(org_width);
         int base_h = static_cast<int>(org_height);
@@ -970,8 +976,10 @@ hailo_status run_post_process(
         int writer_w = have_output_res ? out_w : base_w;
         int writer_h = have_output_res ? out_h : base_h;
 
-        init_video_writer(video_path, video, framerate, writer_w, writer_h);
-        std::cout << "-I- Saving processed video to: " << video_path << "\n";
+        // Hiwonder: encoded in a separate low-priority thread (grabador.hpp), one
+        // frame out of every GRABAR_CADA_N; encoding here, in the post-process
+        // thread, delayed the pillar detections the mission reads.
+        grabador_camara.Abrir(video_path, framerate, cv::Size(writer_w, writer_h), GRABAR_CADA_N);
     }
 
     auto handle_stream_frame = [&](cv::Mat &frame) -> bool {
@@ -991,7 +999,7 @@ hailo_status run_post_process(
         }
 
         if (save_stream_output) {
-            video.write(frame);
+            grabador_camara.Agregar(frame);
         }
 
         return true;
@@ -1030,6 +1038,7 @@ hailo_status run_post_process(
         i++;
     }
 
+    grabador_camara.Cerrar();
     release_resources(capture, video, input_type, no_display, nullptr, results_queue);
     return HAILO_SUCCESS;
 }
