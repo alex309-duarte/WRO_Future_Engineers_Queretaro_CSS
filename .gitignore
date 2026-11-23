@@ -30,6 +30,7 @@ other/additionalMedia/Videos/fpv.mp4
 /build/
 src/cpp/**/build/
 src/cpp/**/build_*/
+src/ondevice/oradar_sdk/build/
 src/ondevice/my_lidar_app
 src/ondevice/controlc
 __pycache__/

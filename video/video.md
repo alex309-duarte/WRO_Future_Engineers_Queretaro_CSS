@@ -26,6 +26,8 @@ The extended firmware of the Hiwonder ROS Robot Controller, from scratch in STM3
 
 <a href="https://github.com/JRavenelco/hiwonder-brick"><img src="../other/additionalMedia/Others/repo_icon.png" width="22" alt="Open the firmware repository"></a> Source, bench logs and everything else about the firmware: **[github.com/JRavenelco/hiwonder-brick](https://github.com/JRavenelco/hiwonder-brick)**, the firmware development repository.
 
+The firmware alone, in English, as the STM32CubeIDE project built in the video: **[github.com/JRavenelco/hiwonder-rrc-extended-firmware](https://github.com/JRavenelco/hiwonder-rrc-extended-firmware)**.
+
 ## Digital twin of the Obstacle Challenge
 *(Click on preview to visit YouTube Video)*
 

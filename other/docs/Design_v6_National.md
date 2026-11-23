@@ -312,7 +312,9 @@ git submodule update --init --recursive
 ```
 3. **Build:**
 ```bash
-   cd src/cpp/object_detection_original_h10/build/h10_original
+   cd src/cpp/object_detection_original_h10
+   cmake -S . -B build/h10_original
+   cd build/h10_original
    make
 ```
 4. **Run** (competition mode, no display):
