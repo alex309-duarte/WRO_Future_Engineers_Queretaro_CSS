@@ -8,6 +8,8 @@
 
 [![Obstacle Challenge](../other/additionalMedia/Previews/video_obstacle_challenge.jpg)](https://www.youtube.com/shorts/g_2ZrS4TVyc)
 
+Design v7 on our practice field (22 November 2026): the external view with the robot's camera (and the detections of its model) and its LiDAR scan, synchronised, with a stopwatch and a lap counter. Laps of 26.4, 24.6 and 25.4 s, parking in 20.6 s, 1:36.97 in total.
+
 ## Board firmware explained
 *(Click on preview to visit YouTube Video)*
 
