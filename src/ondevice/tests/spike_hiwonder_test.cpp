@@ -100,11 +100,12 @@ void test_arranque_acepta_servo_en_el_borde() {
     }
 }
 
-// Checks the steering travel on each side against 35 deg / 0.24 deg per unit.
-void test_recorrido_de_35_grados() {
-    check(kDireccionIzquierda - kDireccionCentro <= 35.0 / 0.24 &&
-          kDireccionCentro - kDireccionDerecha <= 35.0 / 0.24,
-          "steering stays within ±35° of centre");
+// Checks the steering travel on each side against 45 deg / 0.24 deg per unit
+// (the limit was raised from 35 deg on 2026-11-22, see hiwonder_config.h).
+void test_recorrido_de_45_grados() {
+    check(kDireccionIzquierda - kDireccionCentro <= 45.0 / 0.24 &&
+          kDireccionCentro - kDireccionDerecha <= 45.0 / 0.24,
+          "steering stays within ±45° of centre");
 }
 
 // Invalid WRO_MAX_RPS values must fail before the board is opened.
@@ -152,7 +153,8 @@ void test_reset_gyro_en_decigrados() {
 
 // Full-lock 70 deg turn in direction `sentido`: steering goes to the
 // configured limit, the turn stops just past 70 deg with the hub's yaw sign,
-// and the drive ends stopped and in HOLD.
+// and the drive ends stopped, coasting (no HOLD after a turn since 2026-11-22,
+// see turn_impl in spike_compat.cpp).
 void test_giro_a_tope(int sentido, std::uint16_t posicion_esperada, const std::string &nombre) {
     arrancar(nullptr);
     Spike_Reset_Gyro(0);
@@ -166,7 +168,7 @@ void test_giro_a_tope(int sentido, std::uint16_t posicion_esperada, const std::s
     check(std::fabs(e.yaw_deg) >= 70.0 && std::fabs(e.yaw_deg) < 85.0,
           (nombre + ": turns until |yaw| >= 70°").c_str());
     check(e.yaw_deg * sentido < 0.0, (nombre + ": the yaw changes in the hub's direction").c_str());
-    check(e.paradas > 0 && e.holds > 0, (nombre + ": stops and holds at the end").c_str());
+    check(e.paradas > 0 && e.holds == 0, (nombre + ": stops at the end, coasting (no HOLD)").c_str());
 }
 
 // cvca() drives at 70 % of speed 100, but never above the WRO_MAX_RPS limit.
@@ -199,7 +201,7 @@ int main() {
     test_arranque_rechaza_tope_invalido();
     test_arranque_rechaza_servo_fuera_de_recorrido();
     test_arranque_acepta_servo_en_el_borde();
-    test_recorrido_de_35_grados();
+    test_recorrido_de_45_grados();
     test_arranque_ok();
     test_reset_gyro_en_decigrados();
     test_giro_a_tope(1, kDireccionDerecha, "right");

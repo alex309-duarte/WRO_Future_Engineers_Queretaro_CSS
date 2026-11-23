@@ -42,19 +42,36 @@ message(STATUS "Twin: RPLidar front of the robot = lidar angle ${RPLIDAR_FRONT_D
 # The mission is the repository's file. -DWRO_MISSION_PATCH=<file.patch> builds
 # it from a patched copy instead (proposed/*.patch: changes to the mission that
 # are being tried in the twin before they go to the robot).
+# proposed/mission_changes.patch was made on the mission of release v2.2.0; the
+# mission changed after it (2026-11-23), so the patch is applied to the
+# object_detection.cpp of the git tag WRO_MISSION_PATCH_REF (read from the
+# repository clone with git). An empty WRO_MISSION_PATCH_REF uses the current file.
 set(WRO_MISSION_PATCH "" CACHE FILEPATH "Patch applied to a copy of object_detection.cpp")
+set(WRO_MISSION_PATCH_REF "v2.2.0" CACHE STRING "Git tag whose object_detection.cpp the patch is applied to")
 set(MISSION_SRC "${OD}/object_detection.cpp")
 if(WRO_MISSION_PATCH)
     set(MISSION_SRC "${CMAKE_BINARY_DIR}/patched/object_detection.cpp")
     file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/patched")
+    set(_mission_base "${OD}/object_detection.cpp")
+    if(WRO_MISSION_PATCH_REF)
+        set(_mission_base "${CMAKE_BINARY_DIR}/patched/object_detection_${WRO_MISSION_PATCH_REF}.cpp")
+        execute_process(
+            COMMAND git -C "${WRO_REPO}" show "${WRO_MISSION_PATCH_REF}:src/cpp/object_detection_hiwonder_h10/object_detection.cpp"
+            OUTPUT_FILE "${_mission_base}"
+            RESULT_VARIABLE _git_rc)
+        if(_git_rc)
+            message(FATAL_ERROR "Could not read object_detection.cpp of ${WRO_MISSION_PATCH_REF} from ${WRO_REPO} "
+                                "(the patch needs a git clone with tags; -DWRO_MISSION_PATCH_REF= uses the current file)")
+        endif()
+    endif()
     execute_process(
-        COMMAND patch --binary -s -o "${MISSION_SRC}" "${OD}/object_detection.cpp" "${WRO_MISSION_PATCH}"
+        COMMAND patch --binary -s -o "${MISSION_SRC}" "${_mission_base}" "${WRO_MISSION_PATCH}"
         RESULT_VARIABLE _patch_rc)
     if(_patch_rc)
-        message(FATAL_ERROR "Could not apply ${WRO_MISSION_PATCH} to object_detection.cpp")
+        message(FATAL_ERROR "Could not apply ${WRO_MISSION_PATCH} to ${_mission_base}")
     endif()
     set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${WRO_MISSION_PATCH}" "${OD}/object_detection.cpp")
-    message(STATUS "Twin: mission built with ${WRO_MISSION_PATCH}")
+    message(STATUS "Twin: mission built with ${WRO_MISSION_PATCH} (on ${_mission_base})")
 endif()
 
 add_executable(object_detection_twin
@@ -64,6 +81,7 @@ add_executable(object_detection_twin
     ${OD}/lidar_reto2.cpp
     ${OD}/rasp_gpio.cpp
     ${OD}/toolbox.cpp
+    ${OD}/grabador.cpp
     ${OD}/utils/utils.cpp
     ${SRC}/cpp/common/resources_manager.cpp
     ${ONDEVICE}/Oradar_S2L.cpp

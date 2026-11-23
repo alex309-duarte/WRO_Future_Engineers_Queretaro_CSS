@@ -84,7 +84,8 @@ void test_giro_con_await() {
     const auto &e = fake::estado();
     check(cerca(e.ultima_direccion, 40.0 * 4.29 / 179.0), "right turn with tire_turn 40: steering 0.96");
     check(e.yaw_deg <= -86.0 && e.yaw_deg > -100.0, "turns until |yaw| >= 86 (right decreases the yaw)");
-    check(e.paradas > 0 && e.holds > 0, "stops and holds at the end");
+    // No HOLD after a turn since 2026-11-22 (turn_impl in spike_compat.cpp).
+    check(e.paradas > 0 && e.holds == 0, "stops at the end, coasting (no HOLD)");
 }
 
 void test_giro_sin_await_usa_la_misma_escala() {
@@ -110,7 +111,7 @@ void test_small_turn_vuelve_al_rumbo() {
     fake::estado().yaw_deg = 40.0;                  // after swerving left around a pillar
     Spike_Small_Turn(1, 60, 0, 40, false);
     check(fake::estado().yaw_deg <= 0.0, "small_turn to the right continues until yaw <= 0");
-    check(fake::estado().holds > 0, "and holds at the end");
+    check(fake::estado().holds == 0, "and ends coasting (no HOLD since 2026-11-22)");
 }
 
 void test_avance_adelante() {

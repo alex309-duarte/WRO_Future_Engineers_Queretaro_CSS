@@ -7,7 +7,7 @@ This repository contains the engineering documentation for **CSS**'s autonomous 
 
 <table>
 <tr>
-<td colspan="2" align="center"><a href="https://www.youtube.com/@jesussantana2872"><img src="other/additionalMedia/Previews/video_overview.jpg" alt="Overview video: The Maker, design v7, our robot and how to find your way around this repository" width="560"></a><br><b><a href="https://www.youtube.com/@jesussantana2872">▶ Start here: the overview video</a></b><br>An introduction to our project and to The Maker, and a guided tour of this repository: what is in each part, how to navigate it, and where each rubric item is answered.</td>
+<td colspan="2" align="center"><a href="https://www.youtube.com/watch?v=mdZu4K4R0VA"><img src="other/additionalMedia/Previews/video_overview.jpg" alt="Overview video: The Maker, design v7, our robot and how to find your way around this repository" width="560"></a><br><b><a href="https://www.youtube.com/watch?v=mdZu4K4R0VA">▶ Start here: the overview video (9:49)</a></b><br>An introduction to our project and to The Maker, and a guided tour of this repository: what is in each part, how to navigate it, and where each rubric item is answered.</td>
 </tr>
 <tr>
 <td align="center" width="50%"><a href="https://www.youtube.com/shorts/fHsPBr_Bzps"><img src="other/additionalMedia/Previews/video_open_challenge.jpg" alt="Open Challenge video" width="400"></a><br><b><a href="https://www.youtube.com/shorts/fHsPBr_Bzps">▶ Watch the Open Challenge</a></b></td>
@@ -21,7 +21,7 @@ This repository contains the engineering documentation for **CSS**'s autonomous 
 </tr>
 </table>
 
-**Quick links:** [Overview video](https://www.youtube.com/@jesussantana2872) · [Videos](#driving-videos) · [What changed since nationals](#what-changed) · [Assembly instructions](other/Assembly_photos/Assembly_Process_EN.md) · [Bill of Materials](#bom) · [3D-print files](#printed-parts) · [Interactive 3D model](#viewer-3d) · [Digital twin](#digital-twin) · [Wiring diagram](#wiring-v7) · [Setup and run](#setup-instructions) · <a href="https://github.com/JRavenelco/hiwonder-brick"><img src="other/additionalMedia/Others/repo_icon.png" width="22" alt="Open the firmware repository"></a> [Firmware development repository](https://github.com/JRavenelco/hiwonder-brick) · [Firmware video](https://www.youtube.com/watch?v=Mzc6JfptzTI) · [Engineering Journal](Engineering_Journal_CSS_WRO2026_International.pdf) · [Releases](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS/releases)
+**Quick links:** [Overview video](https://www.youtube.com/watch?v=mdZu4K4R0VA) · [Videos](#driving-videos) · [What changed since nationals](#what-changed) · [Assembly instructions](other/Assembly_photos/Assembly_Process_EN.md) · [Bill of Materials](#bom) · [3D-print files](#printed-parts) · [Interactive 3D model](#viewer-3d) · [Digital twin](#digital-twin) · [Wiring diagram](#wiring-v7) · [Setup and run](#setup-instructions) · <a href="https://github.com/JRavenelco/hiwonder-brick"><img src="other/additionalMedia/Others/repo_icon.png" width="22" alt="Open the firmware repository"></a> [Firmware development repository](https://github.com/JRavenelco/hiwonder-brick) · [Firmware video](https://www.youtube.com/watch?v=Mzc6JfptzTI) · [Engineering Journal](Engineering_Journal_CSS_WRO2026_International.pdf) · [Releases](https://github.com/alex309-duarte/WRO_Future_Engineers_Queretaro_CSS/releases)
 
 ---
 
@@ -383,7 +383,7 @@ The v7 chassis is a modification of the v6 design, modeled in SolidWorks. It was
 
 ### 4.2 Steering <a id="steering"></a>
 
-The Maker's steering uses a regular Ackermann linkage. In the design v7 CAD the linkage reaches a maximum steering angle of **45.9°** (Figure 3), practically the 45.44° of design v6 (Figures 4 and 5), so the turning radius is the same as in v6. In software the steering is limited to **±35°** from center, inside that mechanical travel (see [D1](#d1)). This geometry ensures the inner and outer front wheels trace concentric arcs around a common turning center during a turn, minimizing tire scrub and keeping the front tires rolling rather than dragging through corners, a property that matters directly for both consistency and tire wear over a full run.
+The Maker's steering uses a regular Ackermann linkage. In the design v7 CAD the linkage reaches a maximum steering angle of **45.9°** (Figure 3), practically the 45.44° of design v6 (Figures 4 and 5), so the turning radius is the same as in v6. In software the steering is limited to **±45°** from center (±35° until 2026-11-22), inside that mechanical travel (see [D1](#d1)). This geometry ensures the inner and outer front wheels trace concentric arcs around a common turning center during a turn, minimizing tire scrub and keeping the front tires rolling rather than dragging through corners, a property that matters directly for both consistency and tire wear over a full run.
 
 <img src="other/additionalMedia/Others/Ackermann_v7.png" alt="Design v7 CAD top view of the Ackermann linkage and HX-12H servo at full lock, 45.9 degrees" width="530">
 
@@ -411,7 +411,7 @@ After weighing both options, the team concluded that the regular Ackermann's sli
 #### Decision card D1: steering servo <a id="d1"></a>
 
 > [!IMPORTANT]
-> **D1 in one line:** We chose the **Hiwonder HX-12H bus servo** instead of a PWM hobby servo because it holds and reports its own position and runs straight from the battery; the software limits it to ±35°.
+> **D1 in one line:** We chose the **Hiwonder HX-12H bus servo** instead of a PWM hobby servo because it holds and reports its own position and runs straight from the battery; the software limits it to ±45°.
 >
 > <details>
 > <summary><kbd>Click to open</kbd> <b>The full card: what, why, when, how, what for, alternatives</b></summary>
@@ -421,7 +421,7 @@ After weighing both options, the team concluded that the regular Ackermann's sli
 > | **What** | The LEGO SPIKE Small Angular Motor was replaced by a **Hiwonder HX-12H serial bus servo** driving the same Ackermann linkage. |
 > | **Why** | With the SPIKE Hub removed ([D7](#d7)), the steering needed an actuator that the Hiwonder board can command. A bus servo holds its position on its own (closed loop inside the servo), reports its position, temperature and voltage, and runs directly from the 3S battery (9–12.6 V), so no extra regulator is needed. Its torque margin means the steering reaches its commanded angle at the same speed regardless of tire grip on the mat. |
 > | **When** | Design v7, October 2026 (bench calibration on 2026-10-04). |
-> | **How** | Positions 0–1000 map to 0–240° (0.24° per unit). Center (wheels straight) = 750; the linkage is assembled with the servo at that position. All steering commands pass through one function (`set_steering`) that clamps to **±35°** (`kDireccionMaxGrados`: 35 / 0.24 = 145 units each side, positions 605–895), so the wheel can never be driven into the chassis. At start-up the program refuses to move the servo if it is outside the allowed range, and on emergency stop the servo torque is released. Parameters: [`src/ondevice/hiwonder_config.h`](src/ondevice/hiwonder_config.h). |
+> | **How** | Positions 0–1000 map to 0–240° (0.24° per unit). Center (wheels straight) = 750; the linkage is assembled with the servo at that position. All steering commands pass through one function (`set_steering`) that clamps to **±45°** (`kDireccionMaxGrados`: 45 / 0.24 = 187 units each side, positions 563–937; ±35° until 2026-11-22), so the wheel can never be driven into the chassis. At start-up the program refuses to move the servo if it is outside the allowed range, and on emergency stop the servo torque is released. Parameters: [`src/ondevice/hiwonder_config.h`](src/ondevice/hiwonder_config.h). |
 > | **What for** | Fast steering response (0.2 s/60° at 11.1 V) directly from battery voltage, with position feedback at start-up. |
 > | **Alternatives** | A PWM hobby servo (no position feedback, needs a separate PWM output); keeping a LEGO motor through an adapter. |
 >
@@ -1165,9 +1165,9 @@ The v7 mission is the national (v6) mission running on the Hiwonder layer: the s
 >
 > - **Actuation:** the SPIKE calls of the mission go to the Hiwonder board through `spike_compat`. `Spike_Reto2_Init` converts the hub units the mission uses: steering `tire_turn` (4.29 steering-motor degrees per unit, so `40` = 0.96 of full lock) and hub degrees / millimetres to encoder ticks of the drive motor. Turns with `await` give the servo 150 ms to reach its position before the drive motor starts.
 > - **Start-up:** board check, steering centring and a 5 s gyro calibration with the robot still; the robot does not move until the LiDAR has delivered its first full scan (up to 5 s); the mission thread starts once camera, inference and post-processing are running, and the start button still starts the motion.
-> - **LiDAR-guarded advance:** `Advance_For_distance_Especial` (the crossing between two pillars of different color) stops early when the LiDAR ray in the direction of travel reads 370 mm or less; a ray with no return (0) is ignored. `Oradar_S2L_Advance_Until_Distance` (drive until the front wall is at a given distance) ends with a selectable brake type (`Hold` throughout the mission).
+> - **LiDAR-guarded advance:** `Advance_For_distance_Especial` (the crossing between two pillars of different color) stops early when the LiDAR ray in the direction of travel reads 400 mm or less (370 mm until 2026-11-22); a ray with no return (0) is ignored. `Oradar_S2L_Advance_Until_Distance` (drive until the front wall is at a given distance) measures the fitted front wall (`Distance_To_Wall(front)`) rather than the single ray straight ahead since 2026-11-22, and ends with a selectable brake type (`Hold` throughout the mission).
 > - **Bounded waits:** the pillar-color wait when leaving the parking lot gives up after 3 s and continues as "no pillar"; the wait for a valid wall in the avoidance geometry also ends on shutdown.
-> - **Gyro correction from several walls:** at every corner decision and before the final parking, the robot first waits until it is still (yaw stable for 300 ms, 1.5 s at most, then two new LiDAR scans) and then takes the **median tilt of all the walls in view** (front, right, left, behind) instead of one wall; with fewer than two walls it uses the single-wall value ([§6.6](#heading)).
+> - **Gyro correction from several walls:** at every corner decision, the robot first waits until it is still (yaw stable for 300 ms, 1.5 s at most, then two new LiDAR scans) and then takes the **median tilt of all the walls in view** (front, right, left, behind) instead of one wall; with fewer than two walls it uses the single-wall value ([§6.6](#heading)). Since 2026-11-22 the clockwise final parking squares up on the front wall alone (`Slope(front)`).
 > - **Start:** after the button, the robot waits up to 2 s for one side to read more than 600 mm (the hand on the button can hide a wall from the LiDAR); if neither side opens it does not move and prints why.
 > - **Heading log:** every run writes a CSV with the yaw and the distance and angle of each wall at every LiDAR scan, and one row for every gyro reset (`WRO_RUMBO_LOG` sets the path). It is the data behind the two changes above.
 > - **Shutdown:** Ctrl+C stops the robot at any moment (motors in coast, steering servo released, LiDAR motor stopped); a board error stops the motors and ends the mission.
@@ -1223,22 +1223,22 @@ Drawn once here rather than 12 times over.
 
 ```mermaid
 flowchart TD
-    A(["Corner_Case(past_cube, parking)"]) --> B["Advance to 1050mm from the front wall"]
+    A(["Corner_Case(past_cube, parking)"]) --> B["Advance to 1150mm from the front wall"]
     B --> C["Read the cube color the camera<br/>currently sees: traffic_lights.light_color"]
     C --> D{"cube color?"}
-    D -- "green, after a red" --> E["Advance to 750mm (parking)<br/>or 600mm (not parking)"]
-    D -- "red, after a red" --> F["Stay at 1050mm"]
-    D -- "anything else" --> G["Advance to 770mm<br/>set is_middle_case from the PREVIOUS cube's color"]
-    E --> H["Turn 86&deg; into the next section<br/>(right clockwise, left counter-clockwise),<br/>center vehicle, coast"]
+    D -- "green, after a red" --> E["Advance to 700mm (parking)<br/>or 520mm (not parking)"]
+    D -- "red, after a red" --> F["Advance to 1085mm"]
+    D -- "anything else" --> G["Advance to 790mm<br/>set is_middle_case from the PREVIOUS cube's color"]
+    E --> H["Turn 75&deg; right into the next section<br/>(counter-clockwise: 86&deg; left),<br/>center vehicle, coast"]
     F --> H
     G --> H
     H --> I(["Desicion(cube, is_middle_case, parking)"])
-    I --> J["Wait until the robot is still<br/>median tilt of the walls in view<br/>reset gyro to square up, settle 0.3s"]
+    I --> J["Wait until the robot is still<br/>median tilt of the walls in view<br/>reset gyro to square up, settle 0.1s"]
     J --> K{"was a cube already<br/>seen right at the corner?"}
     K -- "no (color was none)" --> L{"is_middle_case?"}
-    L -- yes --> M["esquivar_cubos_middle(parking)<br/>one cube in the middle of the section"]
+    L -- yes --> M["esquivar_cubos_middle(parking)<br/>one cube in the middle of the section<br/>(fixed manoeuvre)"]
     L -- no --> N["esquivar_cubos_1(parking)<br/>avoid the first cube"]
-    N --> O["esquivar_cubos_2(result, parking)<br/>look for + avoid a second cube"]
+    N --> O["esquivar_cubos_2(result, parking)<br/>look for + avoid a second cube<br/>(fixed manoeuvre)"]
     K -- yes --> O
     M --> P(["result feeds the NEXT Corner_Case call as past_cube"])
     O --> P
@@ -1254,15 +1254,19 @@ flowchart TD
 > > distances are its own: first stop at 1100 mm, red after a green at 500 mm
 > > (700 mm in the parking section), green after a green at 1090 mm, no pillar at 750 mm.
 >
-> > `esquivar_cubos_1/2/middle` each call `calculte_angle_section_start_clockwise_chr`
-> > (or its `..._counterclockwise` counterpart) to get an angle + distance to the
-> > cube, turn toward it (left for green, right for red -- the passing side is set
-> > by the rules and does not mirror with the driving direction), advance alongside
-> > it, then small-turn back straight.
-> > `esquivar_cubos_2` additionally short-circuits to a plain advance to 1100mm
-> > from the front wall when no second cube is present or it's the same color as
-> > the first (two greens in the parking section: 1600mm, then a short S-shift to
-> > the left).
+> > In the clockwise run, `esquivar_cubos_1` calls `calculte_angle_section_start_clockwise_chr`
+> > to get an angle + distance to the first cube, turns toward it (left for green, right
+> > for red -- the passing side is set by the rules and does not mirror with the driving
+> > direction), advances alongside it, small-turns back straight and drives on until the
+> > front wall is 1750mm away. Since 2026-11-22 the second cube (`esquivar_cubos_2`) and a
+> > single middle cube (`esquivar_cubos_middle`) are passed with a fixed manoeuvre at 70 %:
+> > turn 45° toward the passing side, drive 700mm (middle cube: 300mm) holding a 55°
+> > heading, then a small turn back. The counter-clockwise functions still compute an
+> > angle + distance for every cube (`calculte_angle_section_start_counterclockwise`).
+> > `esquivar_cubos_2` additionally short-circuits to a plain advance to 1150mm
+> > (counter-clockwise: 1100mm) from the front wall when no second cube is present or it's
+> > the same color as the first (two greens in the parking section: 1600mm, then a short
+> > S-shift to the left).
 >
 > > `Obstacle_Challenge_Thread` also calls `Slope(front)` once, right after
 > > the initial button-press reset, and then resets the gyro to `0`: the
@@ -1282,21 +1286,21 @@ flowchart TD
 > | Direction-of-run split | `600 mm` | Right reading above this at start -> clockwise run; left reading above this -> counter-clockwise run. Fixed for the whole attempt. |
 > | Start pillar wait | `3 s` | Leaving the parking lot, the robot waits this long for the camera to report a pillar, then continues as "no pillar". |
 > | Start wait | up to `2 s` | After the button, until one side reads more than 600 mm; otherwise the robot does not move. |
-> | Corner approach | `1050 mm` | First advance in every `Corner_Case`, before reading the cube color. |
-> | Green-cube advance | `750 mm` (parking) / `600 mm` (not) | Second advance in `Corner_Case` when the corner cube is green and the previous one was red. |
-> | Red-cube advance | `1050 mm` | `Corner_Case` when the corner cube is red and the previous one was red: the robot turns from the first stop. |
-> | No-cube advance | `770 mm` | Second advance in `Corner_Case` in every other case (treated as no corner cube). |
-> | Corner turn | `86 deg` | Every `Corner_Case`, turning into the next section: right when running clockwise (steering `tire_turn 35`), left when running counter-clockwise (`tire_turn 40`). |
+> | Corner approach | `1150 mm` | First advance in every clockwise `Corner_Case`, before reading the cube color (counter-clockwise: `1100 mm`). |
+> | Green-cube advance | `700 mm` (parking) / `520 mm` (not) | Second advance in `Corner_Case` when the corner cube is green and the previous one was red. |
+> | Red-cube advance | `1085 mm` | `Corner_Case` when the corner cube is red and the previous one was red. |
+> | No-cube advance | `790 mm` | Second advance in `Corner_Case` in every other case (treated as no corner cube). |
+> | Corner turn | `75 deg` clockwise / `86 deg` counter-clockwise | Every `Corner_Case`, turning into the next section: right when running clockwise (steering `tire_turn 40`), left when running counter-clockwise (`tire_turn 40`). |
 > | Gyro realign | median tilt of the walls in view | Start of every `Desicion`, squares the robot to the walls before looking for cubes. With fewer than two walls: `Slope(outer wall) +/- 90 deg` (outer wall on the left running clockwise, on the right running counter-clockwise). |
 > | Robot-still wait | yaw change `< 0.15 deg` per 50 ms for `300 ms`, at most `1.5 s`, then 2 LiDAR scans | Before every gyro realign, so the walls are not measured while the robot is still rotating. |
 > | Corners per run | `12` (3 laps x 4) | 4th corner of each lap calls `Corner_Case`/`Desicion` with `parking=true`. |
-> | Avoidance turn | angle `+5 deg` (cube 1) / `-5 deg` (cube 2) / `+3 deg` (middle), max `70 deg` | Turn toward the computed passing point before each avoidance advance. |
-> | Cube-1 clearance | `hypotenuse - 400` (normal) / `-200` (parking, green) | `esquivar_cubos_1`'s advance-past-cube distance. |
-> | Cube-2 clearance | `hypotenuse - 50` (normal) / `-60` (parking, red after green) | `esquivar_cubos_2`'s advance-past-cube distance when the second cube has the other color. |
-> | Middle-cube clearance | `hypotenuse - 450` (red) / `-350` (green) | `esquivar_cubos_middle`'s advance-past-cube distance. |
-> | LiDAR guard | `370 mm` | `Advance_For_distance_Especial` (cube-2 crossing) stops early when the ray in the direction of travel reads this or less. |
-> | Speeds | advances `30 %`, turns `23 %`; clockwise corner approach `50 %`, clockwise corner turn `40 %`; parking `15-23 %` | `Spike_*` speed scale 0-100. These are the values in the code while the new settings are tuned ([§6.9](#testing)). |
-> | Stage pause | `1 s` | Clockwise run: after every stage of laps 1 and 2. |
+> | Avoidance turn | clockwise: angle `+5 deg`, max `70 deg` (cube 1); fixed `45 deg` (cube 2 and middle cube) | Turn toward the passing point before each avoidance advance. The counter-clockwise run computes the angle for every cube. |
+> | Cube-1 clearance | `hypotenuse - 400` (normal) / `-200` (parking, green) | `esquivar_cubos_1`'s advance-past-cube distance; then on until the front wall is `1750 mm` away. |
+> | Cube-2 clearance | clockwise: `700 mm` holding `±55 deg`, then a small turn back to `±13 deg` | `esquivar_cubos_2`'s crossing when the second cube has the other color (counter-clockwise: computed hypotenuse). |
+> | Middle-cube clearance | clockwise: `300 mm` holding `55 deg` | `esquivar_cubos_middle`'s advance past the cube (counter-clockwise: computed hypotenuse). |
+> | LiDAR guard | `400 mm` | `Advance_For_distance_Especial` (cube-2 crossing) stops early when the ray in the direction of travel reads this or less. |
+> | Speeds | clockwise: corner approach and turn `70 %`, cube-2 and middle-cube manoeuvres and the advances after them `70-73 %`, cube 1 `30 %` (turns `23 %`), leaving the lot `40 %` (red) / `23-30 %` (green), parking `15-45 %`; counter-clockwise: advances `30 %`, turns `23 %` | `Spike_*` speed scale 0-100. The clockwise values are those of the filmed run of 2026-11-22 ([§6.9.2](#run-logs)). |
+> | Stage pause | `50 ms` in lap 1, `500 ms` from the end of lap 1 on | Clockwise run: between consecutive stages. |
 >
 > > Values are for the clockwise run, whose corner distances and speeds are the
 > > constants at the top of `object_detection.cpp`. The counter-clockwise run has
@@ -1454,15 +1458,15 @@ In the competition runs every steering correction is a heading PD on the gyro: p
 > 1. **Error.** `e = yaw - reference`, in tenths of a degree. The hub reported yaw in decidegrees and its gains are expressed in those units, so `spike_compat` multiplies both angles by 10 and the hub gains keep their meaning.
 > 2. **Heading dead band.** `kBandaMuertaRumboGrados = 0.3 deg` (`hiwonder_config.h`). Inside ±0.3° the error is 0; outside, 0.3° is subtracted, so there is no jump at the edge of the band. Without it, the residual gyro drift after calibration (~0.01 °/s) keeps the servo correcting by a few units while the robot holds a straight line.
 > 3. **PD.** `u = Kp·e + Kd·(e - e_prev)`. `e_prev` is cleared on every gyro reset, so the D term never sees the jump of a re-zeroed heading. Fixed-distance advances run one step per new IMU sample (20 Hz).
-> 4. **Servo.** `steering = clamp(u · kPdADireccion, -1, +1)`, where ±1 is the full steering travel allowed by software: `kDireccionRecorrido = 145` servo units either side of the centre (750; 605 right, 895 left), 0.24° per unit = ±34.8°, the ±35° software limit of [D1](#d1), which lies inside the 45.9° mechanical travel of the v7 linkage. `kPdADireccion = 0.133 · 200 / kDireccionRecorrido ≈ 0.183`.
+> 4. **Servo.** `steering = clamp(u · kPdADireccion, -1, +1)`, where ±1 is the full steering travel allowed by software: `kDireccionRecorrido = 187` servo units either side of the centre (750; 563 right, 937 left), 0.24° per unit = ±44.9°, the ±45° software limit of [D1](#d1), which lies inside the 45.9° mechanical travel of the v7 linkage. `kPdADireccion = 0.133 · 200 / kDireccionRecorrido ≈ 0.142`.
 > 5. **Reverse.** The output sign is inverted (in reverse the steering acts on the heading the opposite way), with 0.15 x Kp and no D term, as `ag_u()` did on the hub.
 >
-> **Why the scaling matters.** One unit of PD output moves the servo `kPdADireccion · kDireccionRecorrido = 0.133 · 200 = 26.6` units, about 6.4° of servo rotation: the same 6.4° per unit that the hub commanded its steering motor (`et * 6.4`). Because the travel appears in the denominator of `kPdADireccion`, the per-unit response does not depend on the steering limit; limiting the travel to ±35° only makes the correction saturate earlier. With the gains above, 1° of heading error gives:
+> **Why the scaling matters.** One unit of PD output moves the servo `kPdADireccion · kDireccionRecorrido = 0.133 · 200 = 26.6` units, about 6.4° of servo rotation: the same 6.4° per unit that the hub commanded its steering motor (`et * 6.4`). Because the travel appears in the denominator of `kPdADireccion`, the per-unit response does not depend on the steering limit; the steering limit only sets where the correction saturates (±45° since 2026-11-22; it was ±35°). With the gains above, 1° of heading error gives:
 >
 > | Function | Steering per 1° of heading error (P term) | Full lock reached at |
 > | :--- | :---: | :---: |
-> | `Spike_Forward` | 13.3 servo units (≈ 3.2°) | ≈ 11° of error |
-> | `Spike_Advance_For_Degrees` | 5.3 servo units (≈ 1.3°) | ≈ 28° of error |
+> | `Spike_Forward` | 13.3 servo units (≈ 3.2°) | ≈ 14° of error |
+> | `Spike_Advance_For_Degrees` | 5.3 servo units (≈ 1.3°) | ≈ 35° of error |
 >
 > </details>
 
@@ -1476,13 +1480,13 @@ Every edge case has a defined response, among them: no pillar visible at a corne
 > <details>
 > <summary><kbd>Click to open</kbd> <b>How the avoidance is coded, the parking in short, and the eight edge cases with their handling</b></summary>
 >
-> * **Underlying logic:** pillar color decisions are handled by `Desicion()`/`Corner_Case()`, and the actual avoidance maneuvers are implemented as `esquivar_cubos_1`/`esquivar_cubos_2`/`esquivar_cubos_middle` and `avoid_cube_start_section`, which use angle/hypotenuse geometry (`calculte_angle_section_start_clockwise[_chr]`, `calculte_angle_section_start_counterclockwise`) to aim the robot's approach at each detected pillar's position.
+> * **Underlying logic:** pillar color decisions are handled by `Desicion()`/`Corner_Case()`, and the actual avoidance maneuvers are implemented as `esquivar_cubos_1`/`esquivar_cubos_2`/`esquivar_cubos_middle` and `avoid_cube_start_section`, which use angle/hypotenuse geometry (`calculte_angle_section_start_clockwise[_chr]`, `calculte_angle_section_start_counterclockwise`) to aim the robot's approach at each detected pillar's position. Since 2026-11-22 the clockwise run passes the second pillar of a section and a single middle pillar with a fixed manoeuvre instead ([§6.3](#63-obstacle-challenge)).
 > * **Parallel Parking Maneuver:** The parking lot is not located with the camera. The mission counts the sections, and after the 12th section, which ends back in the section that holds the parking lot, it parks with LiDAR wall distances, encoder-measured reverses and gyro-controlled turns (sequence below). The model still detects the magenta markers as `xparking` so that they are not mistaken for pillars; those boxes are discarded before the pillar is chosen ([§6.4](#d8)).
 >
 > | Edge case | Handling |
 > |---|---|
-> | No pillar visible at a corner | `Corner_Case` advances to 770 mm from the front wall (750 mm counter-clockwise) and uses the previous pillar's color to decide if there is a middle pillar |
-> | Second pillar missing or same color as the first | `esquivar_cubos_2` short-circuits to a plain advance to 1100 mm from the front wall |
+> | No pillar visible at a corner | `Corner_Case` advances to 790 mm from the front wall (750 mm counter-clockwise) and uses the previous pillar's color to decide if there is a middle pillar |
+> | Second pillar missing or same color as the first | `esquivar_cubos_2` short-circuits to a plain advance to 1150 mm from the front wall (1100 mm counter-clockwise) |
 > | Run direction unknown at start | Decided once from the side-wall reading (600 mm) and held for the whole run. The robot waits up to 2 s for one side to open; if neither does, it does not move and prints the two readings |
 > | Board not connected | Nothing moves; with the window on, both programs keep showing the LiDAR (and the camera in the Obstacle Challenge) until Ctrl+C |
 > | Start position inside or outside | Open Challenge: side reading > 800 mm → outside start |
@@ -1500,9 +1504,9 @@ After the 12th section the robot is back in the section that holds the parking l
 
 *The parking manoeuvre of the counter-clockwise run, seen from above, with the values of the program in the fold below.*
 
-<img src="other/additionalMedia/Others/parking_sequence_cw.png" alt="Top view of the final parallel parking in the clockwise run, in six panels: approach the front wall, reverse along the wall, reverse with the wheels right, reverse with the wheels left into the lot, reverse straight, straighten" width="900">
+<img src="other/additionalMedia/Others/parking_sequence_cw.png" alt="The final parallel parking of the clockwise run in six frames of the external camera: after a red last pillar the robot turns back along the section, drives past the parking lot, reverses into it and straightens" width="900">
 
-*The same manoeuvre in the clockwise run. Here the parking lot is further from the front wall, so the first reverse is longer, and the turns are mirrored.*
+*The clockwise run, as filmed on 22 November 2026 (last pillar red, frames of the external camera of [§11](#driving-videos)): the robot turns back along the section, drives past the parking lot and reverses into it. The values are in the fold below.*
 
 > [!NOTE]
 > <details>
@@ -1512,13 +1516,15 @@ After the 12th section the robot is back in the section that holds the parking l
 >
 > | Step | Clockwise run | Counter-clockwise run |
 > |---|---|---|
-> | 1. Reposition after the last pillar | **Red:** advance to 1050 mm from the front wall, turn 90° left, advance at heading 90° to 360 mm from the wall ahead, re-zero the gyro, turn 90° right. **Green:** turn 10° left and creep at heading 10° until the LiDAR ray 10° ahead of the left side reads ≤ 180 mm, re-zero the gyro, turn 4° right. **None:** no repositioning. | **Green:** the mirror of the clockwise red case (1050 mm, 90° right, heading −90° to 360 mm, 90° left). **Red or none:** no repositioning. |
-> | 2. Approach the front wall | The gyro is re-zeroed with the median tilt of the walls in view (`Slope(front)` if fewer than two); advance until the front wall is at **250 mm** (heading +2° after a red pillar). | Creep forward at heading −10° until the right-side LiDAR reading (outer wall) is ≤ **160 mm**, then advance at heading 0 until the front wall is at **300 mm**. |
-> | 3. Reverse along the lot | Re-zero the gyro, reverse **2250 hub degrees** (≈ 875 mm). | Re-zero the gyro, reverse **740 hub degrees** (≈ 288 mm). |
-> | 4. Reverse S-turn into the lot | Reverse with the wheels right until the gyro has turned **50°**, re-zero, reverse with the wheels left for **105°**, reverse **400 hub degrees** (≈ 156 mm) at heading −105°, brake. | Reverse with the wheels left for **52°**, re-zero, reverse with the wheels right for **100°**, reverse **390 hub degrees** (≈ 152 mm) at heading 90°, brake. |
-> | 5. Straighten | Re-zero, reverse with the wheels right for **28°** and hold the motor, re-zero, short forward correction with the wheels left, centre the steering. | Mirror: reverse with the wheels left for **28°**, hold, short forward correction with the wheels right, centre the steering. |
+> | 1. Reposition after the last pillar | **Red:** advance to 1050 mm from the front wall, turn 90° left, advance at heading 90° to 500 mm from the wall ahead, re-zero the gyro, turn another 63° left: the robot now faces back along the section. **Green:** turn 10° left and creep at heading 10° until the LiDAR ray 10° ahead of the left side reads ≤ 180 mm, re-zero the gyro, turn 4° right. **None:** no repositioning. | **Green:** the mirror of the clockwise red case (1050 mm, 90° right, heading −90° to 360 mm, 90° left). **Red or none:** no repositioning. |
+> | 2. Approach the front wall | The gyro is re-zeroed with the tilt of the wall ahead (`Slope(front)`); advance until that wall is at **950 mm**: after a red last pillar the robot is then just past the parking lot. | Creep forward at heading −10° until the right-side LiDAR reading (outer wall) is ≤ **160 mm**, then advance at heading 0 until the front wall is at **300 mm**. |
+> | 3. Reverse into the lot | Reverse with the wheels right until the gyro has turned **45°**, then reverse **390 hub degrees** (≈ 152 mm) holding heading 90°, brake. | Re-zero the gyro, reverse **740 hub degrees** (≈ 288 mm). |
+> | 4. Reverse S-turn into the lot | Re-zero, reverse with the wheels left for **40°** and hold the motor. | Reverse with the wheels left for **52°**, re-zero, reverse with the wheels right for **100°**, reverse **390 hub degrees** (≈ 152 mm) at heading 90°, brake. |
+> | 5. Straighten | Re-zero, short forward correction with the wheels right, centre the steering. | Mirror: reverse with the wheels left for **28°**, hold, short forward correction with the wheels right, centre the steering. |
 >
 > After step 5 the robot stays parked (state `FinalParking` → `Idle` in [Figure 12](#63-obstacle-challenge)) until the program is stopped.
+>
+> The clockwise sequence was rewritten on 2026-11-22 (the figure above shows it in the filmed run, last pillar red); the sequence of release v2.2.0 (approach to 250 mm, reverse 2250 hub degrees, reverse S-turn at −105°) is in the repository history.
 >
 > </details>
 
@@ -1540,7 +1546,7 @@ After the 12th section the robot is back in the section that holds the parking l
 6. **Competition speed**, with the emergency stop ready.
 7. **Record every run** in the tables below: one row per attempt, including the failed ones. In the national journal, the lack of logged runs was our biggest methodological gap.
 
-**Status of the code and of these results (2026-11-21).** The tables below were measured on 2026-11-08 with the settings of release v2.0.0. Since then the LiDAR was remounted and rotated 90°, the front-wall distances of the Obstacle Challenge were raised by about 100 mm, the gyro correction uses several walls, and the Obstacle Challenge speeds in the code are lower while the new settings are tuned on the track ([§6.3](#63-obstacle-challenge)). New run logs will replace these when the tuning is finished.
+**Status of the code and of these results (2026-11-23).** The tables below were measured on 2026-11-08 with the settings of release v2.0.0. Since then the LiDAR was remounted and rotated 90°, the front-wall distances of the Obstacle Challenge were raised by about 100 mm, the gyro correction uses several walls, and on 2026-11-22 the clockwise Obstacle Challenge was made faster (corners at 70 %, fixed manoeuvres for the second and the middle pillar, a new final parking; [§6.3](#63-obstacle-challenge)). With that code the robot completed the filmed run of [§6.9.2](#run-logs). New run logs will replace these tables.
 
 #### 6.9.1 Component tests (2026-11-08) <a id="component-tests"></a>
 
@@ -1677,7 +1683,7 @@ The ten runs used five pillar layouts, A to E, each driven once in each directio
 
 **3 laps in 8/10 runs (80 %)**, parking completed in **7/10 (70 %)**, mean time of the complete runs **121.4 s** (117.5–126.8 s).
 
-**Filmed run, 2026-11-22.** A run filmed with an external camera, with the robot's camera and LiDAR views recorded at the same time ([§11](#driving-videos)), completed 3 laps and the parking in **1:36.97**: laps of 26.4, 24.6 and 25.4 s and 20.6 s for the parking, measured on the video from the moment the robot starts to move.
+**Filmed run, 2026-11-22.** A clockwise run with the code of [§6.3](#63-obstacle-challenge), filmed with an external camera, with the robot's camera and LiDAR views recorded at the same time ([§11](#driving-videos)), completed 3 laps and the parking in **1:36.97**: laps of 26.4, 24.6 and 25.4 s and 20.6 s for the parking, measured on the video from the moment the robot starts to move.
 
 **What the logs tell us.** Every failure happened on **lap 3**, in both challenges, and two of the three Obstacle failures were on the same layout (E). Together with the measured gyro drift (≈ 1°/min), this points at accumulated heading and distance error late in the run rather than at a single bad manoeuvre. Next targets: the corner re-squaring on lap 3, the pillar approach of layout E, and the final parking approach.
 
@@ -1779,7 +1785,7 @@ On 2026-11-09 WRO published an optional extra task for the Obstacle Challenge of
 
 ### 6.11 Digital twin of the Obstacle Challenge <a id="digital-twin"></a>
 
-We built a digital twin of the Obstacle Challenge in CoppeliaSim. The robot's mission program is compiled **without changes** and drives a simulated "The Maker"; only the hardware underneath it is replaced. The field, the signs and the parking lot follow the rules, the car comes from our CAD model, and the LiDAR and the camera sit where they are on the robot. A referee inside the scene records the laps, the side on which each sign is passed, every sign touched and every wall contact. Everything is in [`simulation/`](simulation), with instructions to run it.
+We built a digital twin of the Obstacle Challenge in CoppeliaSim. The robot's mission program is compiled **without changes** and drives a simulated "The Maker"; only the hardware underneath it is replaced. The field, the signs and the parking lot follow the rules, the car comes from our CAD model, and the LiDAR and the camera sit where they are on the robot. A referee inside the scene records the laps, the side on which each sign is passed, every sign touched and every wall contact. Everything is in [`simulation/`](simulation), with instructions to run it. The results below were obtained with the mission of release v2.2.0.
 
 <img src="other/additionalMedia/Others/twin_architecture.png" alt="The digital twin: the robot's mission program, unchanged, talks through a thin bridge to a simulated car, field and referee" width="800">
 
@@ -1795,9 +1801,9 @@ We built a digital twin of the Obstacle Challenge in CoppeliaSim. The robot's mi
 
 <a id="twin-findings"></a>**What the twin found, case 1: a single sign right after a corner.** When the last sign of a section is passed on the inner side and the corner is empty, the robot ends the corner turn about 1150 mm into the next section, only about 300 mm before a sign in the middle position. The avoidance manoeuvre for that sign turns and drives a calculated distance, and from there it has no room: in Layout A, clockwise, the red sign of the parking section is hit on lap 2.
 
-<img src="other/additionalMedia/Others/twin_middle_sign_before_after.png" alt="Top view of the parking section on lap 2: on the left the mission as in the repository hits the sign; on the right, with the proposed change, the robot reverses, changes lane and passes" width="800">
+<img src="other/additionalMedia/Others/twin_middle_sign_before_after.png" alt="Top view of the parking section on lap 2: on the left the mission of release v2.2.0 hits the sign; on the right, with the proposed change, the robot reverses, changes lane and passes" width="800">
 
-*Figure 18. Parking section, lap 2, top view. Left: the mission as in the repository hits the sign. Right: with the proposed change the robot reverses, changes lane and passes.*
+*Figure 18. Parking section, lap 2, top view. Left: the mission of release v2.2.0 hits the sign. Right: with the proposed change the robot reverses, changes lane and passes.*
 
 **The proposed change** ([`simulation/proposed/`](simulation/proposed)) reverses, reads the colour again and changes lane on a LiDAR measurement before passing the sign.
 
@@ -1819,13 +1825,13 @@ We built a digital twin of the Obstacle Challenge in CoppeliaSim. The robot's mi
 > <details>
 > <summary><kbd>Click to open</kbd> <b>Case 2 in detail</b></summary>
 >
-> **What the twin found, case 2: decisions on old camera images.** The two frame queues of the camera pipeline hold up to 60 frames each. When the computer fell slightly behind the camera rate (in the twin, while the program was saving its video) the queues filled and the mission decided on images more than a second old: on lap 3 it read a sign it had already passed as the sign of the next corner. On the robot, nothing should slow the pipeline during a run. The proposed change also holds the robot still for 200 ms before the colour of a corner sign is read.
+> **What the twin found, case 2: decisions on old camera images.** The two frame queues of the camera pipeline hold up to 60 frames each. When the computer fell slightly behind the camera rate (in the twin, while the program was saving its video) the queues filled and the mission decided on images more than a second old: on lap 3 it read a sign it had already passed as the sign of the next corner. On the robot, nothing should slow the pipeline during a run: since 2026-11-22 the recording option (`-s`) encodes the camera and LiDAR videos in a separate low-priority thread and drops frames instead of delaying the detections. The proposed change also holds the robot still for 200 ms before the colour of a corner sign is read.
 >
 > </details>
 
 **Results (twin only, not robot results):**
 
-| Layout A, clockwise | Mission as in the repository | Mission with the proposed change |
+| Layout A, clockwise | Mission of release v2.2.0 | Mission with the proposed change |
 |---|---|---|
 | Plain layout | Lap 1 clean; lap 2 the red sign of the parking section is hit | 3 laps, 15 of 15 signs on the correct side, none touched, 1:54.6 |
 | One sign replaced (surprise rule, 4 runs) | not run | 4 of 4 runs: 3 laps, the modified sign passed on the side of its original colour 3 of 3 times, no sign touched |
@@ -1931,7 +1937,7 @@ Nine risks, each with its consequence, mitigation and status. One is still open:
 > | Risk / failure mode | Consequence | Mitigation | Status |
 > |---|---|---|---|
 > | Program dies while the motor runs (the board firmware has **no command timeout**) | The motor keeps the last speed | `parada_emergencia.cpp`: on Ctrl+C, kill, closed SSH session, Ctrl+Z or crash, the 4 motors go to COAST, the servo torque is released and the process exits without returning to the mission. Not covered by software: `kill -9` and Pi power loss; for those, the Hiwonder board's power switch cuts power to the whole robot. | Implemented |
-> | Steering driven past the mechanical limit | Wheel hits the chassis | Single clamp in `set_steering`; start-up refuses to move a servo outside the range | Implemented (±35°, see [D1](#d1)) |
+> | Steering driven past the mechanical limit | Wheel hits the chassis | Single clamp in `set_steering`; start-up refuses to move a servo outside the range | Implemented (±45°, see [D1](#d1)) |
 > | LiDAR keeps spinning after exit | Battery drain, heat | Emergency stop also sends the LiDAR stop frames | Implemented |
 > | LiDAR not ready at start | Decisions on an empty buffer | Waits up to 50 cycles for the first scan, aborts cleanly otherwise | Implemented |
 > | Gyro drift | Heading error accumulates over 3 laps | 5 s bias calibration; heading re-squared against the side wall at every corner | Implemented |
@@ -2496,7 +2502,7 @@ Design v7 has 13 different printed parts, 15 pieces in total. Their STL files ar
 
 ### Overview: our project and how to navigate this repository
 
-<a href="https://www.youtube.com/@jesussantana2872"><img src="other/additionalMedia/Previews/video_overview.jpg" alt="Overview video: The Maker, design v7, our robot and how to find your way around this repository" width="400"></a><br><b><a href="https://www.youtube.com/@jesussantana2872">▶ Overview video</a></b>: The Maker and how it works, then a tour of this repository following the five criteria of the rubric.
+<a href="https://www.youtube.com/watch?v=mdZu4K4R0VA"><img src="other/additionalMedia/Previews/video_overview.jpg" alt="Overview video: The Maker, design v7, our robot and how to find your way around this repository" width="400"></a><br><b><a href="https://www.youtube.com/watch?v=mdZu4K4R0VA">▶ Overview video (9:49)</a></b>: The Maker and how it works, then a tour of this repository following the five criteria of the rubric.
 
 ### Open and Obstacle Challenge
 

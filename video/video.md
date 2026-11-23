@@ -1,7 +1,7 @@
 ## Overview: our project and how to navigate this repository
 *(Click on preview to visit YouTube Video)*
 
-[![Overview video: The Maker, design v7, our robot and how to find your way around this repository](../other/additionalMedia/Previews/video_overview.jpg)](https://www.youtube.com/@jesussantana2872)
+[![Overview video: The Maker, design v7, our robot and how to find your way around this repository](../other/additionalMedia/Previews/video_overview.jpg)](https://www.youtube.com/watch?v=mdZu4K4R0VA)
 
 An introduction to our project and to The Maker, and a guided tour of the repository: what is in each part, how to navigate it, and where each rubric item is answered.
 

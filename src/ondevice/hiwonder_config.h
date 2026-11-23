@@ -21,14 +21,16 @@
 // the lower position. CHECK: with the wheels lifted, the right position must
 // turn the wheels to the right.
 //
-// STEERING LIMIT: ±35° from centre; beyond the mechanical limit the wheel hits
-// the chassis. Every steering command (PD, full-lock turns, centring) goes
-// through set_steering, which clamps to ±1 = these positions, so this is the
-// hard limit. 35° / 0.24 = 145.8 units; the cast truncates (145 = 34.8°).
+// STEERING LIMIT: ±45° from centre; beyond the mechanical limit the wheel hits
+// the chassis (45.9° at full lock in the CAD). Every steering command (PD,
+// full-lock turns, centring) goes through set_steering, which clamps to ±1 =
+// these positions, so this is the hard limit. 45° / 0.24 = 187.5 units; the
+// cast truncates (187 = 44.9°). Raised from 35° on 2026-11-22; the Open
+// Challenge shares this layer.
 constexpr double        kGradosPorUnidadServo = 0.24;   // deg per servo unit
 constexpr double        kDireccionMaxGrados   = 45.0;   // deg, max steering angle
 constexpr std::uint16_t kDireccionRecorrido   =
-    static_cast<std::uint16_t>(kDireccionMaxGrados / kGradosPorUnidadServo);  // 145
+    static_cast<std::uint16_t>(kDireccionMaxGrados / kGradosPorUnidadServo);  // 187
 constexpr std::uint8_t  kServoDireccion     = 1;        // bus servo ID
 // Centre = wheels straight. 180° of the servo (180 / 0.24 = 750): the linkage
 // is assembled with the servo at this position so it lines up with the screws.

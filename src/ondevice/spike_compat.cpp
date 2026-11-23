@@ -392,8 +392,10 @@ void turn_impl(int direction, int speed, float degrees, int tire_turn,
         if (std::chrono::steady_clock::now() > deadline) break;
         sd::wait_control_step();
     }
+    // Since 2026-11-22 a turn ends with the motors coasting, without Hold, so
+    // the next move starts from a rolling robot. This layer is shared with the
+    // Open Challenge.
     Spike_Coast_Motors();
-    //Spike_Hold_Motors();
 }
 
 }  // namespace
