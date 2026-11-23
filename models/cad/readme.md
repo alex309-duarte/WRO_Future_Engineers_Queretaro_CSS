@@ -16,7 +16,7 @@ To resolve this, the internal layout was heavily optimized, successfully lowerin
 ## Engineering and Kinematics
 
 ### Ackermann Steering
-The vehicle incorporates Ackermann steering geometry, allowing the robot to navigate turns smoothly without wheel slip or drag. Through this mechanical design, a maximum steering angle of 45.9 degrees was achieved in design v7 (45.44 degrees in design v6). The software limits the steering to ±35 degrees.
+The vehicle incorporates Ackermann steering geometry, allowing the robot to navigate turns smoothly without wheel slip or drag. Through this mechanical design, a maximum steering angle of 45.9 degrees was achieved in design v7 (45.44 degrees in design v6). The software limits the steering to ±45 degrees.
 
 ### Wheelbase-to-Track Ratio
 To guarantee driving stability and reliable cornering, a wheelbase-to-track ratio of 1.34 was implemented. This proportion was intentionally selected to closely mimic the 1.4 ratio commonly used in real-world automotive design, ensuring optimal handling characteristics.

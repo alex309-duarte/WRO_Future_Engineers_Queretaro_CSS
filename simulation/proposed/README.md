@@ -2,11 +2,11 @@
 
 Status: **tried in the digital twin only. Not tested on the robot.** The patch is not applied to the mission code; the twin builds a patched copy of it (`-Adapted` in `tools/run_episode.ps1`).
 
-`mission_changes.patch` was made on `src/cpp/object_detection_hiwonder_h10/object_detection.cpp` as it is in releases v2.0.3 to v2.2.0. The mission changed after v2.2.0 (faster corners, fixed pillar manoeuvres, a new final parking), so the patch no longer applies to the current file. The twin's `-Adapted` build therefore applies it to the file of release v2.2.0, read from the git clone (`WRO_MISSION_PATCH_REF` in `../CMakeLists.txt`, default `v2.2.0`). To try it by hand on that version:
+`mission_changes.patch` was made on `src/cpp/object_detection_hiwonder_h10/object_detection.cpp` as it is in releases v2.0.3 to v2.1.0. The mission changed in v2.2.0 (faster corners, fixed pillar manoeuvres, a new final parking), so the patch no longer applies to the current file. The twin's `-Adapted` build therefore applies it to the file of release v2.1.0, read from the git clone (`WRO_MISSION_PATCH_REF` in `../CMakeLists.txt`, default `v2.1.0`). To try it by hand on that version:
 
 ```bash
-git show v2.2.0:src/cpp/object_detection_hiwonder_h10/object_detection.cpp > /tmp/object_detection_v2.2.0.cpp
-patch --binary -o /tmp/object_detection_proposed.cpp /tmp/object_detection_v2.2.0.cpp simulation/proposed/mission_changes.patch
+git show v2.1.0:src/cpp/object_detection_hiwonder_h10/object_detection.cpp > /tmp/object_detection_v2.1.0.cpp
+patch --binary -o /tmp/object_detection_proposed.cpp /tmp/object_detection_v2.1.0.cpp simulation/proposed/mission_changes.patch
 ```
 
 It holds two changes, each with its own switch:

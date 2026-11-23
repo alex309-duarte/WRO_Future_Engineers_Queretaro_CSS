@@ -117,7 +117,7 @@ This documentation is written so that another team can build the same robot and 
 ---
 
 ## 1. Our Team <a id="our-team"></a>
-<img src="t-photos/Team.jpg" width="800"><br>
+<img src="t-photos/Team.jpg" width="800" alt="Team CSS with The Maker"><br>
 ***Disclaimer:***
 *This image has been edited to remove former team members who are no longer part of the project, in order to protect their privacy. Editing was done using Microsoft Photos' generative erase feature.*
 
@@ -125,8 +125,8 @@ This documentation is written so that another team can build the same robot and 
 
 <table>
 <tr>
-<td align="center" valign="top" width="50%"><img src="t-photos/Christian.jpeg" width="150"><br><b>Christian Gael Centeno Velez</b><br>Age 17<br><b>Role:</b> Captain. Software, electronics and mechanical design</td>
-<td align="center" valign="top" width="50%"><img src="t-photos/Sebastian.jpeg" width="150"><br><b>Sebastián Esquivel Mondragón</b><br>Age 19<br><b>Role:</b> Documentation, electronics and mechanical design<br><a href="https://www.linkedin.com/in/sebastian-esquivel-mondragon/"><img src="other/additionalMedia/Others/linkedin.png" width="24" alt="LinkedIn profile of Sebastián Esquivel Mondragón"></a></td>
+<td align="center" valign="top" width="50%"><img src="t-photos/Christian.jpeg" width="150" alt="Christian Gael Centeno Velez"><br><b>Christian Gael Centeno Velez</b><br>Age 17<br><b>Role:</b> Captain. Software, electronics and mechanical design</td>
+<td align="center" valign="top" width="50%"><img src="t-photos/Sebastian.jpeg" width="150" alt="Sebastián Esquivel Mondragón"><br><b>Sebastián Esquivel Mondragón</b><br>Age 19<br><b>Role:</b> Documentation, electronics and mechanical design<br><a href="https://www.linkedin.com/in/sebastian-esquivel-mondragon/"><img src="other/additionalMedia/Others/linkedin.png" width="24" alt="LinkedIn profile of Sebastián Esquivel Mondragón"></a></td>
 </tr>
 </table>
 
@@ -146,8 +146,8 @@ This documentation is written so that another team can build the same robot and 
 
 <table>
 <tr>
-<td align="center" width="45%"><img src="t-photos/National_2026_2nd_place.jpg" width="360"><br><em>Team CSS with coach Manuel Alejandro Cardoso Duarte after the 2026 Mexico National Final (Tijuana): 2nd place and qualification for the International Final.</em></td>
-<td align="center" width="55%"><img src="t-photos/National_2026_field_GeeksAcademy.jpg" width="460"><br><em>Preparing the vehicle at the field during the National Final. Photo: Geeks Academy.</em></td>
+<td align="center" width="45%"><img src="t-photos/National_2026_2nd_place.jpg" width="360" alt="Team CSS and its coach after the 2026 Mexico National Final, 2nd place"><br><em>Team CSS with coach Manuel Alejandro Cardoso Duarte after the 2026 Mexico National Final (Tijuana): 2nd place and qualification for the International Final.</em></td>
+<td align="center" width="55%"><img src="t-photos/National_2026_field_GeeksAcademy.jpg" width="460" alt="Preparing the vehicle at the field during the National Final"><br><em>Preparing the vehicle at the field during the National Final. Photo: Geeks Academy.</em></td>
 </tr>
 </table>
 
@@ -157,9 +157,9 @@ This documentation is written so that another team can build the same robot and 
 
 <table>
 <tr>
-<td align="center" valign="top" width="33%"><img src="t-photos/Alejandro.jpeg" height="150"><br><b>Manuel Alejandro Cardoso Duarte</b><br>Coach<br><a href="https://www.linkedin.com/in/manuel-alejandro-cardoso-duarte-b68523129/"><img src="other/additionalMedia/Others/linkedin.png" width="24" alt="LinkedIn profile of Manuel Alejandro Cardoso Duarte"></a></td>
-<td align="center" valign="top" width="33%"><img src="t-photos/Santana.jpg" height="150"><br><b>José de Jesús Santana Ramírez, M.Sc.</b><br>Assistant coach</td>
-<td align="center" valign="top" width="33%"><img src="t-photos/Damara.jpg" height="150"><br><b>Rocío Damara Merlo Espino, Ph.D.</b><br>Administrative project manager<br><a href="https://www.linkedin.com/in/roc%C3%ADo-damara-merlo-espino-826198aa/"><img src="other/additionalMedia/Others/linkedin.png" width="24" alt="LinkedIn profile of Rocío Damara Merlo Espino"></a></td>
+<td align="center" valign="top" width="33%"><img src="t-photos/Alejandro.jpeg" height="150" alt="Manuel Alejandro Cardoso Duarte, coach"><br><b>Manuel Alejandro Cardoso Duarte</b><br>Coach<br><a href="https://www.linkedin.com/in/manuel-alejandro-cardoso-duarte-b68523129/"><img src="other/additionalMedia/Others/linkedin.png" width="24" alt="LinkedIn profile of Manuel Alejandro Cardoso Duarte"></a></td>
+<td align="center" valign="top" width="33%"><img src="t-photos/Santana.jpg" height="150" alt="José de Jesús Santana Ramírez, assistant coach"><br><b>José de Jesús Santana Ramírez, M.Sc.</b><br>Assistant coach</td>
+<td align="center" valign="top" width="33%"><img src="t-photos/Damara.jpg" height="150" alt="Rocío Damara Merlo Espino, administrative project manager"><br><b>Rocío Damara Merlo Espino, Ph.D.</b><br>Administrative project manager<br><a href="https://www.linkedin.com/in/roc%C3%ADo-damara-merlo-espino-826198aa/"><img src="other/additionalMedia/Others/linkedin.png" width="24" alt="LinkedIn profile of Rocío Damara Merlo Espino"></a></td>
 </tr>
 </table>
 
@@ -234,18 +234,18 @@ More info: [WRO Official Site](https://wro-association.org/) | [Future Engineers
 
 ### Design v7: International Final version (current)
 
-<img src="other/additionalMedia/Others/vehicle_v7.gif" width="600">
+<img src="other/additionalMedia/Others/vehicle_v7.gif" width="600" alt="Design v7 turning on the spot">
 
 <table style="width:100%">
 <tr>
-<td align="center"><img src="v-photos/Top_v7.JPG" width="400"><br>Top</td>
-<td align="center"><img src="v-photos/Front_v7.JPG" width="400"><br>Front</td>
-<td align="center"><img src="v-photos/Left_v7.JPG" width="400"><br>Left</td>
+<td align="center"><img src="v-photos/Top_v7.JPG" width="400" alt="Design v7, top view"><br>Top</td>
+<td align="center"><img src="v-photos/Front_v7.JPG" width="400" alt="Design v7, front view"><br>Front</td>
+<td align="center"><img src="v-photos/Left_v7.JPG" width="400" alt="Design v7, left view"><br>Left</td>
 </tr>
 <tr>
-<td align="center"><img src="v-photos/Bottom_v7.JPG" width="400"><br>Bottom</td>
-<td align="center"><img src="v-photos/Back_v7.JPG" width="400"><br>Back</td>
-<td align="center"><img src="v-photos/Right_v7.JPG" width="400"><br>Right</td>
+<td align="center"><img src="v-photos/Bottom_v7.JPG" width="400" alt="Design v7, bottom view"><br>Bottom</td>
+<td align="center"><img src="v-photos/Back_v7.JPG" width="400" alt="Design v7, back view"><br>Back</td>
+<td align="center"><img src="v-photos/Right_v7.JPG" width="400" alt="Design v7, right view"><br>Right</td>
 </tr>
 </table>
 
@@ -447,7 +447,7 @@ After weighing both options, the team concluded that the regular Ackermann's sli
 <table>
   <tr>
     <td align="center">
-      <a href="https://www.hiwonder.com/products/hx-12h"><img src="other/additionalMedia/Components_v7/HX-12H_servo_v7.jpg" width="220"></a><br>
+      <a href="https://www.hiwonder.com/products/hx-12h"><img src="other/additionalMedia/Components_v7/HX-12H_servo_v7.jpg" width="220" alt="Hiwonder HX-12H serial bus servo"></a><br>
       <em><a href="https://www.hiwonder.com/products/hx-12h">Hiwonder HX-12H serial bus servo</a></em>
     </td>
   </tr>
@@ -494,7 +494,7 @@ After weighing both options, the team concluded that the regular Ackermann's sli
 <table>
   <tr>
     <td align="center">
-      <a href="https://www.hiwonder.com/products/hall-encoder-dc-geared-motor"><img src="other/additionalMedia/Components_v7/JGB37-520_motor_v7.jpg" width="200"></a><br>
+      <a href="https://www.hiwonder.com/products/hall-encoder-dc-geared-motor"><img src="other/additionalMedia/Components_v7/JGB37-520_motor_v7.jpg" width="200" alt="Hiwonder JGB37-520 Hall-encoder motor"></a><br>
       <em><a href="https://www.hiwonder.com/products/hall-encoder-dc-geared-motor">Hiwonder JGB37-520 Hall-encoder motor, 30:1</a></em>
     </td>
   </tr>
@@ -559,15 +559,15 @@ With the same 1.25× safety factor as v6: $T_{m,req} = 0.0529$ N·m (0.54 kg·cm
 <table>
   <tr>
     <td align="center">
-      <a href="https://www.brickshop.eu/lego-parts/technics/lego-differential-housing-light-grey.html"><img src="other/additionalMedia/Components_v7/LEGO_65414_diff_housing_v7.jpg" width="180"></a><br>
+      <a href="https://www.brickshop.eu/lego-parts/technics/lego-differential-housing-light-grey.html"><img src="other/additionalMedia/Components_v7/LEGO_65414_diff_housing_v7.jpg" width="180" alt="LEGO differential housing 65414"></a><br>
       <em><a href="https://www.brickshop.eu/lego-parts/technics/lego-differential-housing-light-grey.html">LEGO differential housing (65414)</a></em>
     </td>
     <td align="center">
-      <a href="https://www.brickowl.com/catalog/lego-red-bevel-gear-with-28-teeth-65413"><img src="other/additionalMedia/Components_v7/LEGO_65413_bevel_gear_v7.jpg" width="150"></a><br>
+      <a href="https://www.brickowl.com/catalog/lego-red-bevel-gear-with-28-teeth-65413"><img src="other/additionalMedia/Components_v7/LEGO_65413_bevel_gear_v7.jpg" width="150" alt="LEGO 28-tooth bevel gear 65413"></a><br>
       <em><a href="https://www.brickowl.com/catalog/lego-red-bevel-gear-with-28-teeth-65413">LEGO 28-tooth bevel gear (65413)</a></em>
     </td>
     <td align="center">
-      <a href="https://www.amazon.com.mx/LEGO-Tire-86652-32019-75999/dp/B01CODUYCE"><img src="other/additionalMedia/Components_v7/LEGO_tire_62.4x20S_v7.jpg" width="200"></a><br>
+      <a href="https://www.amazon.com.mx/LEGO-Tire-86652-32019-75999/dp/B01CODUYCE"><img src="other/additionalMedia/Components_v7/LEGO_tire_62.4x20S_v7.jpg" width="200" alt="LEGO tyre 62.4 x 20 S"></a><br>
       <em><a href="https://www.amazon.com.mx/LEGO-Tire-86652-32019-75999/dp/B01CODUYCE">LEGO tyre 62.4 × 20 S (32019)</a></em>
     </td>
   </tr>
@@ -611,11 +611,11 @@ Both 2026 designs (v6 and v7) also mark a layout change from last year's all-whe
 <table>
   <tr>
     <td align="center">
-      <a href="other/datasheets/Panasonic-NCR18650B-datasheet.pdf"><img src="other/additionalMedia/Components_v7/NCR18650B_v7.jpg" width="300"></a><br>
+      <a href="other/datasheets/Panasonic-NCR18650B-datasheet.pdf"><img src="other/additionalMedia/Components_v7/NCR18650B_v7.jpg" width="300" alt="Panasonic NCR18650B cell"></a><br>
       <em><a href="other/datasheets/Panasonic-NCR18650B-datasheet.pdf">Panasonic NCR18650B cell (×3, in series)</a></em>
     </td>
     <td align="center">
-      <a href="https://www.inteligenciaartificialyrobotica.com/products/balanceador-cargador-de-baterias-li-ion-bms3s10a"><img src="other/additionalMedia/Components_v7/BMS_3S_v7.jpg" width="260"></a><br>
+      <a href="https://www.inteligenciaartificialyrobotica.com/products/balanceador-cargador-de-baterias-li-ion-bms3s10a"><img src="other/additionalMedia/Components_v7/BMS_3S_v7.jpg" width="260" alt="3S battery management board"></a><br>
       <em><a href="https://www.inteligenciaartificialyrobotica.com/products/balanceador-cargador-de-baterias-li-ion-bms3s10a">3S BMS (BMS3S10A)</a></em>
     </td>
   </tr>
@@ -778,7 +778,7 @@ $$t_{runtime} = \frac{36.7\text{ Wh}}{21\text{ W}} \approx 1.7\text{ h}$$
 <table>
   <tr>
     <td align="center">
-      <a href="https://www.slamtec.com/en/s2"><img src="other/additionalMedia/Components_v7/RPLidar_S2L_v7.jpg" width="320"></a><br>
+      <a href="https://www.slamtec.com/en/s2"><img src="other/additionalMedia/Components_v7/RPLidar_S2L_v7.jpg" width="320" alt="Slamtec RPLidar S2L"></a><br>
       <em><a href="https://www.slamtec.com/en/s2">Slamtec RPLidar S2L</a></em>
     </td>
   </tr>
@@ -800,7 +800,7 @@ $$t_{runtime} = \frac{36.7\text{ Wh}}{21\text{ W}} \approx 1.7\text{ h}$$
 <table>
   <tr>
     <td align="center">
-      <a href="other/datasheets/RP-008151-DS-1-camera-module-3-product-brief.pdf"><img src="other/additionalMedia/Components_v7/Camera_Module_3_Wide_v7.jpg" width="220"></a><br>
+      <a href="other/datasheets/RP-008151-DS-1-camera-module-3-product-brief.pdf"><img src="other/additionalMedia/Components_v7/Camera_Module_3_Wide_v7.jpg" width="220" alt="Raspberry Pi Camera Module 3 Wide"></a><br>
       <em><a href="other/datasheets/RP-008151-DS-1-camera-module-3-product-brief.pdf">Raspberry Pi Camera Module 3 Wide</a></em>
     </td>
   </tr>
@@ -829,7 +829,7 @@ $$t_{runtime} = \frac{36.7\text{ Wh}}{21\text{ W}} \approx 1.7\text{ h}$$
 <table>
   <tr>
     <td align="center">
-      <a href="other/datasheets/RP-008133-DS-1-raspberry-pi-ai-hat-plus-product-brief.pdf"><img src="other/additionalMedia/Components_v7/AI_HAT_plus_26TOPS_v7.jpg" width="240"></a><br>
+      <a href="other/datasheets/RP-008133-DS-1-raspberry-pi-ai-hat-plus-product-brief.pdf"><img src="other/additionalMedia/Components_v7/AI_HAT_plus_26TOPS_v7.jpg" width="240" alt="Raspberry Pi AI HAT+ 26 TOPS with Hailo-8"></a><br>
       <em><a href="other/datasheets/RP-008133-DS-1-raspberry-pi-ai-hat-plus-product-brief.pdf">Raspberry Pi AI HAT+ 26 TOPS (Hailo-8)</a></em>
     </td>
   </tr>
@@ -896,11 +896,11 @@ The control loop, the LiDAR driver and the camera pipeline run on the **Raspberr
 <table>
   <tr>
     <td align="center">
-      <a href="other/datasheets/RP-008348-DS-6-raspberry-pi-5-product-brief.pdf"><img src="other/additionalMedia/Components_v7/Raspberry_Pi_5_v7.jpg" width="300"></a><br>
+      <a href="other/datasheets/RP-008348-DS-6-raspberry-pi-5-product-brief.pdf"><img src="other/additionalMedia/Components_v7/Raspberry_Pi_5_v7.jpg" width="300" alt="Raspberry Pi 5"></a><br>
       <em><a href="other/datasheets/RP-008348-DS-6-raspberry-pi-5-product-brief.pdf">Raspberry Pi 5 (16 GB)</a></em>
     </td>
     <td align="center">
-      <a href="https://wiki.seeedstudio.com/Grove-LED_Button/"><img src="other/additionalMedia/Components_v7/Grove_LED_button_v7.jpg" width="200"></a><br>
+      <a href="https://wiki.seeedstudio.com/Grove-LED_Button/"><img src="other/additionalMedia/Components_v7/Grove_LED_button_v7.jpg" width="200" alt="Grove LED button"></a><br>
       <em><a href="https://wiki.seeedstudio.com/Grove-LED_Button/">Grove LED button (start button, GPIO4 / LED GPIO3)</a></em>
     </td>
   </tr>
@@ -992,7 +992,7 @@ However, since the WRO Future Engineers rules prohibit wireless communication du
 <table>
   <tr>
     <td align="center">
-      <a href="https://wiki.hiwonder.com/projects/ROS-Robot-Control-Board/en/latest/"><img src="other/additionalMedia/Components_v7/Hiwonder_ROS_controller_v7.jpg" width="300"></a><br>
+      <a href="https://wiki.hiwonder.com/projects/ROS-Robot-Control-Board/en/latest/"><img src="other/additionalMedia/Components_v7/Hiwonder_ROS_controller_v7.jpg" width="300" alt="Hiwonder ROS Robot Controller board"></a><br>
       <em><a href="https://wiki.hiwonder.com/projects/ROS-Robot-Control-Board/en/latest/">Hiwonder ROS Robot Controller (STM32F407VET6)</a></em>
     </td>
   </tr>
@@ -1524,7 +1524,7 @@ After the 12th section the robot is back in the section that holds the parking l
 >
 > After step 5 the robot stays parked (state `FinalParking` → `Idle` in [Figure 12](#63-obstacle-challenge)) until the program is stopped.
 >
-> The clockwise sequence was rewritten on 2026-11-22 (the figure above shows it in the filmed run, last pillar red); the sequence of release v2.2.0 (approach to 250 mm, reverse 2250 hub degrees, reverse S-turn at −105°) is in the repository history.
+> The clockwise sequence was rewritten on 2026-11-22 (the figure above shows it in the filmed run, last pillar red); the sequence of release v2.1.0 (approach to 250 mm, reverse 2250 hub degrees, reverse S-turn at −105°) is in the repository history.
 >
 > </details>
 
@@ -1785,7 +1785,7 @@ On 2026-11-09 WRO published an optional extra task for the Obstacle Challenge of
 
 ### 6.11 Digital twin of the Obstacle Challenge <a id="digital-twin"></a>
 
-We built a digital twin of the Obstacle Challenge in CoppeliaSim. The robot's mission program is compiled **without changes** and drives a simulated "The Maker"; only the hardware underneath it is replaced. The field, the signs and the parking lot follow the rules, the car comes from our CAD model, and the LiDAR and the camera sit where they are on the robot. A referee inside the scene records the laps, the side on which each sign is passed, every sign touched and every wall contact. Everything is in [`simulation/`](simulation), with instructions to run it. The results below were obtained with the mission of release v2.2.0.
+We built a digital twin of the Obstacle Challenge in CoppeliaSim. The robot's mission program is compiled **without changes** and drives a simulated "The Maker"; only the hardware underneath it is replaced. The field, the signs and the parking lot follow the rules, the car comes from our CAD model, and the LiDAR and the camera sit where they are on the robot. A referee inside the scene records the laps, the side on which each sign is passed, every sign touched and every wall contact. Everything is in [`simulation/`](simulation), with instructions to run it. The results below were obtained with the mission of release v2.1.0.
 
 <img src="other/additionalMedia/Others/twin_architecture.png" alt="The digital twin: the robot's mission program, unchanged, talks through a thin bridge to a simulated car, field and referee" width="800">
 
@@ -1801,9 +1801,9 @@ We built a digital twin of the Obstacle Challenge in CoppeliaSim. The robot's mi
 
 <a id="twin-findings"></a>**What the twin found, case 1: a single sign right after a corner.** When the last sign of a section is passed on the inner side and the corner is empty, the robot ends the corner turn about 1150 mm into the next section, only about 300 mm before a sign in the middle position. The avoidance manoeuvre for that sign turns and drives a calculated distance, and from there it has no room: in Layout A, clockwise, the red sign of the parking section is hit on lap 2.
 
-<img src="other/additionalMedia/Others/twin_middle_sign_before_after.png" alt="Top view of the parking section on lap 2: on the left the mission of release v2.2.0 hits the sign; on the right, with the proposed change, the robot reverses, changes lane and passes" width="800">
+<img src="other/additionalMedia/Others/twin_middle_sign_before_after.png" alt="Top view of the parking section on lap 2: on the left the mission of release v2.1.0 hits the sign; on the right, with the proposed change, the robot reverses, changes lane and passes" width="800">
 
-*Figure 18. Parking section, lap 2, top view. Left: the mission of release v2.2.0 hits the sign. Right: with the proposed change the robot reverses, changes lane and passes.*
+*Figure 18. Parking section, lap 2, top view. Left: the mission of release v2.1.0 hits the sign. Right: with the proposed change the robot reverses, changes lane and passes.*
 
 **The proposed change** ([`simulation/proposed/`](simulation/proposed)) reverses, reads the colour again and changes lane on a LiDAR measurement before passing the sign.
 
@@ -1831,7 +1831,7 @@ We built a digital twin of the Obstacle Challenge in CoppeliaSim. The robot's mi
 
 **Results (twin only, not robot results):**
 
-| Layout A, clockwise | Mission of release v2.2.0 | Mission with the proposed change |
+| Layout A, clockwise | Mission of release v2.1.0 | Mission with the proposed change |
 |---|---|---|
 | Plain layout | Lap 1 clean; lap 2 the red sign of the parking section is hit | 3 laps, 15 of 15 signs on the correct side, none touched, 1:54.6 |
 | One sign replaced (surprise rule, 4 runs) | not run | 4 of 4 runs: 3 laps, the modified sign passed on the side of its original colour 3 of 3 times, no sign touched |
@@ -1993,12 +1993,12 @@ Within the 2026 national season (v3–v6) the progress was incremental: no itera
 
 <tr>
 <td align="center" width="50%">
-<img src="v-photos/Robot_More_Photos/Versions/v1.jpeg" width="420"><br>
+<img src="v-photos/Robot_More_Photos/Versions/v1.jpeg" width="420" alt="Design v1, hybrid LEGO Technic chassis"><br>
 <b>v1</b> — Hybrid LEGO Technic chassis<br>
 <em>Regional competition (Querétaro). Fast to iterate, but component placement was dictated by the Technic hole grid and the assembly had play at every beam connection.</em>
 </td>
 <td align="center" width="50%">
-<img src="v-photos/Robot_More_Photos/Versions/v2.jpeg" width="420"><br>
+<img src="v-photos/Robot_More_Photos/Versions/v2.jpeg" width="420" alt="Design v2, custom 3D-printed chassis"><br>
 <b>v2</b> — Fully custom 3D-printed chassis<br>
 <em>National competition, <b>2nd place nationally</b>. Double-Ackermann steering, AWD, RPLidar S2L. Left us with three structural problems: barely under 1.5 kg, high centre of gravity, inconsistent steering.</em>
 </td>
@@ -2010,7 +2010,7 @@ Within the 2026 national season (v3–v6) the progress was incremental: no itera
 
 <tr>
 <td colspan="2" align="center">
-<img src="v-photos/Robot_More_Photos/Versions/v3_v4_v5_vfinal.jpg" width="820"><br>
+<img src="v-photos/Robot_More_Photos/Versions/v3_v4_v5_vfinal.jpg" width="820" alt="Printed frames of designs v3, v4 and v5 and the assembled design v6"><br>
 <b>v3, v4, v5</b> (bare printed frames) and <b>v6</b> (assembled, right)<br>
 <em>The progression is visible in the frame itself: material removed, mounting features consolidated, and the central bay opened up to drop the electronics lower.</em>
 </td>
@@ -2018,12 +2018,12 @@ Within the 2026 national season (v3–v6) the progress was incremental: no itera
 
 <tr>
 <td align="center" width="50%">
-<img src="v-photos/Robot_More_Photos/Versions/vfinal.jpeg" width="420"><br>
+<img src="v-photos/Robot_More_Photos/Versions/vfinal.jpeg" width="420" alt="Design v6 at the National Final"><br>
 <b>v6</b> — <i>"The Maker"</i> at the National Final (2nd place)<br>
 <em>RWD, regular Ackermann, Oradar MS200k LiDAR, Raspberry Pi 5 + Hailo-10H. 240 × 160 × 250 mm, 1.006 kg.</em>
 </td>
 <td align="center" width="50%">
-<img src="v-photos/Left_v7.JPG" width="420"><br>
+<img src="v-photos/Left_v7.JPG" width="420" alt="Design v7, The Maker for the International Final"><br>
 <b>v7 (current)</b> — <i>"The Maker"</i> for the International Final<br>
 <em>Same layout, lowered chassis. Hiwonder board, JGB37 motor, new differential, HX-12H servo, 3S battery, RPLidar S2L, Hailo-8. 245 × 157.7 × 180 mm, 1.013 kg.</em>
 </td>

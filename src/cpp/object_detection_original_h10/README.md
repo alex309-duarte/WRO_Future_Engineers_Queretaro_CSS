@@ -24,7 +24,7 @@ Files under `src/cpp/object_detection_original_h10/`:
 | `utils/utils.hpp` / `utils/utils.cpp` | Hailo postprocessing helpers | Bounding-box drawing, NMS output parsing (`parse_nms_data`) into `NamedBbox`, and COCO class name/color lookup helpers used by `postprocess_callback`. |
 
 Notes:
-This code contain in cpp folder is a copy from the Hailo apps examples to runs a simple object detection algorithm using their own hef file or a costum one. from that example is where we start adding the rest of the source files and change the make files to be able to compile from the repository folder. The repository can be placed in the home folder fromthe raspberry or another folder, in the following section a description on how to install the HAILO aplication is described. Other examples remain as part of the original repository from hailo apps. you need to look in the following path 'src/cpp/object_detection_original_h10/' to found the files that contains all the code. To compile it you need to navigate from that path to 'build/h10_original' executing make. After the make command it will generate the executable called "object_detection"
+This code contain in cpp folder is a copy from the Hailo apps examples to runs a simple object detection algorithm using their own hef file or a custom one. from that example is where we start adding the rest of the source files and change the make files to be able to compile from the repository folder. The repository can be placed in the home folder of the Raspberry Pi or another folder, in the following section a description on how to install the Hailo application is described. Other examples remain as part of the original repository from hailo apps. you need to look in the following path 'src/cpp/object_detection_original_h10/' to found the files that contains all the code. To compile it you need to navigate from that path to 'build/h10_original' executing make. After the make command it will generate the executable called "object_detection"
 
 **External dependencies used but not in this folder** (wired in via `CMakeLists.txt`, code lives in `src/cpp/common/`): `toolbox.hpp/.cpp` and `hailo_infer.hpp/.cpp` (shared Hailo pipeline plumbing: arg parsing, preprocess/inference/postprocess thread runners) and `resources_manager.hpp/.cpp` (resolves a `--net` model name/path to a local `.hef`, downloading it if needed per `config/resources_config.yaml`). The Oradar SDK (`oradar_sdk/`) and the `yaml-cpp`/`curl` submodules (`../external/`) are vendored source trees pulled in by `CMakeLists.txt` via `add_subdirectory`.
 
@@ -32,7 +32,7 @@ This code contain in cpp folder is a copy from the Hailo apps examples to runs a
 
 1. **Flash the OS.** Raspberry Pi OS 64-bit (Bookworm or newer) on the Pi 5, via Raspberry Pi Imager. Enable SSH/serial as needed.
 2. **Install the Hailo-10H stack.** 
-IMPORTANT: before instlling make sure you have at least the Raspberry Pi AI HAT+ 2 (40 TOPS + 8GB RAM) connected to the raspberry pi 5, if not the compilation will fail.
+IMPORTANT: before installing make sure you have at least the Raspberry Pi AI HAT+ 2 (40 TOPS + 8GB RAM) connected to the raspberry pi 5, if not the compilation will fail.
 Follow Hailo's Raspberry Pi setup for the AI HAT/M.2 Hailo-10H accelerator: install the `hailo-all` (or Hailo-10H specific) apt packages / PCIe driver + firmware + `HailoRT` runtime + `hailortcli` from Hailo's Raspberry Pi apt repo, then reboot and confirm the device is detected:
    ```bash
    hailortcli fw-control identify

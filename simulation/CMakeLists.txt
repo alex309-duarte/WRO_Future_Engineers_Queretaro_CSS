@@ -42,12 +42,12 @@ message(STATUS "Twin: RPLidar front of the robot = lidar angle ${RPLIDAR_FRONT_D
 # The mission is the repository's file. -DWRO_MISSION_PATCH=<file.patch> builds
 # it from a patched copy instead (proposed/*.patch: changes to the mission that
 # are being tried in the twin before they go to the robot).
-# proposed/mission_changes.patch was made on the mission of release v2.2.0; the
-# mission changed after it (2026-11-23), so the patch is applied to the
+# proposed/mission_changes.patch was made on the mission of release v2.1.0; the
+# mission changed after it (release v2.2.0), so the patch is applied to the
 # object_detection.cpp of the git tag WRO_MISSION_PATCH_REF (read from the
 # repository clone with git). An empty WRO_MISSION_PATCH_REF uses the current file.
 set(WRO_MISSION_PATCH "" CACHE FILEPATH "Patch applied to a copy of object_detection.cpp")
-set(WRO_MISSION_PATCH_REF "v2.2.0" CACHE STRING "Git tag whose object_detection.cpp the patch is applied to")
+set(WRO_MISSION_PATCH_REF "v2.1.0" CACHE STRING "Git tag whose object_detection.cpp the patch is applied to")
 set(MISSION_SRC "${OD}/object_detection.cpp")
 if(WRO_MISSION_PATCH)
     set(MISSION_SRC "${CMAKE_BINARY_DIR}/patched/object_detection.cpp")

@@ -19,7 +19,7 @@ video~/
 *.log  
 other/additionalMedia/Videos/fpv.mp4
 
-# Binario de las pruebas del adaptador Hiwonder
+# Binary of the offline tests of the Hiwonder layer
 /src/ondevice/tests/spike_hiwonder_test
 .lidar_*
 
@@ -47,3 +47,6 @@ firmware/hiwonder_pos-v8/work/
 
 # Editor settings of each computer
 .vscode/
+
+# Videos recorded on the robot with -s (processed_video.avi, lidar_video.avi)
+*.avi

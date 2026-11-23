@@ -1517,7 +1517,7 @@ static void *Obstacle_Challenge_Impl(void *arg){
         Spike_Center_Vehicle();
 
         // The previous parking sequence (front wall to 250 mm, reverse along the lot, reverse
-        // S-turn at -105 deg) is the one in release v2.2.0 and earlier.
+        // S-turn at -105 deg) is the one in release v2.1.0 and earlier.
 
     }
 
@@ -2437,7 +2437,7 @@ Color_traffic_light esquivar_cubos_1(bool parking){
 // if the LiDAR sees something within 400 mm ahead), then a small turn back to 13 deg.
 // No second pillar -> drives straight to 1150 mm from the front wall at 70 %.
 // The fixed manoeuvres replaced the computed angle and hypotenuse on 2026-11-22; that
-// version is the one in release v2.2.0 and earlier.
+// version is the one in release v2.1.0 and earlier.
 //   return : colour of the second pillar if present, otherwise past_cube.
 Color_traffic_light esquivar_cubos_2( Color_traffic_light past_cube, bool parking){
     float angle_to_wall = 0;
@@ -2588,7 +2588,7 @@ Color_traffic_light Corner_Case(Color_traffic_light past_cube, bool *middle_cube
 // Clockwise run: passes a single pillar in the middle row (CUBE_middle, 1450 mm from the
 // rear wall) with a fixed manoeuvre at 70 %: turn 45 deg towards its passing side, drive
 // 300 mm holding a 55 deg heading (Advance_For_distance_Especial), then a small turn back.
-// The computed angle and hypotenuse used before 2026-11-22 are in release v2.2.0.
+// The computed angle and hypotenuse used before 2026-11-22 are in release v2.1.0.
 //   return : colour of the pillar that was passed.
 Color_traffic_light esquivar_cubos_middle(bool parking){
     float angle_to_wall = 0;
