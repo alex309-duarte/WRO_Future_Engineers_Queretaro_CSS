@@ -26,7 +26,7 @@
 // through set_steering, which clamps to ±1 = these positions, so this is the
 // hard limit. 35° / 0.24 = 145.8 units; the cast truncates (145 = 34.8°).
 constexpr double        kGradosPorUnidadServo = 0.24;   // deg per servo unit
-constexpr double        kDireccionMaxGrados   = 35.0;   // deg, max steering angle
+constexpr double        kDireccionMaxGrados   = 45.0;   // deg, max steering angle
 constexpr std::uint16_t kDireccionRecorrido   =
     static_cast<std::uint16_t>(kDireccionMaxGrados / kGradosPorUnidadServo);  // 145
 constexpr std::uint8_t  kServoDireccion     = 1;        // bus servo ID

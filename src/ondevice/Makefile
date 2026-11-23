@@ -17,7 +17,7 @@ ORADAR_INCLUDES = -I$(ORADAR_SDK_DIR) -I$(ORADAR_SDK_DIR)/src
 HIWONDER_DIR = ./hiwonder
 HIWONDER_SRCS = spike_hiwonder.cpp parada_emergencia.cpp $(HIWONDER_DIR)/src/hiwonder_brick.cpp spike_compat.cpp
 # The calibration lives in headers: listing them makes `make` rebuild when it changes.
-HIWONDER_HEADERS = spike.h hiwonder_config.h parada_emergencia.h $(wildcard $(HIWONDER_DIR)/include/*/*)
+HIWONDER_HEADERS = spike.h hiwonder_config.h parada_emergencia.h common_var.h $(wildcard $(HIWONDER_DIR)/include/*/*)
 
 # Robot LiDAR: RPLIDAR_S2L (default, design v7) or ORADAR (MS200, design v6).
 #   make WRO_LIDAR=ORADAR

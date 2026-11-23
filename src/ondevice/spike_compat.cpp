@@ -393,7 +393,7 @@ void turn_impl(int direction, int speed, float degrees, int tire_turn,
         sd::wait_control_step();
     }
     Spike_Coast_Motors();
-    Spike_Hold_Motors();
+    //Spike_Hold_Motors();
 }
 
 }  // namespace

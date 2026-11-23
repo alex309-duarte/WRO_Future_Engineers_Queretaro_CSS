@@ -10,6 +10,9 @@
 #include <cstdio>
 #include <unistd.h>
 
+// Defined in object_detection.cpp (same executable).
+float Distance_To_Wall(const direction side);
+
 // Drives with Spike_Forward(vel, referencia) (speed in %, heading in deg)
 // until the front LiDAR distance is <= distancia_objetivo (same unit as the
 // LiDAR buffer, mm) or the program is terminating. Polls about every 1 ms.
@@ -17,14 +20,14 @@
 void Oradar_S2L_Advance_Until_Distance(int vel, int referencia, int distancia_objetivo, Brake_type brake){
     float lidar[360];
     Oradar_S2L_Get_Buffer(&lidar[0]);
-    float distancia_frente = lidar[RP_TO_ORADAR_IDX(FRONT)];
+    float distancia_frente = Distance_To_Wall(front);
 
     // 0 = no reading yet for that degree: keep driving, as in the original.
     while((terminating_main == 0) && ((distancia_frente > distancia_objetivo) || (distancia_frente == 0.0f))){
         Spike_Forward(vel, referencia);
         usleep(1000);
         Oradar_S2L_Get_Buffer(&lidar[0]);
-        distancia_frente = lidar[RP_TO_ORADAR_IDX(FRONT)];
+        distancia_frente = Distance_To_Wall(front);
     }
     printf("exit distance = %f\n", distancia_frente);
     if((brake == Hold) || (brake == Brake)){
