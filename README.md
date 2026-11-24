@@ -10,7 +10,7 @@ This repository contains the engineering documentation for **CSS**'s autonomous 
 <td colspan="2" align="center"><a href="https://www.youtube.com/watch?v=mdZu4K4R0VA"><img src="other/additionalMedia/Previews/video_overview.jpg" alt="Overview video: The Maker, design v7, our robot and how to find your way around this repository" width="560"></a><br><b><a href="https://www.youtube.com/watch?v=mdZu4K4R0VA">▶ Start here: the overview video (9:49)</a></b><br>An introduction to our project and to The Maker, and a guided tour of this repository: what is in each part, how to navigate it, and where each rubric item is answered.</td>
 </tr>
 <tr>
-<td align="center" width="50%"><a href="https://www.youtube.com/shorts/fHsPBr_Bzps"><img src="other/additionalMedia/Previews/video_open_challenge.jpg" alt="Open Challenge video" width="400"></a><br><b><a href="https://www.youtube.com/shorts/fHsPBr_Bzps">▶ Watch the Open Challenge</a></b></td>
+<td align="center" width="50%"><a href="https://www.youtube.com/watch?v=fHsPBr_Bzps"><img src="other/additionalMedia/Previews/video_open_challenge.jpg" alt="Open Challenge video" width="400"></a><br><b><a href="https://www.youtube.com/watch?v=fHsPBr_Bzps">▶ Watch the Open Challenge</a></b></td>
 <td align="center" width="50%"><a href="https://www.youtube.com/watch?v=mQtrA2Nts34"><img src="other/additionalMedia/Previews/video_obstacle_challenge.jpg" alt="Obstacle Challenge video: external view with the robot's camera and LiDAR views, synchronised, with stopwatch and lap counter" width="400"></a><br><b><a href="https://www.youtube.com/watch?v=mQtrA2Nts34">▶ Watch the Obstacle Challenge</a></b></td>
 </tr>
 <tr>
@@ -2507,7 +2507,7 @@ Design v7 has 13 different printed parts, 15 pieces in total. Their STL files ar
 
 <table>
 <tr>
-<td align="center" width="50%"><a href="https://www.youtube.com/shorts/fHsPBr_Bzps"><img src="other/additionalMedia/Previews/video_open_challenge.jpg" alt="Open Challenge video" width="400"></a><br><b><a href="https://www.youtube.com/shorts/fHsPBr_Bzps">▶ Open Challenge</a></b></td>
+<td align="center" width="50%"><a href="https://www.youtube.com/watch?v=fHsPBr_Bzps"><img src="other/additionalMedia/Previews/video_open_challenge.jpg" alt="Open Challenge video" width="400"></a><br><b><a href="https://www.youtube.com/watch?v=fHsPBr_Bzps">▶ Open Challenge</a></b></td>
 <td align="center" width="50%"><a href="https://www.youtube.com/watch?v=mQtrA2Nts34"><img src="other/additionalMedia/Previews/video_obstacle_challenge.jpg" alt="Obstacle Challenge video: external view with the robot's camera and LiDAR views, synchronised, with stopwatch and lap counter" width="400"></a><br><b><a href="https://www.youtube.com/watch?v=mQtrA2Nts34">▶ Obstacle Challenge (1:41)</a></b></td>
 </tr>
 </table>

@@ -8,7 +8,7 @@ An introduction to our project and to The Maker, and a guided tour of the reposi
 ## Open Challenge
 *(Click on preview to visit YouTube Video)*
 
-[![Open Challenge](../other/additionalMedia/Previews/video_open_challenge.jpg)](https://www.youtube.com/shorts/fHsPBr_Bzps)
+[![Open Challenge](../other/additionalMedia/Previews/video_open_challenge.jpg)](https://www.youtube.com/watch?v=fHsPBr_Bzps)
 
 ## Obstacle Challenge
 *(Click on preview to visit YouTube Video)*
