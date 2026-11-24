@@ -1,4 +1,4 @@
-# CSS - WRO Future Engineers 2026
+# CSS - WRO Future Engineers 2026 <img src="other/additionalMedia/Others/flag_mx.png" height="28" alt="Flag of Mexico">
 
 This repository contains the engineering documentation for **CSS**'s autonomous vehicle ***"The Maker"*** for the **WRO Future Engineers** 2026 season. Our team is based in Querétaro, México.
 
